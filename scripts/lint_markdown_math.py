@@ -4,8 +4,11 @@ r"""Lint public Markdown for cross-device mathematical notation.
 Repository convention:
 
 - indexed notes and the note template contain no live MathJax regions;
-- display equations in notes use committed opaque PNGs with copyable TeX source;
-- inline symbols in notes use ordinary code spans such as ``M_t``;
+- display equations in notes use committed, content-cropped 2x light/dark PNG
+  pairs with copyable TeX source;
+- inline mathematics uses Unicode, Markdown emphasis, and ``<sub>`` /
+  ``<sup>``; code spans are reserved for genuine source identifiers, commands,
+  paths, and configuration values;
 - TeX delimiters such as \(...\), \[...\], and $$ remain forbidden everywhere.
 
 The linter intentionally uses only the Python standard library so it can run
@@ -24,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 INLINE_MATH_RE = re.compile(r"\$`(?P<body>[^`\n]+)`\$")
 INLINE_CODE_RE = re.compile(r"`+[^`\n]*`+")
+INLINE_CODE_CAPTURE_RE = re.compile(r"(?<!`)`(?P<body>[^`\n]+)`(?!`)")
 FENCE_RE = re.compile(
     r"^ {0,3}(?P<marker>`{3,}|~{3,})[ \t]*(?P<info>[\w+-]*)"
 )
@@ -215,6 +219,31 @@ HIDDEN_CHARACTERS = {
     "\u200d": "zero-width joiner",
 }
 
+ASCII_MATH_NAME_RE = re.compile(
+    r"^(?:"
+    r"[A-Za-z]"
+    r"|alpha|beta|gamma|delta|epsilon|varepsilon|theta|lambda|mu|nu|xi"
+    r"|pi|rho|sigma|tau|phi|varphi|chi|psi|omega"
+    r")_[A-Za-z0-9]+$",
+    re.IGNORECASE,
+)
+MATH_OPERATOR_RE = re.compile(r"(?:\s(?:[+\-*/=×÷±≈≡≤≥])\s|[=×÷±≈≡≤≥])")
+MATH_OPERAND_RE = re.compile(
+    r"^(?:"
+    r"[+-]?\d+(?:\.\d+)?%?"
+    r"|[A-Za-z]"
+    r"|(?:alpha|beta|gamma|delta|epsilon|theta|lambda|mu|sigma|phi|chi|psi|omega)"
+    r"(?:_[A-Za-z0-9]+)?"
+    r"|[A-Za-z]_[A-Za-z0-9]+"
+    r")$",
+    re.IGNORECASE,
+)
+SOURCE_CONTEXT_RE = re.compile(
+    r"(?:源码|代码|函数|方法|类|字段|配置|命令|路径|文件|参数|"
+    r"\bcommit\b|\bsha\b|\bsymbol\b|\bapi\b)",
+    re.IGNORECASE,
+)
+
 
 @dataclass(frozen=True)
 class LintError:
@@ -353,6 +382,39 @@ def math_syntax_issues(payload: str) -> list[str]:
     return issues
 
 
+def looks_like_math_code_pill(payload: str) -> bool:
+    """Conservatively identify notation that should not look like source code.
+
+    The check deliberately ignores ordinary snake_case names.  It targets
+    single-symbol subscripts (``M_t``), spelled-out Greek subscripts
+    (``delta_p``), and compact expressions whose operands are all numbers or
+    mathematical symbols (``p + f`` or ``12.18 / 8.68``).
+    """
+
+    value = payload.strip()
+    if not value or len(value) > 120:
+        return False
+    if ASCII_MATH_NAME_RE.fullmatch(value):
+        return True
+    if "^" in value or "‖" in value or "||" in value:
+        return bool(re.search(r"[A-Za-z0-9]", value))
+    if not MATH_OPERATOR_RE.search(value):
+        return False
+
+    normalized = value.replace("−", "-")
+    parts = re.split(r"\s*[+\-*/=×÷±≈≡≤≥]\s*", normalized)
+    if len(parts) < 2:
+        return False
+    operands = [
+        part.strip(" \t()[]{}|")
+        for part in parts
+        if part.strip(" \t()[]{}|")
+    ]
+    return len(operands) >= 2 and all(
+        MATH_OPERAND_RE.fullmatch(operand) for operand in operands
+    )
+
+
 def lint_path(path: Path) -> list[LintError]:
     errors: list[LintError] = []
     static_formula_assets = requires_static_formula_assets(path)
@@ -398,8 +460,8 @@ def lint_path(path: Path) -> list[LintError]:
                             path,
                             active_line,
                             "MATH015",
-                            "notes and note templates must use formula PNGs, "
-                            "not live fenced math",
+                            "notes and note templates must use static light/dark "
+                            "formula pairs, not live fenced math",
                         )
                     payload = "\n".join(active_content).strip()
                     if not payload:
@@ -471,8 +533,8 @@ def lint_path(path: Path) -> list[LintError]:
                     path,
                     line_number,
                     "MATH015",
-                    "notes and note templates must use ordinary code spans "
-                    "for inline symbols, not live MathJax",
+                    "notes and note templates must use Unicode/Markdown inline "
+                    "notation or a static formula pair, not live MathJax",
                 )
             for issue in math_syntax_issues(payload):
                 add_error(
@@ -482,6 +544,18 @@ def lint_path(path: Path) -> list[LintError]:
                     "MATH008",
                     issue,
                 )
+
+        if static_formula_assets and not SOURCE_CONTEXT_RE.search(line):
+            for match in INLINE_CODE_CAPTURE_RE.finditer(line):
+                if looks_like_math_code_pill(match.group("body")):
+                    add_error(
+                        errors,
+                        path,
+                        line_number,
+                        "MATH016",
+                        "mathematical notation is styled as source code; use "
+                        "Unicode plus Markdown emphasis and <sub>/<sup>",
+                    )
 
         without_math = INLINE_MATH_RE.sub("", line)
         without_code = INLINE_CODE_RE.sub("", without_math)
@@ -571,7 +645,7 @@ def main() -> int:
         return 1
 
     print(
-        "OK: no live math in notes/templates; "
+        "OK: no live math or obvious math-like code pills in notes/templates; "
         f"cross-device notation checked in {len(markdown_paths())} Markdown file(s)"
     )
     return 0

@@ -32,7 +32,7 @@ jobs:
       - name: Run Markdown validation regressions
         run: python -m unittest discover -s tests -v
 
-      - name: Set up Node for the published iPad render smoke test
+      - name: Set up Node for the published cross-device render smoke test
         uses: actions/setup-node@v6
         with:
           node-version: "22"
@@ -45,7 +45,7 @@ jobs:
         run: |
           npx playwright install --with-deps webkit
 
-      - name: Verify changed formulas on GitHub with iPad viewports
+      - name: Verify changed formulas on GitHub across desktop and iPad profiles
         env:
           RENDER_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           RENDER_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
