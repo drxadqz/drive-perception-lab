@@ -19,8 +19,8 @@ import re
 import sys
 from collections import defaultdict
 from datetime import date
-from pathlib import Path, PurePosixPath
-from urllib.parse import urlsplit
+from pathlib import Path, PurePosixPath, PureWindowsPath
+from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,9 +53,34 @@ REQUIRED_FIELDS = (
 )
 
 REQUIRED_NOTE_HEADINGS = (
-    "## 3 分钟速读",
-    "## 10 分钟理解",
-    "## 30 分钟深读",
+    "## 1. 看图：论文到底做了什么",
+    "## 2. 读公式：核心机制怎样表达",
+    "## 3. 看结果：证据是否支持主张",
+    "## 4. 对源码：公式如何落地",
+    "## 5. 记结论：贡献、边界与开放问题",
+)
+
+MARKDOWN_IMAGE_RE = re.compile(
+    r"!\[(?P<alt>[^\]]*)\]\((?P<target><[^>]+>|[^)\s]+)"
+    r"(?:\s+[\"'][^\"']*[\"'])?\)"
+)
+FENCE_RE = re.compile(
+    r"^(?P<indent> {0,3})(?P<marker>`{3,}|~{3,})"
+    r"[ \t]*(?P<info>[^ \t`]*)"
+)
+INLINE_CODE_RE = re.compile(r"`+[^`\n]*`+")
+DETAILS_TAG_RE = re.compile(r"</?details\b[^>]*>", re.IGNORECASE)
+HTML_IMAGE_RE = re.compile(r"<img\b", re.IGNORECASE)
+FIGURE_ID_RE = re.compile(r"\bFigure\s+S?\d+[A-Za-z]?\b")
+TABLE_ID_RE = re.compile(r"\bTable\s+S?\d+[A-Za-z]?\b")
+PDF_PAGE_RE = re.compile(r"\bPDF p\.\s*\d+\b")
+IMAGE_RIGHTS_NOTICE = "原图版权归原作者及其他权利人"
+NUMBERED_EQUATION_SOURCE_RE = re.compile(
+    r"\*\*原文公式：\*\*[^\n]*\bEq\.\s*"
+    r"(?:\([^)\n]*\d[^)\n]*\)|\d+)[^\n]*\bPDF p\.\s*\d+\b"
+)
+UNNUMBERED_EQUATION_SOURCE_RE = re.compile(
+    r"\*\*原文未编号公式：\*\*[^\n]*\bPDF p\.\s*\d+\b"
 )
 
 # These identifiers came from unpublished planning material and should never
@@ -73,6 +98,19 @@ ALLOWED_PUBLIC_LITERALS = (
     "https://github.com/drxadqz/sensorledger3d-reading-log",
 )
 
+NOTE_TEMPLATE_MARKERS = (
+    "NOTE_KEY",
+    "example.org",
+    "FULL_SHA",
+    "Author et al.",
+    "在这里放",
+    "Figure X",
+    "Table X",
+    "Eq. (X)",
+    "PDF p. Y",
+    "Venue YYYY",
+)
+
 STATUS_LABELS = {
     "Accepted": "正式录用",
     "Preprint": "预印本",
@@ -87,6 +125,29 @@ CODE_AUDIT_LABELS = {
 
 class ValidationFailure(Exception):
     """Raised when the reading index cannot be safely generated."""
+
+
+class MarkdownStructure:
+    """Rendered Markdown fragments needed by the note validator."""
+
+    def __init__(
+        self,
+        *,
+        top_level_lines: list[tuple[int, str]],
+        rendered_lines: list[tuple[int, str]],
+        top_level_math_blocks: list[tuple[int, int, str]],
+    ) -> None:
+        self.top_level_lines = top_level_lines
+        self.rendered_lines = rendered_lines
+        self.top_level_math_blocks = top_level_math_blocks
+
+    @property
+    def top_level_text(self) -> str:
+        return "\n".join(line for _, line in self.top_level_lines)
+
+    @property
+    def rendered_text(self) -> str:
+        return "\n".join(line for _, line in self.rendered_lines)
 
 
 def content_for_public_scan(value: str) -> str:
@@ -159,20 +220,420 @@ def validate_url(value: str, field: str, line: str, *, optional: bool = False) -
         raise ValidationFailure(f"CSV line {line}: {field} must use an https:// URL")
 
 
+def strip_html_comments(line: str, in_comment: bool) -> tuple[str, bool]:
+    """Remove Markdown HTML comments while preserving visible text."""
+
+    fragments: list[str] = []
+    cursor = 0
+    while cursor < len(line):
+        if in_comment:
+            end = line.find("-->", cursor)
+            if end < 0:
+                return "".join(fragments), True
+            cursor = end + 3
+            in_comment = False
+            continue
+
+        start = line.find("<!--", cursor)
+        if start < 0:
+            fragments.append(line[cursor:])
+            break
+        fragments.append(line[cursor:start])
+        cursor = start + 4
+        in_comment = True
+    return "".join(fragments), in_comment
+
+
+def is_fence_close(line: str, marker: str) -> bool:
+    """Return whether *line* closes the active CommonMark-style fence."""
+
+    stripped = line.lstrip(" ")
+    indent = len(line) - len(stripped)
+    if indent > 3 or not stripped.startswith(marker[0]):
+        return False
+    run = len(stripped) - len(stripped.lstrip(marker[0]))
+    return run >= len(marker) and not stripped[run:].strip()
+
+
+def outside_details(
+    line: str,
+    details_depth: int,
+    *,
+    source_line: int,
+) -> tuple[str, int]:
+    """Keep only text rendered outside ``<details>`` elements."""
+
+    fragments: list[str] = []
+    cursor = 0
+    for match in DETAILS_TAG_RE.finditer(line):
+        if details_depth == 0:
+            fragments.append(line[cursor : match.start()])
+        tag = match.group(0).casefold()
+        if tag.startswith("</"):
+            if details_depth == 0:
+                raise ValidationFailure(
+                    f"Markdown line {source_line}: unmatched </details>"
+                )
+            details_depth -= 1
+        else:
+            details_depth += 1
+        cursor = match.end()
+    if details_depth == 0:
+        fragments.append(line[cursor:])
+    return "".join(fragments), details_depth
+
+
+def scan_markdown(note: str) -> MarkdownStructure:
+    """Parse the Markdown regions that GitHub actually renders.
+
+    Fenced code, HTML comments, inline code, and collapsed ``<details>`` content
+    cannot satisfy the indexed note's visible learning-path requirements.
+    """
+
+    top_level_lines: list[tuple[int, str]] = []
+    rendered_lines: list[tuple[int, str]] = []
+    top_level_math_blocks: list[tuple[int, int, str]] = []
+
+    in_comment = False
+    details_depth = 0
+    active_marker: str | None = None
+    active_info = ""
+    active_start = 0
+    active_depth = 0
+    active_content: list[str] = []
+
+    for line_number, raw_line in enumerate(note.splitlines(), start=1):
+        if active_marker is not None:
+            if is_fence_close(raw_line, active_marker):
+                if active_info == "math" and active_depth == 0:
+                    top_level_math_blocks.append(
+                        (active_start, line_number, "\n".join(active_content).strip())
+                    )
+                active_marker = None
+                active_info = ""
+                active_start = 0
+                active_depth = 0
+                active_content = []
+            else:
+                active_content.append(raw_line)
+            continue
+
+        line, in_comment = strip_html_comments(raw_line, in_comment)
+        fence_match = FENCE_RE.match(line)
+        if fence_match:
+            active_marker = fence_match.group("marker")
+            active_info = fence_match.group("info").casefold()
+            active_start = line_number
+            active_depth = details_depth
+            active_content = []
+            continue
+
+        without_inline_code = INLINE_CODE_RE.sub("", line)
+        rendered_lines.append((line_number, without_inline_code))
+        visible_line, details_depth = outside_details(
+            without_inline_code,
+            details_depth,
+            source_line=line_number,
+        )
+        top_level_lines.append((line_number, visible_line))
+
+    if in_comment:
+        raise ValidationFailure("Markdown contains an unclosed HTML comment")
+    if active_marker is not None:
+        raise ValidationFailure(
+            f"Markdown line {active_start}: unclosed Markdown fence"
+        )
+    if details_depth:
+        raise ValidationFailure("Markdown contains an unclosed <details> element")
+
+    return MarkdownStructure(
+        top_level_lines=top_level_lines,
+        rendered_lines=rendered_lines,
+        top_level_math_blocks=top_level_math_blocks,
+    )
+
+
 def safe_note_path(value: str, line: str) -> Path:
     pure = PurePosixPath(value)
+    windows_path = PureWindowsPath(value)
     if (
         pure.is_absolute()
+        or "\\" in value
         or ".." in pure.parts
+        or windows_path.drive
+        or windows_path.root
+        or any(
+            PureWindowsPath(part).drive or PureWindowsPath(part).root
+            for part in pure.parts
+        )
         or pure.suffix.lower() != ".md"
         or not pure.parts
         or pure.parts[0] != "notes"
     ):
         raise ValidationFailure(f"CSV line {line}: unsafe note_path {value!r}")
-    path = ROOT.joinpath(*pure.parts)
+    path = ROOT.joinpath(*pure.parts).resolve()
+    try:
+        path.relative_to(ROOT.resolve())
+    except ValueError as exc:
+        raise ValidationFailure(
+            f"CSV line {line}: note_path escapes repository root: {value!r}"
+        ) from exc
     if not path.is_file():
         raise ValidationFailure(f"CSV line {line}: note does not exist: {value}")
     return path
+
+
+def validate_note_assets(
+    note_path: Path,
+    line: str,
+    *,
+    paper_url: str,
+    structure: MarkdownStructure,
+) -> None:
+    """Validate visible paper figures, tables, attributions, and equations."""
+
+    local_images: list[tuple[Path, int, str]] = []
+    root = ROOT.resolve()
+    top_text = structure.top_level_text
+    rendered_text = structure.rendered_text
+
+    if HTML_IMAGE_RE.search(rendered_text):
+        raise ValidationFailure(
+            f"CSV line {line}: indexed notes must use Markdown images, not HTML <img>"
+        )
+
+    rendered_image_count = len(MARKDOWN_IMAGE_RE.findall(rendered_text))
+    top_level_image_count = len(MARKDOWN_IMAGE_RE.findall(top_text))
+    if rendered_image_count != top_level_image_count:
+        raise ValidationFailure(
+            f"CSV line {line}: note images must remain visible outside <details>"
+        )
+
+    top_lines = structure.top_level_lines
+    source_label_count = sum(
+        item.count("**原图出处：**") for _, item in top_lines
+    )
+    source_kinds: list[tuple[int, str]] = []
+
+    for line_index, (source_line, rendered_line) in enumerate(top_lines):
+        matches = list(MARKDOWN_IMAGE_RE.finditer(rendered_line))
+        if len(matches) > 1:
+            raise ValidationFailure(
+                f"CSV line {line}: Markdown line {source_line} contains multiple "
+                "images; put each figure/table on its own line"
+            )
+        for match in matches:
+            alt = match.group("alt").strip()
+            if not alt:
+                raise ValidationFailure(
+                    f"CSV line {line}: every note image requires descriptive alt text"
+                )
+
+            raw_target = match.group("target").strip("<>")
+            parsed = urlsplit(raw_target)
+            if parsed.scheme or parsed.netloc:
+                raise ValidationFailure(
+                    f"CSV line {line}: indexed notes cannot hotlink images; "
+                    f"store {raw_target!r} under assets/notes/"
+                )
+
+            decoded_target = unquote(parsed.path)
+            resolved = (note_path.parent / decoded_target).resolve()
+            try:
+                relative = resolved.relative_to(root)
+            except ValueError as exc:
+                raise ValidationFailure(
+                    f"CSV line {line}: image escapes repository root: {raw_target!r}"
+                ) from exc
+
+            if not resolved.is_file():
+                raise ValidationFailure(
+                    f"CSV line {line}: local image does not exist: {raw_target!r}"
+                )
+            if relative.parts[:2] != ("assets", "notes"):
+                raise ValidationFailure(
+                    f"CSV line {line}: note images must live under assets/notes/: "
+                    f"{relative.as_posix()}"
+                )
+            if resolved.suffix.casefold() not in {
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".webp",
+                ".svg",
+            }:
+                raise ValidationFailure(
+                    f"CSV line {line}: unsupported note image format: "
+                    f"{relative.as_posix()}"
+                )
+            image_size = resolved.stat().st_size
+            if not 1024 <= image_size <= 3 * 1024 * 1024:
+                raise ValidationFailure(
+                    f"CSV line {line}: note image must be 1 KiB–3 MiB: "
+                    f"{relative.as_posix()} ({image_size} bytes)"
+                )
+
+            next_index = line_index + 1
+            while next_index < len(top_lines) and not top_lines[next_index][1].strip():
+                next_index += 1
+            if next_index >= len(top_lines) or not top_lines[next_index][
+                1
+            ].lstrip().startswith("> **原图出处：**"):
+                raise ValidationFailure(
+                    f"CSV line {line}: image on Markdown line {source_line} must be "
+                    "followed immediately by a '> **原图出处：**' block"
+                )
+
+            source_block_lines: list[str] = []
+            while (
+                next_index < len(top_lines)
+                and top_lines[next_index][1].lstrip().startswith(">")
+            ):
+                source_block_lines.append(top_lines[next_index][1])
+                next_index += 1
+            source_block = "\n".join(source_block_lines)
+
+            has_figure = bool(FIGURE_ID_RE.search(source_block))
+            has_table = bool(TABLE_ID_RE.search(source_block))
+            if has_figure == has_table:
+                raise ValidationFailure(
+                    f"CSV line {line}: attribution after Markdown line {source_line} "
+                    "must contain exactly one numeric Figure or Table identifier"
+                )
+            if not PDF_PAGE_RE.search(source_block):
+                raise ValidationFailure(
+                    f"CSV line {line}: attribution after Markdown line {source_line} "
+                    "requires a numeric PDF page"
+                )
+            if paper_url not in source_block:
+                raise ValidationFailure(
+                    f"CSV line {line}: attribution after Markdown line {source_line} "
+                    "must link the indexed official paper PDF"
+                )
+            if IMAGE_RIGHTS_NOTICE not in source_block:
+                raise ValidationFailure(
+                    f"CSV line {line}: attribution after Markdown line {source_line} "
+                    f"must include the rights notice {IMAGE_RIGHTS_NOTICE!r}"
+                )
+
+            kind = "Figure" if has_figure else "Table"
+            source_kinds.append((source_line, kind))
+            local_images.append((resolved, source_line, kind))
+
+    if not local_images:
+        raise ValidationFailure(
+            f"CSV line {line}: every deep-reading note requires locally stored, "
+            "attributed paper figures and tables"
+        )
+    if source_label_count != len(local_images):
+        raise ValidationFailure(
+            f"CSV line {line}: every visible source label must correspond one-to-one "
+            f"with a local image ({source_label_count} labels, "
+            f"{len(local_images)} images)"
+        )
+
+    heading_positions = {
+        content.strip(): source_line
+        for source_line, content in top_lines
+        if content.strip() in REQUIRED_NOTE_HEADINGS
+    }
+    figure_section_start = heading_positions[REQUIRED_NOTE_HEADINGS[0]]
+    formula_section_start = heading_positions[REQUIRED_NOTE_HEADINGS[1]]
+    result_section_start = heading_positions[REQUIRED_NOTE_HEADINGS[2]]
+    code_section_start = heading_positions[REQUIRED_NOTE_HEADINGS[3]]
+    if not any(
+        kind == "Figure" and figure_section_start < image_line < formula_section_start
+        for image_line, kind in source_kinds
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: Section 1 requires at least one attributed paper Figure"
+        )
+    if not any(
+        kind == "Table" and result_section_start < image_line < code_section_start
+        for image_line, kind in source_kinds
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: Section 3 requires at least one attributed result Table"
+        )
+
+    numbered_labels = [
+        (source_line, content)
+        for source_line, content in top_lines
+        if "**原文公式：**" in content
+    ]
+    unnumbered_labels = [
+        (source_line, content)
+        for source_line, content in top_lines
+        if "**原文未编号公式：**" in content
+    ]
+    no_equation_labels = [
+        (source_line, content)
+        for source_line, content in top_lines
+        if "**原文无必要公式：**" in content
+    ]
+    has_equations = bool(numbered_labels or unnumbered_labels)
+    has_no_equations = bool(no_equation_labels)
+    if has_equations == has_no_equations:
+        raise ValidationFailure(
+            f"CSV line {line}: choose exactly one formula mode: attributed original "
+            "equations or an explicit no-indispensable-equation statement"
+        )
+
+    for source_line, _ in numbered_labels + unnumbered_labels + no_equation_labels:
+        if not formula_section_start < source_line < result_section_start:
+            raise ValidationFailure(
+                f"CSV line {line}: original-formula declarations must appear in "
+                f"Section 2, not Markdown line {source_line}"
+            )
+
+    for source_line, content in numbered_labels:
+        if not NUMBERED_EQUATION_SOURCE_RE.search(content):
+            raise ValidationFailure(
+                f"CSV line {line}: numbered original formula on Markdown line "
+                f"{source_line} requires a numeric Eq. identifier and PDF page"
+            )
+    for source_line, content in unnumbered_labels:
+        if not UNNUMBERED_EQUATION_SOURCE_RE.search(content):
+            raise ValidationFailure(
+                f"CSV line {line}: unnumbered original formula on Markdown line "
+                f"{source_line} requires a numeric PDF page"
+            )
+
+    if has_equations:
+        if not structure.top_level_math_blocks:
+            raise ValidationFailure(
+                f"CSV line {line}: original equations require visible fenced "
+                "```math blocks"
+            )
+        label_lines = sorted(
+            source_line
+            for source_line, _ in numbered_labels + unnumbered_labels
+        )
+        boundary_lines = sorted(
+            source_line
+            for source_line, content in top_lines
+            if content.lstrip().startswith("#")
+            or "**原图出处：**" in content
+            or "**原文公式：**" in content
+            or "**原文未编号公式：**" in content
+        )
+        for label_line in label_lines:
+            next_boundary = next(
+                (
+                    boundary
+                    for boundary in boundary_lines
+                    if boundary > label_line
+                ),
+                10**9,
+            )
+            if not any(
+                label_line < start < next_boundary and block.strip()
+                for start, _, block in structure.top_level_math_blocks
+            ):
+                raise ValidationFailure(
+                    f"CSV line {line}: original formula label on Markdown line "
+                    f"{label_line} must be followed by a non-empty visible math block"
+                )
 
 
 def validate_rows(rows: list[dict[str, str]]) -> None:
@@ -307,7 +768,17 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
                 f"CSV line {line}: note filename must start with {row['date']}-"
             )
         note = read_text(note_path)
-        note_lines = note.splitlines()
+        try:
+            structure = scan_markdown(note)
+        except ValidationFailure as exc:
+            raise ValidationFailure(f"CSV line {line}: {exc}") from exc
+        for marker in NOTE_TEMPLATE_MARKERS:
+            if marker in note:
+                raise ValidationFailure(
+                    f"CSV line {line}: note still contains template marker "
+                    f"{marker!r}"
+                )
+        note_lines = [content for _, content in structure.top_level_lines]
         expected_h1 = f"# {row['date']} — {row['title']}"
         if not note_lines or note_lines[0].strip() != expected_h1:
             raise ValidationFailure(
@@ -323,8 +794,15 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
             heading_positions.append(normalized_note_lines.index(heading))
         if heading_positions != sorted(heading_positions):
             raise ValidationFailure(
-                f"CSV line {line}: 3/10/30-minute headings are out of order"
+                f"CSV line {line}: figure/formula/result/code/conclusion headings "
+                "are out of order"
             )
+        validate_note_assets(
+            note_path,
+            line,
+            paper_url=row["paper_url"],
+            structure=structure,
+        )
         if re.search(r"\]\(\s*\)", note):
             raise ValidationFailure(
                 f"CSV line {line}: note contains an empty Markdown link"
@@ -433,51 +911,38 @@ def render_stats(rows: list[dict[str, str]]) -> str:
 
 def render_latest(row: dict[str, str]) -> str:
     note = root_link(row["note_path"])
-    topics = " · ".join(f"`{md_escape(topic)}`" for topic in topic_list(row))
+    topics = " · ".join(md_escape(topic) for topic in topic_list(row))
+    identity = status_label(row)
     if row["publication_status"] == "Accepted":
-        identity = (
-            f"{status_label(row)}；"
-            f"[官方 proceedings]({row['proceedings_url']})"
-        )
-    else:
-        identity = "预印本；**尚无正式录用来源**"
+        identity = f"[{identity}]({row['proceedings_url']})"
     return "\n".join(
         (
-            f"### {row['date']} · [{md_escape(row['title'])}]({note})",
+            f"## ▶ [开始今天的精读：{md_escape(row['title'])}"
+            f"（{md_escape(row['venue'])} {row['year']}）]({note})",
             "",
-            f"`{md_escape(row['venue'])} {row['year']}` · "
-            f"`{status_label(row)}` · `选文 {row['selection_score']}/10`",
+            f"> {md_escape(row['takeaway'])}",
             "",
-            f"> **3 分钟结论：** {md_escape(row['takeaway'])}",
+            "**进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 "
+            "→ 固定版本源码 → 证据边界",
             "",
-            "| 核验项 | 当前状态 |",
-            "|---|---|",
-            f"| 论文身份 | {identity} |",
-            f"| 阅读深度 | {md_escape(row['verification_stage'])} |",
-            f"| 独立复现 | **{md_escape(row['reproduction_status'])}** |",
-            f"| 主题 | {topics} |",
+            f"{identity} · {topics} · "
+            f"{code_audit_label(row)} · "
+            f"**{md_escape(row['reproduction_status'])}**",
             "",
-            f"[开始分层精读]({note}) · "
-            f"[论文 PDF]({row['paper_url']}) · "
-            f"{code_link(row)}",
+            f"[论文原文]({row['paper_url']}) · {code_link(row)}",
         )
     )
 
 
-def render_recent(rows: list[dict[str, str]], limit: int = 8) -> str:
-    lines = (
-        "| 日期 | 论文 | Venue | 主题 | 验证状态 |",
-        "|---|---|---|---|---|",
-    )
-    output = list(lines)
+def render_recent(rows: list[dict[str, str]], limit: int = 3) -> str:
+    output = []
     for row in rows[:limit]:
         note = root_link(row["note_path"])
-        topics = "<br>".join(md_escape(topic) for topic in topic_list(row))
         output.append(
-            f"| {row['date']} | [{md_escape(row['title'])}]({note}) | "
-            f"{md_escape(row['venue'])} {row['year']} | {topics} | "
+            f"- **{row['date']} · {md_escape(row['venue'])} {row['year']}** — "
+            f"[{md_escape(row['title'])}]({note}) — "
             f"{code_audit_label(row)}；"
-            f"**{md_escape(row['reproduction_status'])}** |"
+            f"**{md_escape(row['reproduction_status'])}**"
         )
     return "\n".join(output)
 
@@ -494,27 +959,29 @@ def render_papers_md(rows: list[dict[str, str]]) -> str:
         "> `python scripts/rebuild_index.py` 更新。",
         "",
         f"共 **{len(rows)}** 篇，其中 **{accepted}** 篇已由权威来源核验为正式录用。",
+        "每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；"
         "“代码已审”不等于“结果已复现”。",
-        "",
-        "| 日期 | 论文 | Venue / 状态 | 主题 | 一句话结论 | 证据状态 |",
-        "|---|---|---|---|---|---|",
     ]
     for row in rows:
         note = index_link(row["note_path"])
-        topics = "<br>".join(md_escape(topic) for topic in topic_list(row))
-        evidence = (
-            f"{md_escape(row['verification_stage'])}<br>"
-            f"{code_audit_label(row)}<br>"
-            f"**{md_escape(row['reproduction_status'])}**"
-        )
-        links = (
-            f"[精读]({note}) · [论文]({row['paper_url']}) · "
-            f"{code_link(row, '代码')}"
-        )
-        lines.append(
-            f"| {row['date']} | **{md_escape(row['title'])}**<br>{links} | "
-            f"{md_escape(row['venue'])} {row['year']}<br>{status_label(row)} | "
-            f"{topics} | {md_escape(row['takeaway'])} | {evidence} |"
+        topics = " · ".join(md_escape(topic) for topic in topic_list(row))
+        lines.extend(
+            (
+                "",
+                f"## {row['date']} · [{md_escape(row['title'])}]({note})",
+                "",
+                f"`{md_escape(row['venue'])} {row['year']}` · "
+                f"`{status_label(row)}` · {topics}",
+                "",
+                f"> {md_escape(row['takeaway'])}",
+                "",
+                f"{md_escape(row['verification_stage'])}；"
+                f"{code_audit_label(row)}；"
+                f"**{md_escape(row['reproduction_status'])}**",
+                "",
+                f"[▶ 开始精读]({note}) · [论文原文]({row['paper_url']}) · "
+                f"{code_link(row, '固定版本源码')}",
+            )
         )
     lines.extend(
         (

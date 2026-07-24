@@ -23,3 +23,9 @@ jobs:
 
       - name: Verify generated pages and metadata
         run: python scripts/rebuild_index.py --check
+
+      - name: Verify GitHub-safe Markdown math
+        run: python scripts/lint_markdown_math.py
+
+      - name: Run Markdown validation regressions
+        run: python -m unittest discover -s tests -v
