@@ -21,21 +21,68 @@ class IndexedNoteValidationTests(unittest.TestCase):
         cls.note_path = ROOT / cls.rows[0]["note_path"]
         cls.note = rebuild.read_text(cls.note_path)
         cls.paper_url = cls.rows[0]["paper_url"]
+        cls.formula_source_path = (
+            ROOT
+            / "assets"
+            / "notes"
+            / cls.note_path.stem
+            / "formulas"
+            / rebuild.FORMULA_SOURCE_FILE
+        )
+        cls.formula_source = cls.formula_source_path.read_text(encoding="utf-8")
 
-    def validate_mutation(self, note: str) -> None:
+    def validate_mutation(
+        self,
+        note: str,
+        *,
+        formula_source: str | None = None,
+    ) -> None:
         original_read_text = rebuild.read_text
+        original_read_bytes = Path.read_bytes
+        original_path_read_text = Path.read_text
 
         def patched_read_text(path: Path) -> str:
             if path.resolve() == self.note_path.resolve():
                 return note
             return original_read_text(path)
 
-        with mock.patch.object(rebuild, "read_text", side_effect=patched_read_text):
-            rebuild.validate_rows(self.rows)
+        def patched_read_bytes(path: Path) -> bytes:
+            if (
+                formula_source is not None
+                and path.resolve() == self.formula_source_path.resolve()
+            ):
+                return formula_source.encode("utf-8")
+            return original_read_bytes(path)
 
-    def assert_mutation_fails(self, note: str) -> None:
+        def patched_path_read_text(
+            path: Path,
+            *args: object,
+            **kwargs: object,
+        ) -> str:
+            if (
+                formula_source is not None
+                and path.resolve() == self.formula_source_path.resolve()
+            ):
+                return formula_source
+            return original_path_read_text(path, *args, **kwargs)
+
+        with mock.patch.object(rebuild, "read_text", side_effect=patched_read_text):
+            with mock.patch.object(Path, "read_bytes", new=patched_read_bytes):
+                with mock.patch.object(
+                    Path,
+                    "read_text",
+                    new=patched_path_read_text,
+                ):
+                    rebuild.validate_rows(self.rows)
+
+    def assert_mutation_fails(
+        self,
+        note: str,
+        *,
+        formula_source: str | None = None,
+    ) -> None:
         with self.assertRaises(rebuild.ValidationFailure):
-            self.validate_mutation(note)
+            self.validate_mutation(note, formula_source=formula_source)
 
     def hide_method_section(self, opener: str, closer: str) -> str:
         image_start = self.note.index("![ST-Occ Figure 2")
@@ -114,6 +161,30 @@ class IndexedNoteValidationTests(unittest.TestCase):
             1,
         )
         self.assert_mutation_fails(mutated)
+
+    def test_formula_source_link_must_be_unique(self) -> None:
+        source_link = (
+            "[可复制 TeX](../../assets/notes/2026-07-24-st-occ/"
+            "formulas/source.tex#L5-L9)"
+        )
+        mutated = self.note.replace(source_link, f"{source_link} · {source_link}", 1)
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_source_anchor_rejects_upstream_line_drift(self) -> None:
+        marker = "% BEGIN eq-07-class-activation-update"
+        shifted_source = self.formula_source.replace(
+            marker,
+            "% harmless upstream comment that shifts later line anchors\n" + marker,
+            1,
+        )
+        with self.assertRaisesRegex(
+            rebuild.ValidationFailure,
+            "does not exactly anchor",
+        ):
+            self.validate_mutation(
+                self.note,
+                formula_source=shifted_source,
+            )
 
     def test_external_images_are_rejected(self) -> None:
         mutated = self.note.replace(
