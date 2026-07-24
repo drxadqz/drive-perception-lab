@@ -1,0 +1,129 @@
+{
+  "formulas": {
+    "calculation-local-feature-memory": {
+      "height": 394,
+      "png_sha256": "7d17a71dfca8cef1fdd5659423cf504acd2b8995b96ac56c18657ee8697fc1d3",
+      "source_sha256": "c954e306368cce84d3fb8199a6940d8bbaefede8cf815a7db77a671744d04318",
+      "width": 2048
+    },
+    "calculation-scene-state-memory": {
+      "height": 291,
+      "png_sha256": "19d8efc7d7cee7278ed650b3bbbb35e4ed9a7ec857900da402b86cb15b1731a4",
+      "source_sha256": "95e8b6270292ac84f78448c1069ccc04ddae16d1248d1a1f7ae3dce003fdc19d",
+      "width": 2048
+    },
+    "eq-05-unified-memory-read": {
+      "height": 318,
+      "png_sha256": "8dee57b0fd9327d51cbe94f48cc2b0a87305442315a50c0b306a2775b0d7cba3",
+      "source_sha256": "d6b1d3daf0d23bbb237046235f488cd65401d5d911448c1374191ee4c64ba332",
+      "width": 2048
+    },
+    "eq-06-unified-memory-write": {
+      "height": 327,
+      "png_sha256": "b0bb7ea69ecaa86bb2f190ddaa4164c2424d57fdb1d36ec29f5507474cd31310",
+      "source_sha256": "524b4eba7b752fe22198ea6decd0bf0ed8c9d3fd761e426136d6f8288e1c158d",
+      "width": 2048
+    },
+    "eq-07-class-activation-update": {
+      "height": 394,
+      "png_sha256": "d342d93fd88b2de493b845b77fb6d43d71a49c432f56cbc216b15e313a49407c",
+      "source_sha256": "2816889917d6cb97b7a108deaa8431eef50ee6cc632252554916e318d4f8736b",
+      "width": 2048
+    },
+    "eq-08-uncertainty-flow-write": {
+      "height": 317,
+      "png_sha256": "96effe8500c2508bc5637e0b73a59ec5c752909983fd55d02b6c88134a48ab18",
+      "source_sha256": "24c286ff0faed9b76b3d3cf9fa38b6961fef97a883a4959acb2f1d61809815f7",
+      "width": 2048
+    },
+    "eq-09-feature-memory-write": {
+      "height": 327,
+      "png_sha256": "5e31b16cfa6b101eb7a1c1f06ec320573f702fab4b3d966925a19332aa7bea90",
+      "source_sha256": "091070ae5ada57b403334a4fb50e8018fba9c8ff4328913e68dcf6da843234e3",
+      "width": 2048
+    },
+    "eq-10-memory-attention": {
+      "height": 320,
+      "png_sha256": "d2add38fc29a630c6a2d052bd2c0f08d2a22bb0bbf875dbd9d438010c6ea24d9",
+      "source_sha256": "a17ed7a50220979a14064aedb236b0851c752efe51fd296d4a564ef857915d19",
+      "width": 2048
+    },
+    "eq-11-uncertainty-gate": {
+      "height": 353,
+      "png_sha256": "4c24db8c7bf4ca51e0d319e40eafbd80f4cbd4fd85bdfb252d66247a8af22339",
+      "source_sha256": "4bc1078c8a6e015b365aed133ff45d1222aeaff75c58446e90bc283862632d47",
+      "width": 2048
+    },
+    "eq-12-gated-deformable-attention": {
+      "height": 330,
+      "png_sha256": "bd630052f772ed153fee564b2a511aa69c942bc74f158bcdf4777b8aafe2984e",
+      "source_sha256": "22ce102f2dbbe9ca37c256ac6b3442a947a28eb36dd5d2a55d36a7d8d602133f",
+      "width": 2048
+    },
+    "eq-13-prediction-gt-memory-write": {
+      "height": 317,
+      "png_sha256": "f672d74ecf7c818a875cef8aa66fd427c2476d2ea95ef4798421c9f416ac7184",
+      "source_sha256": "390bb11dead70a2a8cda456c28d2b49b9ace7da840c18d679e4597529a744d67",
+      "width": 2048
+    },
+    "eq-14-stcv": {
+      "height": 392,
+      "png_sha256": "7134389a270f294282c8bc1ccfc3e91ea65beb60359ab8ae8b1ffba272e4adcf",
+      "source_sha256": "2ef2b1b2a7628242d966e1b437f502a1c689bf4534580ed4bcaf0d7f4ccc368e",
+      "width": 2048
+    },
+    "eq-15-mstcv": {
+      "height": 341,
+      "png_sha256": "97284b65bd94deaaaa9c644befa6276a1d16ccef5e22e3e8a8fecded1048da54",
+      "source_sha256": "1e0f54e4176bb239cc3e41d5cf860f2dacedb7ec2c5cdb1cc093015d85f9a515",
+      "width": 2048
+    },
+    "eq-16-occupancy-loss": {
+      "height": 320,
+      "png_sha256": "d21904b18630cc71b3779c19b7de4d77fd053eca43dbeeb22bd8fd3dd03473ea",
+      "source_sha256": "695797d41f5cbdae4c9c4fbda0713bbacaa495b6624768d3df55693299828c5f",
+      "width": 2048
+    },
+    "eq-17-uncertainty-nll": {
+      "height": 318,
+      "png_sha256": "454a4ddb4769af90a2fb5e1c10ebde092adc2a36fc9e617bb44f607ce74bee41",
+      "source_sha256": "cde58f1858e609ebf7efb12ef1c06d9fb89c0ba8ca911eea318a9d30afa50945",
+      "width": 2048
+    },
+    "eq-18-total-loss": {
+      "height": 353,
+      "png_sha256": "cfc0638d7727f513955a430c3dbf44a0b21c9b364749f2f24a04cbc0eecafc20",
+      "source_sha256": "8097027fc9f18f9aea93ccb48c860891b313ee09ca682b715f280933eea227ad",
+      "width": 2048
+    },
+    "eq-unnumbered-temporal-attributes": {
+      "height": 346,
+      "png_sha256": "fd4a1a94cffa300923d93346760ce17a1382d24426633aa6bf3cdaa96429a626",
+      "source_sha256": "ac85d1d8ffc9c5e3386c4e782309451df989e6383b64755df839d12231d1a705",
+      "width": 2048
+    },
+    "source-code-uncertainty-loss": {
+      "height": 315,
+      "png_sha256": "af438a25d549cce3b5c006e55146a04c58bb25af712d649507ec0b261a88c61f",
+      "source_sha256": "7a2a3ce4fc0afc466d6b9f5c52cef03f23ba8712671a5559362e55149a365270",
+      "width": 2048
+    },
+    "source-code-variance-transform": {
+      "height": 346,
+      "png_sha256": "518e1967fa459f2cad37181a6e6315e562033220453d7142f8caa15d5e902ae6",
+      "source_sha256": "414b58e992187cb23f7ca213f045a3e76c266cb6ace3184382856fd38708459f",
+      "width": 2048
+    }
+  },
+  "profile": {
+    "background": "#ffffff",
+    "canvas_width": 2048,
+    "dpi": 260,
+    "foreground": "#1f2328",
+    "maximum_height": 1536,
+    "maximum_ink_width": 1856,
+    "minimum_height": 192,
+    "minimum_ink_height": 112
+  },
+  "version": 1
+}

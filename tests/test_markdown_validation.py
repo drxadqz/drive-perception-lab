@@ -89,6 +89,32 @@ class IndexedNoteValidationTests(unittest.TestCase):
         )
         self.assert_mutation_fails(mutated)
 
+    def test_formula_attribution_must_immediately_follow_image(self) -> None:
+        mutated = self.note.replace(
+            "\n\n> **公式来源：**",
+            "\n\n### unrelated heading\n\n> **公式来源：**",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_assets_cannot_cross_note_directories(self) -> None:
+        mutated = self.note.replace(
+            "assets/notes/2026-07-24-st-occ/formulas/"
+            "eq-05-unified-memory-read.png",
+            "assets/notes/another-note/formulas/"
+            "eq-05-unified-memory-read.png",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_source_link_is_required(self) -> None:
+        mutated = self.note.replace(
+            "formulas/source.tex#L5-L9",
+            "formulas/copyable-source.txt",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
     def test_external_images_are_rejected(self) -> None:
         mutated = self.note.replace(
             "## 2. 读公式：核心机制怎样表达",
@@ -99,7 +125,7 @@ class IndexedNoteValidationTests(unittest.TestCase):
         self.assert_mutation_fails(mutated)
 
     def test_numbered_formula_rejects_placeholder_identifier(self) -> None:
-        mutated = self.note.replace("Eq. (5)–(6)", "Eq. (X)", 1)
+        mutated = self.note.replace("Eq. (5)", "Eq. (X)", 1)
         self.assert_mutation_fails(mutated)
 
     def test_formula_modes_are_exclusive(self) -> None:
@@ -113,7 +139,7 @@ class IndexedNoteValidationTests(unittest.TestCase):
 
     def test_original_formula_declaration_must_stay_in_section_two(self) -> None:
         marker = (
-            "**原文公式：** 论文 Eq. (5)–(6)，PDF p. 4 / "
+            "**原文公式：** 论文 Eq. (5)，PDF p. 4 / "
             "proceedings p. 26572。"
         )
         mutated = self.note.replace(marker, "公式见后文。", 1)
@@ -170,6 +196,30 @@ class MathLintRegressionTests(unittest.TestCase):
             "```\n"
         )
         self.assertEqual(self.lint_text(text), [])
+
+    def test_notes_policy_rejects_live_inline_and_display_math(self) -> None:
+        with mock.patch.object(
+            math_lint,
+            "requires_static_formula_assets",
+            return_value=True,
+        ):
+            errors = self.lint_text(
+                "Inline $`M_t`$.\n\n"
+                "```math\n"
+                "M_t = 1\n"
+                "```\n"
+            )
+        self.assertIn("MATH015", {error.rule for error in errors})
+
+    def test_public_notes_and_template_have_zero_live_math(self) -> None:
+        offenders = []
+        for path in math_lint.markdown_paths():
+            if not math_lint.requires_static_formula_assets(path):
+                continue
+            for error in math_lint.lint_path(path):
+                if error.rule == "MATH015":
+                    offenders.append(error.render())
+        self.assertEqual(offenders, [])
 
     def test_github_forbidden_operatorname_fails(self) -> None:
         self.assert_lint_fails(

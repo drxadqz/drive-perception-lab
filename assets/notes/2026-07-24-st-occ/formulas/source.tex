@@ -1,0 +1,173 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Each block is transcribed or derived from the cited paper/code and rendered by
+% scripts/render_formula_assets.py. The main note carries exact provenance.
+
+% BEGIN eq-05-unified-memory-read
+\widetilde{F}^{\,t}_{\mathrm{unified}}
+= \psi\!\left(F^t \mid \chi[M_t,T_t]\right)
+\qquad\text{(5)}
+% END eq-05-unified-memory-read
+
+% BEGIN eq-06-unified-memory-write
+\chi[M_{t+1},T_t]
+= \widetilde{F}^{\,t}_{\mathrm{unified}}
+\qquad\text{(6)}
+% END eq-06-unified-memory-write
+
+% BEGIN eq-unnumbered-temporal-attributes
+\mu_p \equiv \{\mathbf c_p,\delta_p,\mathbf f_p\}
+% END eq-unnumbered-temporal-attributes
+
+% BEGIN eq-07-class-activation-update
+\begin{aligned}
+\chi[\mathbf M_{t+1}\langle\mathbf c\rangle,T_t]
+&=
+\mathrm{softmax}\!\Bigl(\\[-2pt]
+&\qquad
+\alpha\mathbf c_t
++(1-\alpha)\chi[\mathbf M_t\langle\mathbf c\rangle,T_t]
+\Bigr)
+\end{aligned}
+\qquad\text{(7)}
+% END eq-07-class-activation-update
+
+% BEGIN eq-08-uncertainty-flow-write
+\begin{aligned}
+\chi[\mathbf M_{t+1}\langle\delta\rangle,T_t]&=\delta_t,\\
+\chi[\mathbf M_{t+1}\langle\mathbf f\rangle,T_t]&=\mathbf f_t
+\end{aligned}
+\qquad\text{(8)}
+% END eq-08-uncertainty-flow-write
+
+% BEGIN eq-09-feature-memory-write
+\chi[\mathbf M_{t+1}\langle\mathbf V\rangle,T_t]
+=\widetilde{\mathbf V}_t
+\qquad\text{(9)}
+% END eq-09-feature-memory-write
+
+% BEGIN eq-10-memory-attention
+\begin{aligned}
+\widetilde{\mathbf V}_t
+&=
+\psi(\mathbf V_t\mid\mathbf H_t)\\[-2pt]
+&=
+\psi\!\left(\mathbf V_t\mid\chi[\mathbf M_t,T_t]\right)
+\end{aligned}
+\qquad\text{(10)}
+% END eq-10-memory-attention
+
+% BEGIN eq-11-uncertainty-gate
+u=\mathrm{MLP}(\mathbf c,\delta,\varepsilon)
+\qquad\text{(11)}
+% END eq-11-uncertainty-gate
+
+% BEGIN eq-12-gated-deformable-attention
+\begin{aligned}
+&(1-u)\,
+\mathrm{DA}(\mathbf V_{t_p},p+\mathbf f,\mathbf V_t)\\
+&\qquad+
+u\,
+\mathrm{DA}\!\left(
+\mathbf V_{t_p},p+\mathbf f,\chi[\mathbf M_t,T_t]
+\right)
+\end{aligned}
+\qquad\text{(12)}
+% END eq-12-gated-deformable-attention
+
+% BEGIN eq-13-prediction-gt-memory-write
+\begin{aligned}
+\chi[\mathbf M_{t+1}\langle\mathbf P\rangle,T_t]&=\mathbf P_t,\\
+\chi[\mathbf M_{t+1}\langle\mathbf G\rangle,T_t]&=\mathbf G_t
+\end{aligned}
+\qquad\text{(13)}
+% END eq-13-prediction-gt-memory-write
+
+% BEGIN eq-14-stcv
+\mathrm{STCV}_t
+=
+\frac{
+\sum \mathbf 1\!\left[
+\begin{aligned}
+&\left(\chi[\mathbf M_t\langle\mathbf P\rangle,T_t]\ne\mathbf P_t\right)\\[-2pt]
+&{}\land
+\left(\chi[\mathbf M_t\langle\mathbf P\rangle,T_t]\ne\mathrm{Free}\right)
+\end{aligned}
+\right]
+}{
+\sum \mathbf 1[\mathbf P_t\ne\mathrm{Free}]
+}
+\qquad\text{(14)}
+% END eq-14-stcv
+
+% BEGIN eq-15-mstcv
+\mathrm{mSTCV}
+=
+\frac{1}{T}\sum_{t}^{T}\mathrm{STCV}_t
+\qquad\text{(15)}
+% END eq-15-mstcv
+
+% BEGIN eq-16-occupancy-loss
+\begin{aligned}
+\mathcal L_{\mathrm{occ}}
+&=
+\mathcal L_{\mathrm{fl}}
++\mathcal L_{\mathrm{ls}}
++\mathcal L_{\mathrm{scal}}^{\mathrm{geo}}\\
+&\quad+
+\mathcal L_{\mathrm{scal}}^{\mathrm{sem}}
++\mathcal L_{\mathrm d}
+\end{aligned}
+\qquad\text{(16)}
+% END eq-16-occupancy-loss
+
+% BEGIN eq-17-uncertainty-nll
+\mathcal L_{\mathrm{nll}}
+=
+\sum_i \frac{1}{2}
+\left(
+\exp(-s_i)\lVert y_i-\widehat y_i\rVert^2+s_i
+\right)
+\qquad\text{(17)}
+% END eq-17-uncertainty-nll
+
+% BEGIN eq-18-total-loss
+\mathcal L
+=
+\mathcal L_{\mathrm{occ}}
++\mathcal L_{\mathrm{nll}}
++\mathcal L_{\mathrm{of}}
+\qquad\text{(18)}
+% END eq-18-total-loss
+
+% BEGIN source-code-variance-transform
+v_{i,y_i}=\exp\!\left(\mathrm{softplus}(r_{i,y_i})\right)
+\qquad\text{(code)}
+% END source-code-variance-transform
+
+% BEGIN source-code-uncertainty-loss
+\mathcal L_{\mathrm{code}}
+=
+\mathrm{mean}_i\left[
+\frac{-\log p_{i,y_i}}{2v_{i,y_i}}
++\frac{1}{2}\log v_{i,y_i}
+\right]
+\qquad\text{(code)}
+% END source-code-uncertainty-loss
+
+% BEGIN calculation-local-feature-memory
+\begin{aligned}
+100\times100\times8\times80
+&=6.4\times10^6\ \mathrm{values},\\
+\frac{6.4\times10^6\times4\ \mathrm{bytes}}{2^{20}}
+&\approx24.4\ \mathrm{MiB}
+\end{aligned}
+\qquad\text{(estimate)}
+% END calculation-local-feature-memory
+
+% BEGIN calculation-scene-state-memory
+24.4\ \mathrm{MiB}
+\times\frac{101}{80}
+\times(1+3.25)
+\approx131\ \mathrm{MiB}
+\qquad\text{(estimate)}
+% END calculation-scene-state-memory

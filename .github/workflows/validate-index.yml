@@ -26,24 +26,26 @@ jobs:
       - name: Verify generated pages and metadata
         run: python scripts/rebuild_index.py --check
 
-      - name: Verify GitHub-safe Markdown math
+      - name: Reject live math and validate cross-device formula assets
         run: python scripts/lint_markdown_math.py
 
       - name: Run Markdown validation regressions
         run: python -m unittest discover -s tests -v
 
-      - name: Set up Node for the published-render smoke test
+      - name: Set up Node for the published iPad render smoke test
         uses: actions/setup-node@v6
         with:
           node-version: "22"
-          package-manager-cache: false
+          cache: npm
 
-      - name: Install the published-render test browser
+      - name: Install pinned public-page test dependencies
+        run: npm ci
+
+      - name: Install the WebKit test browser
         run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps webkit
 
-      - name: Verify changed math on GitHub's real renderer
+      - name: Verify changed formulas on GitHub with iPad viewports
         env:
           RENDER_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           RENDER_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
