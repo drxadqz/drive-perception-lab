@@ -432,7 +432,10 @@ def validate_note_assets(
             raw_target = match.group("target").strip("<>")
             parsed = urlsplit(raw_target)
             if parsed.scheme or parsed.netloc:
-                continue
+                raise ValidationFailure(
+                    f"CSV line {line}: indexed notes cannot hotlink images; "
+                    f"store {raw_target!r} under assets/notes/"
+                )
 
             decoded_target = unquote(parsed.path)
             resolved = (note_path.parent / decoded_target).resolve()
@@ -575,6 +578,13 @@ def validate_note_assets(
             f"CSV line {line}: choose exactly one formula mode: attributed original "
             "equations or an explicit no-indispensable-equation statement"
         )
+
+    for source_line, _ in numbered_labels + unnumbered_labels + no_equation_labels:
+        if not formula_section_start < source_line < result_section_start:
+            raise ValidationFailure(
+                f"CSV line {line}: original-formula declarations must appear in "
+                f"Section 2, not Markdown line {source_line}"
+            )
 
     for source_line, content in numbered_labels:
         if not NUMBERED_EQUATION_SOURCE_RE.search(content):

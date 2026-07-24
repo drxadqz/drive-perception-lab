@@ -89,6 +89,15 @@ class IndexedNoteValidationTests(unittest.TestCase):
         )
         self.assert_mutation_fails(mutated)
 
+    def test_external_images_are_rejected(self) -> None:
+        mutated = self.note.replace(
+            "## 2. 读公式：核心机制怎样表达",
+            "![hotlink](https://example.com/figure.png)\n\n"
+            "## 2. 读公式：核心机制怎样表达",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
     def test_numbered_formula_rejects_placeholder_identifier(self) -> None:
         mutated = self.note.replace("Eq. (5)–(6)", "Eq. (X)", 1)
         self.assert_mutation_fails(mutated)
@@ -98,6 +107,19 @@ class IndexedNoteValidationTests(unittest.TestCase):
             "## 2. 读公式：核心机制怎样表达",
             "## 2. 读公式：核心机制怎样表达\n\n"
             "**原文无必要公式：** 本文没有关键公式。",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
+    def test_original_formula_declaration_must_stay_in_section_two(self) -> None:
+        marker = (
+            "**原文公式：** 论文 Eq. (5)–(6)，PDF p. 4 / "
+            "proceedings p. 26572。"
+        )
+        mutated = self.note.replace(marker, "公式见后文。", 1)
+        mutated = mutated.replace(
+            "## 4. 对源码：公式如何落地",
+            "## 4. 对源码：公式如何落地\n\n" + marker,
             1,
         )
         self.assert_mutation_fails(mutated)
@@ -151,6 +173,7 @@ class MathLintRegressionTests(unittest.TestCase):
 
     def test_inline_custom_macro_fails(self) -> None:
         self.assert_lint_fails("Bad $`\\method(x)`$.\n", "MATH008")
+        self.assert_lint_fails("Bad $`\\foo{x}`$.\n", "MATH008")
 
     def test_nested_inline_delimiters_fail(self) -> None:
         self.assert_lint_fails("Bad $`\\(x\\)`$.\n", "MATH008")
