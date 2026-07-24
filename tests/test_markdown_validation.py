@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -30,12 +31,25 @@ class IndexedNoteValidationTests(unittest.TestCase):
             / rebuild.FORMULA_SOURCE_FILE
         )
         cls.formula_source = cls.formula_source_path.read_text(encoding="utf-8")
+        cls.formula_directory = cls.formula_source_path.parent
+        cls.formula_manifest_path = (
+            cls.formula_directory / rebuild.FORMULA_MANIFEST_FILE
+        )
+        cls.formula_manifest = cls.formula_manifest_path.read_text(
+            encoding="utf-8"
+        )
+        cls.first_formula_picture = next(
+            line
+            for line in cls.note.splitlines()
+            if rebuild.FORMULA_PICTURE_RE.fullmatch(line)
+        )
 
     def validate_mutation(
         self,
         note: str,
         *,
         formula_source: str | None = None,
+        formula_manifest: str | None = None,
     ) -> None:
         original_read_text = rebuild.read_text
         original_read_bytes = Path.read_bytes
@@ -64,6 +78,11 @@ class IndexedNoteValidationTests(unittest.TestCase):
                 and path.resolve() == self.formula_source_path.resolve()
             ):
                 return formula_source
+            if (
+                formula_manifest is not None
+                and path.resolve() == self.formula_manifest_path.resolve()
+            ):
+                return formula_manifest
             return original_path_read_text(path, *args, **kwargs)
 
         with mock.patch.object(rebuild, "read_text", side_effect=patched_read_text):
@@ -80,9 +99,14 @@ class IndexedNoteValidationTests(unittest.TestCase):
         note: str,
         *,
         formula_source: str | None = None,
+        formula_manifest: str | None = None,
     ) -> None:
         with self.assertRaises(rebuild.ValidationFailure):
-            self.validate_mutation(note, formula_source=formula_source)
+            self.validate_mutation(
+                note,
+                formula_source=formula_source,
+                formula_manifest=formula_manifest,
+            )
 
     def hide_method_section(self, opener: str, closer: str) -> str:
         image_start = self.note.index("![ST-Occ Figure 2")
@@ -144,12 +168,115 @@ class IndexedNoteValidationTests(unittest.TestCase):
         )
         self.assert_mutation_fails(mutated)
 
+    def test_formula_picture_requires_exact_one_line_markup(self) -> None:
+        malformed = self.first_formula_picture.replace(
+            '<p align="center">',
+            '<p align="center" >',
+            1,
+        )
+        mutated = self.note.replace(self.first_formula_picture, malformed, 1)
+        self.assert_mutation_fails(mutated)
+
+    def test_arbitrary_html_image_is_rejected(self) -> None:
+        mutated = self.note.replace(
+            "## 2. 读公式：核心机制怎样表达",
+            '<img src="../../assets/notes/2026-07-24-st-occ/'
+            'figure-2-overview.png" alt="not allowed">\n\n'
+            "## 2. 读公式：核心机制怎样表达",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_picture_requires_both_existing_theme_images(self) -> None:
+        mutated = self.note.replace(
+            "eq-05-unified-memory-read-dark.png",
+            "eq-05-unified-memory-read-missing-dark.png",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_picture_theme_stems_must_match(self) -> None:
+        mutated = self.note.replace(
+            "eq-05-unified-memory-read-dark.png",
+            "eq-06-unified-memory-write-dark.png",
+            1,
+        )
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_picture_display_bounds_and_2x_density_are_enforced(self) -> None:
+        with self.subTest("display bounds"):
+            mutated = self.note.replace(
+                'width="402" height="55"',
+                'width="721" height="55"',
+                1,
+            )
+            self.assert_mutation_fails(mutated)
+        with self.subTest("2x density"):
+            mutated = self.note.replace(
+                'width="402" height="55"',
+                'width="403" height="55"',
+                1,
+            )
+            self.assert_mutation_fails(mutated)
+
+    def test_formula_picture_theme_dimensions_must_match(self) -> None:
+        original_dimensions = rebuild.png_dimensions
+
+        def mismatched_dimensions(path: Path) -> tuple[int, int]:
+            width, height = original_dimensions(path)
+            if path.name == "eq-05-unified-memory-read-dark.png":
+                return width + 2, height
+            return width, height
+
+        with mock.patch.object(
+            rebuild,
+            "png_dimensions",
+            side_effect=mismatched_dimensions,
+        ):
+            self.assert_mutation_fails(self.note)
+
+    def test_formula_manifest_must_use_v2_pair_hashes_and_dimensions(self) -> None:
+        manifest = json.loads(self.formula_manifest)
+        manifest["version"] = 1
+        self.assert_mutation_fails(
+            self.note,
+            formula_manifest=json.dumps(manifest),
+        )
+
+        manifest = json.loads(self.formula_manifest)
+        entry = manifest["formulas"]["eq-05-unified-memory-read"]
+        entry["dark_png_sha256"] = "0" * 64
+        self.assert_mutation_fails(
+            self.note,
+            formula_manifest=json.dumps(manifest),
+        )
+
+        manifest = json.loads(self.formula_manifest)
+        entry = manifest["formulas"]["eq-05-unified-memory-read"]
+        entry["display_width"] += 1
+        self.assert_mutation_fails(
+            self.note,
+            formula_manifest=json.dumps(manifest),
+        )
+
+    def test_legacy_or_extra_formula_png_is_rejected(self) -> None:
+        original_glob = Path.glob
+
+        def glob_with_legacy(path: Path, pattern: str):
+            results = list(original_glob(path, pattern))
+            if path.resolve() == self.formula_directory.resolve():
+                results.append(path / "eq-05-unified-memory-read.png")
+            return iter(results)
+
+        with mock.patch.object(Path, "glob", new=glob_with_legacy):
+            self.assert_mutation_fails(self.note)
+
     def test_formula_assets_cannot_cross_note_directories(self) -> None:
         mutated = self.note.replace(
             "assets/notes/2026-07-24-st-occ/formulas/"
-            "eq-05-unified-memory-read.png",
+            "eq-05-unified-memory-read-dark.png",
             "assets/notes/another-note/formulas/"
-            "eq-05-unified-memory-read.png",
+            "eq-05-unified-memory-read-dark.png",
             1,
         )
         self.assert_mutation_fails(mutated)
@@ -291,6 +418,36 @@ class MathLintRegressionTests(unittest.TestCase):
                 if error.rule == "MATH015":
                     offenders.append(error.render())
         self.assertEqual(offenders, [])
+
+    def test_notes_policy_rejects_obvious_math_code_pills(self) -> None:
+        with mock.patch.object(
+            math_lint,
+            "requires_static_formula_assets",
+            return_value=True,
+        ):
+            errors = self.lint_text(
+                "状态 `M_t`，方差 `delta_p`，位置 `p + f`，"
+                "比例 `12.18 / 8.68`。\n"
+            )
+        self.assertEqual(
+            [error.rule for error in errors],
+            ["MATH016", "MATH016", "MATH016", "MATH016"],
+        )
+
+    def test_standard_inline_notation_and_real_source_names_pass(self) -> None:
+        with mock.patch.object(
+            math_lint,
+            "requires_static_formula_assets",
+            return_value=True,
+        ):
+            text = (
+                "状态 *M*<sub>*t*</sub>，方差 *δ*<sub>*p*</sub>，"
+                "位置 *p* + ***f***<sub>*p*</sub>。\n"
+                "源码字段 `global_feats`，函数 `update_global_single`，"
+                "算子 `grid_sample`，方法 `__init__`，配置 `model.py`。\n"
+                "源码字段 `s_i` 是实现中的原名。\n"
+            )
+            self.assertEqual(self.lint_text(text), [])
 
     def test_github_forbidden_operatorname_fails(self) -> None:
         self.assert_lint_fails(

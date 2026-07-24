@@ -45,7 +45,7 @@
 
 **原文公式：** 论文 Eq. (X)，PDF p. Y。
 
-![公式图：论文 Eq. X，用自然语言说明这条公式做什么](../../assets/notes/NOTE_KEY/formulas/eq-x-short-name.png)
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/NOTE_KEY/formulas/eq-x-short-name-dark.png"><img src="../../assets/notes/NOTE_KEY/formulas/eq-x-short-name-light.png" alt="公式：论文 Eq. X，用自然语言说明这条公式做什么" width="480" height="84"></picture></p>
 
 > **公式来源：** Author et al., Venue YYYY, Eq. (X)，PDF p. Y；
 > 本图按原符号重排。[官方 PDF](https://example.org/paper.pdf) ·
@@ -53,9 +53,9 @@
 
 **符号说明**
 
-- `x`：；
-- `M_t`：；
-- `psi`：。
+- *x*：标量；
+- *M*<sub>*t*</sub>：时刻 *t* 的记忆状态；
+- *ψ*：论文定义的映射。
 
 **纯文字读法：** 用普通文本完整朗读公式，确保图片加载失败时仍能理解。
 
@@ -78,8 +78,12 @@
 >
 > “原文公式 / 原文未编号公式”与“原文无必要公式”只能选择一种模式。
 >
-> 公式 PNG 使用不透明白底、2048 px 宽并保持描述性 alt；正文不使用
-> live MathJax。复杂源码等价式或本笔记推导也使用公式 PNG，但必须分别标成
+> 块级公式由同一 TeX 命名块生成内容紧裁、像素尺寸一致的 2× light/dark
+> PNG pair，并用单行 `<p><picture>…</picture></p>` 按自然尺寸居中；
+> `<img>` 的 `width` / `height` 写显示尺寸，不把短公式铺满正文。普通行内数学
+> 使用 Unicode、Markdown 斜体/粗斜体和 `<sub>` / `<sup>`；反引号只保留给
+> `real_source_symbol` 这类真实源码标识。正文不使用 live MathJax。复杂源码
+> 等价式或本笔记推导也使用公式图，但必须分别标成
 > **[源码] 非论文原式** 或 **[判断] 非论文原式**。
 
 ## 3. 看结果：证据是否支持主张

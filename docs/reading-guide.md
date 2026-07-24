@@ -41,7 +41,8 @@ App、深色模式和读屏场景得到同一内容，精读正文不依赖 live
 
 本仓库采用三层交付：
 
-1. **公式 PNG**：正文直接显示，不透明白底、近黑文字、固定 2048 px 宽；
+1. **公式图**：同一份 TeX 生成内容紧裁的 2× light/dark PNG pair，正文按
+   公式的自然尺寸居中显示；
 2. **纯文字读法**：图片失败或使用读屏时仍能理解公式语义；
 3. **TeX 源**：放在该笔记 `formulas/source.tex`，供复制和逐项核对。
 
@@ -50,23 +51,32 @@ App、深色模式和读屏场景得到同一内容，精读正文不依赖 live
 ````text
 **原文公式：** 论文 Eq. (7)，PDF p. 4。
 
-![公式图：Eq. 7，类别状态递推更新](../../assets/notes/<note-key>/formulas/eq-07-class-update.png)
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/<note-key>/formulas/eq-07-class-update-dark.png"><img src="../../assets/notes/<note-key>/formulas/eq-07-class-update-light.png" alt="公式：Eq. 7，类别状态递推更新" width="480" height="84"></picture></p>
 
 > **公式来源：** 作者、编号、PDF 页、官方 PDF、按原符号重排说明、
 > [可复制 TeX](../../assets/notes/<note-key>/formulas/source.tex)。
 
-**纯文字读法：** 下一类别状态 = 当前状态与历史状态融合后归一化。
+**纯文字读法：** 下一时刻的类别状态 ***c***<sub>*t*+1</sub>，由当前状态
+***c***<sub>*t*</sub> 与历史状态融合后归一化得到。
 ````
 
 维护时必须遵守：
 
 - `notes/` 和 `templates/` 中不使用 inline dollar math、fenced `math`、
   TeX 括号分隔符或双 dollar block；
-- 简单行内符号写成普通 code span，例如 `M_t`、`delta`、`p + f`；
+- 普通行内数学使用 Unicode 符号、Markdown 斜体或粗斜体，并用
+  `<sub>` / `<sup>` 表示上下标，例如 *M*<sub>*t*</sub>、
+  *δ*<sub>*p*</sub>、*p* + ***f***<sub>*p*</sub>；反引号只用于
+  `update_global` 这类真实源码标识、命令、路径或配置值；
 - 每张公式图使用准确、非 LaTeX 堆砌的中文 alt text；
 - 公式图后的第一个非空内容必须是连续的“公式来源”引用块；
-- PNG 必须是 2048 px 宽、192–1536 px 高、不透明白底；长公式主动换行，
-  不能靠缩小字体塞进一行；
+- 每个块级公式必须由同一个 TeX 命名块一次生成 light/dark 两张 PNG；
+  两图内容、裁切和像素尺寸必须一致，只改变背景与前景色；
+- PNG 按公式墨迹紧裁、保留一致的安全边距并以 2× 像素密度导出；正文使用
+  GitHub 可解析的单行 `<p><picture>…</picture></p>`，在 `<img>` 上显式写
+  自然显示 `width` / `height`，不得把短公式强行铺满正文；
+- 长公式按语义主动换行，不能靠缩小字体塞进一行；light 图作为不支持
+  `<picture>` 主题切换时的可读 fallback；
 - 原文公式标明 Eq. 编号、PDF 页码和源码映射；
 - 原文没有编号时明确标“原文未编号公式”并给 PDF 页码，不自行补编号；
 - 论文自定义宏先展开，再进入独立 TeX 源；
@@ -86,8 +96,9 @@ python scripts/lint_markdown_math.py
 python -m unittest discover -s tests -v
 ```
 
-分支推送后，公开页面 smoke test 还会在 iPad 尺寸下检查：公式图全部加载、
-页面不存在 `math-renderer`、图片具备至少 2× 像素密度、正文没有横向溢出。
+分支推送后，公开页面 smoke test 还会在桌面与 iPad 尺寸、浅色与深色主题下
+检查：对应主题公式图全部加载、显示尺寸与 2× 原图匹配、短公式不过度拉伸、
+页面不存在 `math-renderer`，正文没有横向溢出。
 
 ## 证据边界
 

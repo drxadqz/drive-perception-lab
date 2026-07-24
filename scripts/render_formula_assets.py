@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Render cross-device formula PNGs from a reviewable TeX source file.
+"""Render compact cross-device formula PNGs from a reviewable TeX source file.
 
 GitHub's web interface can execute MathJax, but GitHub's native mobile
 renderers do not always provide the same behavior.  The public notes therefore
-use opaque PNGs for display equations and ordinary text for inline notation.
-This script keeps the PNGs reproducible and the underlying TeX copyable.
+use tightly cropped, explicitly sized PNGs for display equations and ordinary
+mathematical text for inline notation.  Each formula gets a light image and a
+dark image with identical geometry; the light image remains a readable fallback
+if a renderer ignores GitHub's theme-aware ``picture`` element.
 
 The script requires a local LaTeX installation, pdftocairo, and Pillow.  It is
 an authoring tool, not a CI dependency; generated PNGs are committed.
@@ -21,14 +23,22 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
 FORMULA_ROOT = ROOT / "assets" / "notes"
-CANVAS_WIDTH = 2048
-MAX_INK_WIDTH = 1856
-MIN_INK_HEIGHT = 112
+OUTPUT_SCALE = 2
+HORIZONTAL_PADDING = 28
+VERTICAL_PADDING = 20
+MIN_DISPLAY_WIDTH = 96
+MAX_DISPLAY_WIDTH = 720
+MIN_DISPLAY_HEIGHT = 36
+MAX_DISPLAY_HEIGHT = 180
+LIGHT_BACKGROUND = "#ffffff"
+LIGHT_FOREGROUND = "#1f2328"
+DARK_BACKGROUND = "#0d1117"
+DARK_FOREGROUND = "#f0f6fc"
 BLOCK_RE = re.compile(
     r"^% BEGIN (?P<name>[a-z0-9-]+)\n"
     r"(?P<body>.*?)"
@@ -40,12 +50,13 @@ DOCUMENT = r"""\documentclass[border=18pt]{standalone}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{xcolor}
-\definecolor{FormulaInk}{HTML}{1F2328}
 \begin{document}
-\color{FormulaInk}
+\color{black}
+{\Large
 \(\displaystyle
 %s
 \)
+}
 \end{document}
 """
 
@@ -115,7 +126,8 @@ def render_one(
     *,
     name: str,
     body: str,
-    destination: Path,
+    light_destination: Path,
+    dark_destination: Path,
     pdflatex: str,
     pdftocairo: str,
 ) -> None:
@@ -166,48 +178,40 @@ def render_one(
             white = Image.new("RGBA", rgba.size, "white")
             white.alpha_composite(rgba)
             rgb = white.convert("RGB")
-            difference = ImageChops.difference(rgb, Image.new("RGB", rgb.size, "white"))
-            ink_box = difference.getbbox()
+            ink_mask = ImageOps.invert(rgb.convert("L"))
+            ink_box = ink_mask.getbbox()
             if ink_box is None:
                 raise RuntimeError(f"Rendered formula contains no visible ink: {name}")
             left, top, right, bottom = ink_box
             crop_box = (
-                max(0, left - 28),
-                max(0, top - 24),
-                min(rgb.width, right + 28),
-                min(rgb.height, bottom + 24),
+                max(0, left - HORIZONTAL_PADDING),
+                max(0, top - VERTICAL_PADDING),
+                min(rgb.width, right + HORIZONTAL_PADDING),
+                min(rgb.height, bottom + VERTICAL_PADDING),
             )
-            cropped = rgb.crop(crop_box)
-            ink_height = bottom - top
-            requested_scale = max(1.6, MIN_INK_HEIGHT / max(1, ink_height))
-            maximum_scale = MAX_INK_WIDTH / cropped.width
-            if requested_scale > maximum_scale:
-                projected_height = ink_height * maximum_scale
+            cropped_mask = ink_mask.crop(crop_box)
+            pixel_width, pixel_height = cropped_mask.size
+            display_width = round(pixel_width / OUTPUT_SCALE)
+            display_height = round(pixel_height / OUTPUT_SCALE)
+            if not MIN_DISPLAY_WIDTH <= display_width <= MAX_DISPLAY_WIDTH:
                 raise RuntimeError(
-                    f"Formula {name} would shrink to {projected_height:.1f}px "
-                    f"ink height to fit; add an explicit aligned line break"
+                    f"Formula {name} would display {display_width}px wide; "
+                    "adjust the TeX or add an explicit aligned line break"
                 )
-            scale = requested_scale
-            resized = cropped.resize(
-                (
-                    max(1, round(cropped.width * scale)),
-                    max(1, round(cropped.height * scale)),
-                ),
-                Image.Resampling.LANCZOS,
-            )
-            canvas_height = max(240, resized.height + 96)
-            padded = Image.new("RGB", (CANVAS_WIDTH, canvas_height), "white")
-            padded.paste(
-                resized,
-                ((padded.width - resized.width) // 2, (padded.height - resized.height) // 2),
-            )
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            padded.save(
-                destination,
-                format="PNG",
-                optimize=True,
-                dpi=(260, 260),
-            )
+            if not MIN_DISPLAY_HEIGHT <= display_height <= MAX_DISPLAY_HEIGHT:
+                raise RuntimeError(
+                    f"Formula {name} would display {display_height}px high; "
+                    "adjust the TeX layout"
+                )
+
+            light = Image.new("RGB", cropped_mask.size, LIGHT_BACKGROUND)
+            light.paste(LIGHT_FOREGROUND, mask=cropped_mask)
+            dark = Image.new("RGB", cropped_mask.size, DARK_BACKGROUND)
+            dark.paste(DARK_FOREGROUND, mask=cropped_mask)
+
+            light_destination.parent.mkdir(parents=True, exist_ok=True)
+            light.save(light_destination, format="PNG", optimize=True)
+            dark.save(dark_destination, format="PNG", optimize=True)
 
 
 def same_pixels(left: Path, right: Path) -> bool:
@@ -227,26 +231,40 @@ def build_manifest(
 ) -> dict[str, object]:
     formulas: dict[str, object] = {}
     for name, body in blocks:
-        png_path = formula_directory / f"{name}.png"
-        with Image.open(png_path) as image:
+        light_path = formula_directory / f"{name}-light.png"
+        dark_path = formula_directory / f"{name}-dark.png"
+        with Image.open(light_path) as image:
             width, height = image.size
+        with Image.open(dark_path) as dark_image:
+            dark_size = dark_image.size
+        if dark_size != (width, height):
+            raise RuntimeError(f"Theme variants have different geometry: {name}")
         formulas[name] = {
             "source_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
-            "png_sha256": hashlib.sha256(png_path.read_bytes()).hexdigest(),
-            "width": width,
-            "height": height,
+            "light_png_sha256": hashlib.sha256(
+                light_path.read_bytes()
+            ).hexdigest(),
+            "dark_png_sha256": hashlib.sha256(dark_path.read_bytes()).hexdigest(),
+            "pixel_width": width,
+            "pixel_height": height,
+            "display_width": round(width / OUTPUT_SCALE),
+            "display_height": round(height / OUTPUT_SCALE),
         }
     return {
-        "version": 1,
+        "version": 2,
         "profile": {
-            "canvas_width": CANVAS_WIDTH,
-            "minimum_height": 192,
-            "maximum_height": 1536,
-            "minimum_ink_height": MIN_INK_HEIGHT,
-            "maximum_ink_width": MAX_INK_WIDTH,
-            "background": "#ffffff",
-            "foreground": "#1f2328",
-            "dpi": 260,
+            "layout": "content-sized-2x",
+            "output_scale": OUTPUT_SCALE,
+            "horizontal_padding": HORIZONTAL_PADDING,
+            "vertical_padding": VERTICAL_PADDING,
+            "minimum_display_width": MIN_DISPLAY_WIDTH,
+            "maximum_display_width": MAX_DISPLAY_WIDTH,
+            "minimum_display_height": MIN_DISPLAY_HEIGHT,
+            "maximum_display_height": MAX_DISPLAY_HEIGHT,
+            "light_background": LIGHT_BACKGROUND,
+            "light_foreground": LIGHT_FOREGROUND,
+            "dark_background": DARK_BACKGROUND,
+            "dark_foreground": DARK_FOREGROUND,
         },
         "formulas": formulas,
     }
@@ -268,16 +286,22 @@ def process_formula_directory(
             rendered_dir = Path(temporary)
             failures: list[str] = []
             for name, body in blocks:
-                candidate = rendered_dir / f"{name}.png"
+                light_candidate = rendered_dir / f"{name}-light.png"
+                dark_candidate = rendered_dir / f"{name}-dark.png"
                 render_one(
                     name=name,
                     body=body,
-                    destination=candidate,
+                    light_destination=light_candidate,
+                    dark_destination=dark_candidate,
                     pdflatex=pdflatex,
                     pdftocairo=pdftocairo,
                 )
-                committed = formula_directory / f"{name}.png"
-                if not same_pixels(candidate, committed):
+                light_committed = formula_directory / f"{name}-light.png"
+                dark_committed = formula_directory / f"{name}-dark.png"
+                if not (
+                    same_pixels(light_candidate, light_committed)
+                    and same_pixels(dark_candidate, dark_committed)
+                ):
                     failures.append(name)
             if failures:
                 raise RuntimeError(
@@ -293,14 +317,18 @@ def process_formula_directory(
             raise RuntimeError("Formula manifest is missing or invalid") from exc
         if committed_manifest != expected_manifest:
             raise RuntimeError("Formula manifest is stale; render assets again")
-        print(f"OK: {len(blocks)} formula PNGs match {source_path.relative_to(ROOT)}")
+        print(
+            f"OK: {len(blocks)} compact light/dark formula pairs match "
+            f"{source_path.relative_to(ROOT)}"
+        )
         return
 
     for name, body in blocks:
         render_one(
             name=name,
             body=body,
-            destination=formula_directory / f"{name}.png",
+            light_destination=formula_directory / f"{name}-light.png",
+            dark_destination=formula_directory / f"{name}-dark.png",
             pdflatex=pdflatex,
             pdftocairo=pdftocairo,
         )
@@ -311,7 +339,7 @@ def process_formula_directory(
         newline="\n",
     )
     print(
-        f"Rendered {len(blocks)} formula PNGs in "
+        f"Rendered {len(blocks)} compact light/dark formula pairs in "
         f"{formula_directory.relative_to(ROOT)}"
     )
 
