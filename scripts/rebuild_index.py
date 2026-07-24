@@ -15,12 +15,15 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
+import json
 import re
+import struct
 import sys
 from collections import defaultdict
 from datetime import date
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from urllib.parse import unquote, urlsplit
+from urllib.parse import SplitResult, unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +67,10 @@ MARKDOWN_IMAGE_RE = re.compile(
     r"!\[(?P<alt>[^\]]*)\]\((?P<target><[^>]+>|[^)\s]+)"
     r"(?:\s+[\"'][^\"']*[\"'])?\)"
 )
+MARKDOWN_LINK_RE = re.compile(
+    r"(?<!!)\[[^\]\n]+\]\((?P<target><[^>\n]+>|[^)\s]+)"
+    r"(?:\s+[\"'][^\"']*[\"'])?\)"
+)
 FENCE_RE = re.compile(
     r"^(?P<indent> {0,3})(?P<marker>`{3,}|~{3,})"
     r"[ \t]*(?P<info>[^ \t`]*)"
@@ -75,6 +82,19 @@ FIGURE_ID_RE = re.compile(r"\bFigure\s+S?\d+[A-Za-z]?\b")
 TABLE_ID_RE = re.compile(r"\bTable\s+S?\d+[A-Za-z]?\b")
 PDF_PAGE_RE = re.compile(r"\bPDF p\.\s*\d+\b")
 IMAGE_RIGHTS_NOTICE = "原图版权归原作者及其他权利人"
+FORMULA_ALT_PREFIX = "公式图："
+FORMULA_SOURCE_LABEL = "**公式来源：**"
+FORMULA_SOURCE_FILE = "source.tex"
+FORMULA_MANIFEST_FILE = "manifest.json"
+FORMULA_SOURCE_FRAGMENT_RE = re.compile(
+    r"^L(?P<begin>[1-9]\d*)-L(?P<end>[1-9]\d*)$"
+)
+FORMULA_BLOCK_RE = re.compile(
+    r"^% BEGIN (?P<name>[a-z0-9-]+)\n"
+    r"(?P<body>.*?)"
+    r"^% END (?P=name)\s*$",
+    re.MULTILINE | re.DOTALL,
+)
 NUMBERED_EQUATION_SOURCE_RE = re.compile(
     r"\*\*原文公式：\*\*[^\n]*\bEq\.\s*"
     r"(?:\([^)\n]*\d[^)\n]*\)|\d+)[^\n]*\bPDF p\.\s*\d+\b"
@@ -383,6 +403,75 @@ def safe_note_path(value: str, line: str) -> Path:
     return path
 
 
+def png_dimensions(path: Path) -> tuple[int, int]:
+    """Return PNG dimensions without adding an image-library CI dependency."""
+
+    with path.open("rb") as handle:
+        header = handle.read(24)
+    if (
+        len(header) != 24
+        or header[:8] != b"\x89PNG\r\n\x1a\n"
+        or header[12:16] != b"IHDR"
+    ):
+        raise ValidationFailure(
+            f"invalid PNG signature or IHDR: {path.relative_to(ROOT).as_posix()}"
+        )
+    return struct.unpack(">II", header[16:24])
+
+
+def validate_formula_source(path: Path, line: str) -> dict[str, str]:
+    """Validate canonical fragment-only TeX and return normalized blocks."""
+
+    raw = path.read_bytes()
+    if not raw or len(raw) > 64 * 1024:
+        raise ValidationFailure(
+            f"CSV line {line}: formula TeX source must be 1 byte–64 KiB"
+        )
+    if raw.startswith(b"\xef\xbb\xbf") or b"\r" in raw or b"\x00" in raw:
+        raise ValidationFailure(
+            f"CSV line {line}: formula TeX source must be BOM-free UTF-8 with LF endings"
+        )
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValidationFailure(
+            f"CSV line {line}: formula TeX source is not strict UTF-8"
+        ) from exc
+
+    dangerous = (
+        r"\documentclass",
+        r"\usepackage",
+        r"\begin{document}",
+        r"\input",
+        r"\include",
+        r"\openout",
+        r"\write",
+        r"\immediate",
+    )
+    for command in dangerous:
+        if command in text:
+            raise ValidationFailure(
+                f"CSV line {line}: formula TeX source contains forbidden command "
+                f"{command!r}"
+            )
+
+    blocks = {
+        match.group("name"): match.group("body").strip()
+        for match in FORMULA_BLOCK_RE.finditer(text)
+    }
+    if not blocks:
+        raise ValidationFailure(
+            f"CSV line {line}: formula TeX source contains no named formula blocks"
+        )
+    begin_count = len(re.findall(r"^% BEGIN ", text, re.MULTILINE))
+    end_count = len(re.findall(r"^% END ", text, re.MULTILINE))
+    if begin_count != len(blocks) or end_count != len(blocks):
+        raise ValidationFailure(
+            f"CSV line {line}: formula TeX contains unmatched or duplicate block markers"
+        )
+    return blocks
+
+
 def validate_note_assets(
     note_path: Path,
     line: str,
@@ -392,8 +481,13 @@ def validate_note_assets(
 ) -> None:
     """Validate visible paper figures, tables, attributions, and equations."""
 
-    local_images: list[tuple[Path, int, str]] = []
+    paper_images: list[tuple[Path, int, str]] = []
+    formula_images: list[tuple[Path, int, int, int]] = []
     root = ROOT.resolve()
+    expected_asset_root = ("assets", "notes", note_path.stem)
+    expected_formula_root = (*expected_asset_root, "formulas")
+    formula_directory = ROOT.joinpath(*expected_formula_root)
+    formula_source_path = formula_directory / FORMULA_SOURCE_FILE
     top_text = structure.top_level_text
     rendered_text = structure.rendered_text
 
@@ -410,8 +504,11 @@ def validate_note_assets(
         )
 
     top_lines = structure.top_level_lines
-    source_label_count = sum(
+    paper_source_label_count = sum(
         item.count("**原图出处：**") for _, item in top_lines
+    )
+    formula_source_label_count = sum(
+        item.count(FORMULA_SOURCE_LABEL) for _, item in top_lines
     )
     source_kinds: list[tuple[int, str]] = []
 
@@ -450,22 +547,45 @@ def validate_note_assets(
                 raise ValidationFailure(
                     f"CSV line {line}: local image does not exist: {raw_target!r}"
                 )
-            if relative.parts[:2] != ("assets", "notes"):
+            if relative.parts[:3] != expected_asset_root:
                 raise ValidationFailure(
-                    f"CSV line {line}: note images must live under assets/notes/: "
+                    f"CSV line {line}: note images must live under the current note's "
+                    f"asset directory {('/'.join(expected_asset_root))}/: "
                     f"{relative.as_posix()}"
                 )
-            if resolved.suffix.casefold() not in {
-                ".png",
-                ".jpg",
-                ".jpeg",
-                ".webp",
-                ".svg",
-            }:
-                raise ValidationFailure(
-                    f"CSV line {line}: unsupported note image format: "
-                    f"{relative.as_posix()}"
-                )
+
+            is_formula = relative.parts[:4] == expected_formula_root
+            if is_formula:
+                if resolved.suffix.casefold() != ".png":
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula assets must be PNG: "
+                        f"{relative.as_posix()}"
+                    )
+                if not alt.startswith(FORMULA_ALT_PREFIX) or len(alt) < 24:
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula image on Markdown line "
+                        f"{source_line} needs descriptive alt text beginning "
+                        f"with {FORMULA_ALT_PREFIX!r}"
+                    )
+                width, height = png_dimensions(resolved)
+                if width != 2048 or not 192 <= height <= 1536:
+                    raise ValidationFailure(
+                        f"CSV line {line}: iPad-safe formula PNG must be 2048 px "
+                        f"wide and 192–1536 px high: {relative.as_posix()} "
+                        f"is {width}x{height}"
+                    )
+            else:
+                if resolved.suffix.casefold() not in {
+                    ".png",
+                    ".jpg",
+                    ".jpeg",
+                    ".webp",
+                    ".svg",
+                }:
+                    raise ValidationFailure(
+                        f"CSV line {line}: unsupported note image format: "
+                        f"{relative.as_posix()}"
+                    )
             image_size = resolved.stat().st_size
             if not 1024 <= image_size <= 3 * 1024 * 1024:
                 raise ValidationFailure(
@@ -476,12 +596,17 @@ def validate_note_assets(
             next_index = line_index + 1
             while next_index < len(top_lines) and not top_lines[next_index][1].strip():
                 next_index += 1
+            expected_label = (
+                f"> {FORMULA_SOURCE_LABEL}"
+                if is_formula
+                else "> **原图出处：**"
+            )
             if next_index >= len(top_lines) or not top_lines[next_index][
                 1
-            ].lstrip().startswith("> **原图出处：**"):
+            ].lstrip().startswith(expected_label):
                 raise ValidationFailure(
                     f"CSV line {line}: image on Markdown line {source_line} must be "
-                    "followed immediately by a '> **原图出处：**' block"
+                    f"followed immediately by a {expected_label!r} block"
                 )
 
             source_block_lines: list[str] = []
@@ -492,6 +617,64 @@ def validate_note_assets(
                 source_block_lines.append(top_lines[next_index][1])
                 next_index += 1
             source_block = "\n".join(source_block_lines)
+
+            if is_formula:
+                source_links: list[tuple[str, SplitResult]] = []
+                for link_match in MARKDOWN_LINK_RE.finditer(source_block):
+                    raw_link_target = link_match.group("target").strip("<>")
+                    parsed_link = urlsplit(raw_link_target)
+                    link_parts = PurePosixPath(unquote(parsed_link.path)).parts
+                    if link_parts[-2:] == ("formulas", FORMULA_SOURCE_FILE):
+                        source_links.append((raw_link_target, parsed_link))
+                if len(source_links) != 1:
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula attribution after Markdown line "
+                        f"{source_line} must contain exactly one anchored "
+                        f"'formulas/{FORMULA_SOURCE_FILE}#Lbegin-Lend' link"
+                    )
+                raw_source_target, parsed_source_link = source_links[0]
+                if parsed_source_link.scheme or parsed_source_link.netloc:
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula source after Markdown line "
+                        f"{source_line} must be a local link: {raw_source_target!r}"
+                    )
+                resolved_source_target = (
+                    note_path.parent / unquote(parsed_source_link.path)
+                ).resolve()
+                if resolved_source_target != formula_source_path.resolve():
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula source after Markdown line "
+                        f"{source_line} must point to the current note's "
+                        f"formulas/{FORMULA_SOURCE_FILE}"
+                    )
+                fragment_match = FORMULA_SOURCE_FRAGMENT_RE.fullmatch(
+                    parsed_source_link.fragment
+                )
+                if fragment_match is None:
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula source after Markdown line "
+                        f"{source_line} requires an exact #Lbegin-Lend fragment"
+                    )
+                anchor_begin = int(fragment_match.group("begin"))
+                anchor_end = int(fragment_match.group("end"))
+                if anchor_begin > anchor_end:
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula source after Markdown line "
+                        f"{source_line} has a reversed line anchor"
+                    )
+                if not (
+                    paper_url in source_block
+                    or "**[源码]" in source_block
+                    or "**[判断]" in source_block
+                ):
+                    raise ValidationFailure(
+                        f"CSV line {line}: formula attribution after Markdown line "
+                        f"{source_line} needs official-paper, [源码], or [判断] provenance"
+                    )
+                formula_images.append(
+                    (resolved, source_line, anchor_begin, anchor_end)
+                )
+                continue
 
             has_figure = bool(FIGURE_ID_RE.search(source_block))
             has_table = bool(TABLE_ID_RE.search(source_block))
@@ -518,19 +701,91 @@ def validate_note_assets(
 
             kind = "Figure" if has_figure else "Table"
             source_kinds.append((source_line, kind))
-            local_images.append((resolved, source_line, kind))
+            paper_images.append((resolved, source_line, kind))
 
-    if not local_images:
+    if not paper_images:
         raise ValidationFailure(
             f"CSV line {line}: every deep-reading note requires locally stored, "
             "attributed paper figures and tables"
         )
-    if source_label_count != len(local_images):
+    if paper_source_label_count != len(paper_images):
         raise ValidationFailure(
-            f"CSV line {line}: every visible source label must correspond one-to-one "
-            f"with a local image ({source_label_count} labels, "
-            f"{len(local_images)} images)"
+            f"CSV line {line}: every paper-image source label must correspond "
+            f"one-to-one with a local paper image ({paper_source_label_count} labels, "
+            f"{len(paper_images)} images)"
         )
+    if formula_source_label_count != len(formula_images):
+        raise ValidationFailure(
+            f"CSV line {line}: every formula source label must correspond one-to-one "
+            f"with a local formula PNG ({formula_source_label_count} labels, "
+            f"{len(formula_images)} images)"
+        )
+    if formula_images:
+        source_path = formula_source_path
+        if not source_path.is_file():
+            raise ValidationFailure(
+                f"CSV line {line}: missing canonical formula source "
+                f"{source_path.relative_to(ROOT).as_posix()}"
+            )
+        source_blocks = validate_formula_source(source_path, line)
+        source_names = set(source_blocks)
+        referenced_names = {
+            path.stem for path, _, _, _ in formula_images
+        }
+        disk_names = {path.stem for path in formula_directory.glob("*.png")}
+        if referenced_names != source_names or referenced_names != disk_names:
+            raise ValidationFailure(
+                f"CSV line {line}: formula PNG references, TeX blocks, and on-disk "
+                "PNGs must have identical stems"
+            )
+        source_lines = source_path.read_text(encoding="utf-8").splitlines()
+        for png_path, source_line, anchor_begin, anchor_end in formula_images:
+            begin_marker = f"% BEGIN {png_path.stem}"
+            end_marker = f"% END {png_path.stem}"
+            anchor_is_exact = (
+                anchor_begin <= len(source_lines)
+                and anchor_end <= len(source_lines)
+                and source_lines[anchor_begin - 1].strip() == begin_marker
+                and source_lines[anchor_end - 1].strip() == end_marker
+            )
+            if not anchor_is_exact:
+                raise ValidationFailure(
+                    f"CSV line {line}: formula source link after Markdown line "
+                    f"{source_line} does not exactly anchor {begin_marker!r} "
+                    f"through {end_marker!r}"
+                )
+        manifest_path = formula_directory / FORMULA_MANIFEST_FILE
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (FileNotFoundError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValidationFailure(
+                f"CSV line {line}: formula manifest is missing or invalid"
+            ) from exc
+        manifest_formulas = manifest.get("formulas")
+        if manifest.get("version") != 1 or not isinstance(manifest_formulas, dict):
+            raise ValidationFailure(
+                f"CSV line {line}: unsupported formula manifest schema"
+            )
+        if set(manifest_formulas) != referenced_names:
+            raise ValidationFailure(
+                f"CSV line {line}: formula manifest stems do not match note assets"
+            )
+        for name, body in source_blocks.items():
+            entry = manifest_formulas.get(name)
+            png_path = formula_directory / f"{name}.png"
+            width, height = png_dimensions(png_path)
+            expected_source_hash = hashlib.sha256(body.encode("utf-8")).hexdigest()
+            expected_png_hash = hashlib.sha256(png_path.read_bytes()).hexdigest()
+            if (
+                not isinstance(entry, dict)
+                or entry.get("source_sha256") != expected_source_hash
+                or entry.get("png_sha256") != expected_png_hash
+                or entry.get("width") != width
+                or entry.get("height") != height
+            ):
+                raise ValidationFailure(
+                    f"CSV line {line}: formula manifest entry {name!r} is stale"
+                )
 
     heading_positions = {
         content.strip(): source_line
@@ -599,11 +854,16 @@ def validate_note_assets(
                 f"{source_line} requires a numeric PDF page"
             )
 
+    if structure.top_level_math_blocks:
+        raise ValidationFailure(
+            f"CSV line {line}: indexed notes must not use live fenced math; "
+            "render equations as cross-device formula PNGs"
+        )
+
     if has_equations:
-        if not structure.top_level_math_blocks:
+        if not formula_images:
             raise ValidationFailure(
-                f"CSV line {line}: original equations require visible fenced "
-                "```math blocks"
+                f"CSV line {line}: original equations require visible formula PNGs"
             )
         label_lines = sorted(
             source_line
@@ -613,7 +873,6 @@ def validate_note_assets(
             source_line
             for source_line, content in top_lines
             if content.lstrip().startswith("#")
-            or "**原图出处：**" in content
             or "**原文公式：**" in content
             or "**原文未编号公式：**" in content
         )
@@ -626,13 +885,15 @@ def validate_note_assets(
                 ),
                 10**9,
             )
-            if not any(
-                label_line < start < next_boundary and block.strip()
-                for start, _, block in structure.top_level_math_blocks
-            ):
+            matching_images = [
+                image_line
+                for _, image_line, _, _ in formula_images
+                if label_line < image_line < next_boundary
+            ]
+            if len(matching_images) != 1:
                 raise ValidationFailure(
                     f"CSV line {line}: original formula label on Markdown line "
-                    f"{label_line} must be followed by a non-empty visible math block"
+                    f"{label_line} must be followed by exactly one visible formula PNG"
                 )
 
 

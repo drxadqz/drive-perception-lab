@@ -1,0 +1,12 @@
+{
+  "name": "autonomous-driving-paper-reading-log",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Deterministic public-page checks for the paper reading log",
+  "scripts": {
+    "check:published-formulas": "node scripts/check_published_math.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.61.1"
+  }
+}

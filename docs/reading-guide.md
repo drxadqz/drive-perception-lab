@@ -32,39 +32,62 @@
 
 ## 公式规则
 
-GitHub 的 Markdown 解析优先级会让某些常见 LaTeX 写法显示成裸文本或标题。
-本仓库因此统一采用：
+GitHub 官方文档说明，Markdown 数学公式由 Web 界面的 JavaScript MathJax
+组件呈现。GitHub 原生移动 App 不保证执行同一套网页组件；实际设备上可能把
+`math` fence 或 inline TeX 当成普通代码。为保证浏览器、GitHub iPad/iPhone
+App、深色模式和读屏场景得到同一内容，精读正文不依赖 live MathJax。
+
+[GitHub 官方数学表达式说明](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions)
+
+本仓库采用三层交付：
+
+1. **公式 PNG**：正文直接显示，不透明白底、近黑文字、固定 2048 px 宽；
+2. **纯文字读法**：图片失败或使用读屏时仍能理解公式语义；
+3. **TeX 源**：放在该笔记 `formulas/source.tex`，供复制和逐项核对。
+
+正文结构固定为：
 
 ````text
-行内公式：$`M_t`$
+**原文公式：** 论文 Eq. (7)，PDF p. 4。
 
-多行公式：
-```math
-\widetilde{F}^{\,t}
-= \psi(F^t)
-```
+![公式图：Eq. 7，类别状态递推更新](../../assets/notes/<note-key>/formulas/eq-07-class-update.png)
+
+> **公式来源：** 作者、编号、PDF 页、官方 PDF、按原符号重排说明、
+> [可复制 TeX](../../assets/notes/<note-key>/formulas/source.tex)。
+
+**纯文字读法：** 下一类别状态 = 当前状态与历史状态融合后归一化。
 ````
 
 维护时必须遵守：
 
-- 不使用 `\(...\)`、`\[...\]` 或多行 `$$`；
-- GitHub 当前会拒绝 `\operatorname{...}`；自定义算子名统一写成
-  `\mathrm{...}`，例如 `\mathrm{softmax}`；
+- `notes/` 和 `templates/` 中不使用 inline dollar math、fenced `math`、
+  TeX 括号分隔符或双 dollar block；
+- 简单行内符号写成普通 code span，例如 `M_t`、`delta`、`p + f`；
+- 每张公式图使用准确、非 LaTeX 堆砌的中文 alt text；
+- 公式图后的第一个非空内容必须是连续的“公式来源”引用块；
+- PNG 必须是 2048 px 宽、192–1536 px 高、不透明白底；长公式主动换行，
+  不能靠缩小字体塞进一行；
 - 原文公式标明 Eq. 编号、PDF 页码和源码映射；
 - 原文没有编号时明确标“原文未编号公式”并给 PDF 页码，不自行补编号；
-- 论文自定义宏先展开，再放进 GitHub；
+- 论文自定义宏先展开，再进入独立 TeX 源；
 - 笔记自己的推导或量级估算明确标成“[判断] 非原文公式”；
-- 如果论文没有不可替代的关键公式，明确说明，不为满足模板而编造。
-- 关键原式保持在正文可见区域，不放进 `<details>`；数学块不能为空。
+- 如果论文没有不可替代的关键公式，明确说明，不为满足模板而编造；
+- 关键原式保持在正文可见区域，不放进 `<details>`；
+- 公式 PNG、TeX 命名块和正文引用必须一一对应，不能留下孤儿资产；
+- 类比之后必须回到正式符号、论文定义和证据边界。
 
 发布前运行：
 
 ```bash
+python scripts/render_formula_assets.py --check
 python scripts/rebuild_index.py
 python scripts/rebuild_index.py --check
 python scripts/lint_markdown_math.py
 python -m unittest discover -s tests -v
 ```
+
+分支推送后，公开页面 smoke test 还会在 iPad 尺寸下检查：公式图全部加载、
+页面不存在 `math-renderer`、图片具备至少 2× 像素密度、正文没有横向溢出。
 
 ## 证据边界
 

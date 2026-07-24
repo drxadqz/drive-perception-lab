@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-r"""Lint public Markdown for GitHub-safe mathematical notation.
+r"""Lint public Markdown for cross-device mathematical notation.
 
 Repository convention:
 
-- display mathematics uses fenced ``math`` blocks;
-- inline mathematics uses GitHub's robust $`...`$ form;
-- TeX delimiters such as \(...\), \[...\], and $$ are forbidden;
-- paper-only macros are expanded before a formula enters a note.
+- indexed notes and the note template contain no live MathJax regions;
+- display equations in notes use committed opaque PNGs with copyable TeX source;
+- inline symbols in notes use ordinary code spans such as ``M_t``;
+- TeX delimiters such as \(...\), \[...\], and $$ remain forbidden everywhere.
 
 The linter intentionally uses only the Python standard library so it can run
 both in GitHub Actions and in the daily reading automation.
@@ -235,6 +235,19 @@ def markdown_paths() -> list[Path]:
     return sorted({path for path in paths if path.is_file()})
 
 
+def requires_static_formula_assets(path: Path) -> bool:
+    """Return whether this Markdown must remain independent of MathJax."""
+
+    resolved = path.resolve()
+    for directory in (ROOT / "notes", ROOT / "templates"):
+        try:
+            resolved.relative_to(directory.resolve())
+            return True
+        except ValueError:
+            continue
+    return False
+
+
 def add_error(
     errors: list[LintError],
     path: Path,
@@ -342,6 +355,7 @@ def math_syntax_issues(payload: str) -> list[str]:
 
 def lint_path(path: Path) -> list[LintError]:
     errors: list[LintError] = []
+    static_formula_assets = requires_static_formula_assets(path)
     raw = path.read_bytes()
     try:
         text = raw.decode("utf-8")
@@ -378,6 +392,15 @@ def lint_path(path: Path) -> list[LintError]:
         if active_marker is not None:
             if is_fence_close(raw_line, active_marker):
                 if active_info == "math":
+                    if static_formula_assets:
+                        add_error(
+                            errors,
+                            path,
+                            active_line,
+                            "MATH015",
+                            "notes and note templates must use formula PNGs, "
+                            "not live fenced math",
+                        )
                     payload = "\n".join(active_content).strip()
                     if not payload:
                         add_error(
@@ -442,6 +465,15 @@ def lint_path(path: Path) -> list[LintError]:
 
         for match in INLINE_MATH_RE.finditer(line):
             payload = match.group("body")
+            if static_formula_assets:
+                add_error(
+                    errors,
+                    path,
+                    line_number,
+                    "MATH015",
+                    "notes and note templates must use ordinary code spans "
+                    "for inline symbols, not live MathJax",
+                )
             for issue in math_syntax_issues(payload):
                 add_error(
                     errors,
@@ -538,7 +570,10 @@ def main() -> int:
         )
         return 1
 
-    print(f"OK: GitHub-safe math in {len(markdown_paths())} Markdown file(s)")
+    print(
+        "OK: no live math in notes/templates; "
+        f"cross-device notation checked in {len(markdown_paths())} Markdown file(s)"
+    )
     return 0
 
 
