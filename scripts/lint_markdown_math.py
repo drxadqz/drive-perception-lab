@@ -32,22 +32,26 @@ DETAILS_TAG_RE = re.compile(r"</?details\b[^>]*>", re.IGNORECASE)
 ENVIRONMENT_RE = re.compile(r"\\(?P<action>begin|end)\{(?P<name>[^{}]+)\}")
 
 FORBIDDEN_DELIMITERS = (r"\(", r"\)", r"\[", r"\]")
-UNSUPPORTED_MATH_MACROS = (
-    r"\paradigm",
-    r"\metric",
-    r"\method",
-    r"\mathds",
-    r"\cref",
-    r"\cite",
-    r"\label",
-    r"\textcolor",
-    r"\newcommand",
-    r"\renewcommand",
-    r"\providecommand",
-    r"\DeclareMathOperator",
-    r"\def",
-)
-ALLOWED_MATH_COMMANDS = frozenset(
+GITHUB_FORBIDDEN_MATH_COMMANDS = {
+    # GitHub's client-side safe-macro policy rejects \operatorname even
+    # though MathJax itself supports it.  See github/markup#1688.
+    r"\operatorname": r"use \mathrm{...} for a named operator",
+    # Paper- or document-level commands must be expanded before publishing.
+    r"\paradigm": "expand the paper-specific macro",
+    r"\metric": "expand the paper-specific macro",
+    r"\method": "expand the paper-specific macro",
+    r"\mathds": r"use a reviewed font command such as \mathbf",
+    r"\cref": "replace the reference with visible Markdown text",
+    r"\cite": "replace the citation with a Markdown link",
+    r"\label": "remove the LaTeX label",
+    r"\textcolor": "remove the color command",
+    r"\newcommand": "expand the custom macro",
+    r"\renewcommand": "expand the custom macro",
+    r"\providecommand": "expand the custom macro",
+    r"\DeclareMathOperator": r"expand it with \mathrm{...}",
+    r"\def": "expand the custom macro",
+}
+GITHUB_VERIFIED_MATH_COMMANDS = frozenset(
     {
         # Greek letters
         r"\alpha",
@@ -102,7 +106,6 @@ ALLOWED_MATH_COMMANDS = frozenset(
         r"\mathtt",
         r"\mathbb",
         r"\boldsymbol",
-        r"\operatorname",
         r"\frac",
         r"\dfrac",
         r"\tfrac",
@@ -292,17 +295,17 @@ def math_syntax_issues(payload: str) -> list[str]:
     if any(char == "$" and not is_escaped(payload, index) for index, char in enumerate(payload)):
         issues.append("math payload contains a nested unescaped '$' delimiter")
 
-    for macro in UNSUPPORTED_MATH_MACROS:
-        if macro in payload:
-            issues.append(f"expand unsupported paper macro {macro!r}")
     for command in sorted(set(TEX_COMMAND_RE.findall(payload))):
-        if (
-            command not in ALLOWED_MATH_COMMANDS
-            and command not in UNSUPPORTED_MATH_MACROS
-        ):
+        if command in GITHUB_FORBIDDEN_MATH_COMMANDS:
+            issues.append(
+                f"GitHub rejects or this repository forbids {command!r}; "
+                f"{GITHUB_FORBIDDEN_MATH_COMMANDS[command]}"
+            )
+        elif command not in GITHUB_VERIFIED_MATH_COMMANDS:
             issues.append(
                 f"unknown TeX command {command!r}; expand a paper macro or "
-                "review and add a supported MathJax command"
+                "verify it on a real GitHub page before adding it to the "
+                "reviewed command set"
             )
 
     brace_depth = 0
