@@ -165,11 +165,43 @@ class MathLintRegressionTests(unittest.TestCase):
             "```math\n"
             "\\begin{aligned}\n"
             "x &= y + 1,\\\\\n"
-            "z &= \\operatorname{mean}(x)\n"
+            "z &= \\mathrm{mean}(x)\n"
             "\\end{aligned}\n"
             "```\n"
         )
         self.assertEqual(self.lint_text(text), [])
+
+    def test_github_forbidden_operatorname_fails(self) -> None:
+        self.assert_lint_fails(
+            "```math\n\\operatorname{softmax}(x)\n```\n",
+            "MATH008",
+        )
+        self.assert_lint_fails(
+            "Bad $`\\operatorname{DA}(x)`$.\n",
+            "MATH008",
+        )
+
+    def test_github_safe_named_operators_pass(self) -> None:
+        text = (
+            "Inline $`\\mathrm{DA}(x)`$ and "
+            "$`\\exp(\\mathrm{softplus}(x))`$.\n\n"
+            "```math\n"
+            "\\mathrm{softmax}(x)"
+            "+\\mathrm{MLP}(x)"
+            "+\\mathrm{STCV}_t"
+            "+\\mathrm{mSTCV}"
+            "+\\mathrm{mean}_i[x_i]\n"
+            "```\n"
+        )
+        self.assertEqual(self.lint_text(text), [])
+
+    def test_public_math_contains_no_operatorname(self) -> None:
+        offenders = []
+        for path in math_lint.markdown_paths():
+            for error in math_lint.lint_path(path):
+                if r"\operatorname" in error.message:
+                    offenders.append(error.render())
+        self.assertEqual(offenders, [])
 
     def test_inline_custom_macro_fails(self) -> None:
         self.assert_lint_fails("Bad $`\\method(x)`$.\n", "MATH008")

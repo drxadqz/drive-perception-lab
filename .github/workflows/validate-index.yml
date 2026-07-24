@@ -14,10 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -29,3 +31,21 @@ jobs:
 
       - name: Run Markdown validation regressions
         run: python -m unittest discover -s tests -v
+
+      - name: Set up Node for the published-render smoke test
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Install the published-render test browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify changed math on GitHub's real renderer
+        env:
+          RENDER_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          RENDER_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          RENDER_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check_published_math.mjs
