@@ -1,22 +1,22 @@
 {
   "formulas": {
     "calculation-local-feature-memory": {
-      "dark_png_sha256": "2bca6073661024b598639ab8b16ee0eb22a0bd7006d119ec26b8a00a61bb6647",
+      "dark_png_sha256": "04d21419181d14ed61009fc57e6fb4a8f95c3962ed06a38112e61a5935ce191c",
       "display_height": 116,
-      "display_width": 618,
-      "light_png_sha256": "9c196eaa4000d1d2d37da74e4d094f37ebfa047d7e2e3756d2e9eb78831d08ca",
+      "display_width": 454,
+      "light_png_sha256": "a97298feb821f610f004f20bf7d695c7170c2f5eff7fa2a3b82a44fac3324cd3",
       "pixel_height": 233,
-      "pixel_width": 1235,
-      "source_sha256": "c954e306368cce84d3fb8199a6940d8bbaefede8cf815a7db77a671744d04318"
+      "pixel_width": 909,
+      "source_sha256": "0ada140f5d99582ff17dd1b8ebb17f44ac715393137e298ebfceff5f70329a4f"
     },
     "calculation-scene-state-memory": {
-      "dark_png_sha256": "741cfe932e5df9a5638745412b8cbba96c1fd5ba5bc289b368d5c9f02dfb50fd",
+      "dark_png_sha256": "11e5b8fab8a8e693134c62afdbf2b89a067e353d89f91b1e8f11ad29419358e7",
       "display_height": 74,
-      "display_width": 634,
-      "light_png_sha256": "d8e0095ae4911ea9104c9d385fa6aefa08ef950e3bf41f6d16972429d4114297",
+      "display_width": 471,
+      "light_png_sha256": "350fd8c548bc87a659276911f43e2c1bd0a342c898394ddc81e484a6a0fa4abc",
       "pixel_height": 147,
-      "pixel_width": 1267,
-      "source_sha256": "95e8b6270292ac84f78448c1069ccc04ddae16d1248d1a1f7ae3dce003fdc19d"
+      "pixel_width": 942,
+      "source_sha256": "99b974f752d3f9178511504571016a00d77f85ac06ec1cfa3ed7507e4fcb81bb"
     },
     "eq-05-unified-memory-read": {
       "dark_png_sha256": "5fd17fea41ec62861126c5b806b828ffa404ddc5a8b835be17b00ff05ccd58bc",
