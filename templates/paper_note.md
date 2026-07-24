@@ -1,134 +1,186 @@
 # YYYY-MM-DD — Paper title
 
-## 1. Identity and verification
+> [!TIP]
+> **先读结论：** 用一句不超过 60 字的话说明论文做了什么、证据最强在哪里、
+> 最大边界是什么。
 
-| Field | Value |
+`Venue YYYY` · `Accepted / Preprint` · `论文已读 / 源码已读 / 已运行或未运行`
+
+[返回首页](https://github.com/drxadqz/sensorledger3d-reading-log) ·
+[官方论文]() · [补充材料]() ·
+[官方代码 @ 固定 SHA]()
+
+## 怎么读这篇笔记
+
+| 时间 | 阅读范围 | 目标 |
+|---|---|---|
+| 3 分钟 | [3 分钟速读](#3-分钟速读) | 得到结论和证据边界 |
+| 10 分钟 | 再读 [10 分钟理解](#10-分钟理解) | 理解方法与实验逻辑 |
+| 30 分钟以上 | 再读 [30 分钟深读](#30-分钟深读) | 核对源码、复现风险与开放问题 |
+
+证据标签：**[论文]** 作者材料直接支持；**[源码]** 固定 commit 直接支持；
+**[判断]** 本笔记分析；**[未核验]** 尚未独立运行或确认。
+
+## 3 分钟速读
+
+### 结论卡
+
+| 问题 | 结论 |
 |---|---|
-| Title | |
-| Authors | |
-| Venue / year | |
-| Status | Accepted / Preprint |
-| Official proceedings | |
+| 论文解决什么？ | |
+| 核心方法是什么？ | |
+| 最强证据是什么？ | |
+| 最大局限是什么？ | |
+| 源码最值得看哪里？ | |
+| 独立复现状态 | **未运行**，除非真的完成验证 |
+
+### 为什么今天读它
+
+- **直接相关性**：
+- **研究决策价值**：
+- **与已有工作的碰撞风险**：
+
+### 读完后应该记住的三点
+
+1. **[论文]**
+2. **[源码]**
+3. **[判断]**
+
+## 10 分钟理解
+
+### 1. 问题、假设与贡献
+
+#### [论文] 作者明确主张
+
+#### [判断] 本笔记认为真正成立的结论
+
+#### [判断] 实验尚不能完全支持的表述
+
+### 2. 方法数据流
+
+```text
+input
+→ encoder
+→ key module
+→ state / prediction
+→ output
+```
+
+### 3. 关键公式或机制
+
+只保留帮助理解实现的公式，不大段复制论文。
+
+### 4. 实验逻辑
+
+| 主张 | 数据 / 对照 | 指标 | 证据强度 | 主要疑点 |
+|---|---|---|---|---|
+| | | | Strong / Medium / Weak | |
+
+### 5. 一般性研究启示
+
+这里只写公开安全、可由文献证据支持的启示。不要写未投稿方法的完整实现配方、
+精确目标阈值或私有实验结果。
+
+## 30 分钟深读
+
+### 6. 身份与材料核验
+
+| 字段 | 内容 |
+|---|---|
+| 标题 | |
+| 作者 | |
+| Venue / 年份 | |
+| 状态与权威来源 | Accepted / Preprint；链接 |
 | Paper / supplement | |
-| Official repository | |
-| Repository commit | |
+| 官方仓库 | |
+| 精读 commit | 40 位 SHA 与 permalink |
 | License | |
 | Checkpoint / config | |
-| Selection score | /10 |
+| 选择评分 | /10 |
 
-## 2. Why this paper today
+### 7. 方法重建
 
-- Direct relevance:
-- Expected value:
-- Collision risk:
+#### 状态、张量与更新路径
 
-## 3. One-sentence thesis
+#### 训练目标
 
-> 
+#### 推理路径与复杂度
 
-## 4. Problem, assumptions, and claimed contributions
+### 8. 源码审计
 
-### Evidence stated by the paper
+#### 入口与调用链
 
-### My interpretation
+```text
+entrypoint
+→ model
+→ key module
+→ output
+```
 
-### Claims that the experiments do not fully establish
-
-## 5. Method reconstruction
-
-### Data flow
-
-### Key equations
-
-### Training objectives
-
-### Inference-time state and update path
-
-### Complexity and stored state
-
-## 6. Experiment logic
-
-| Claim | Dataset / split | Baseline | Metric | Evidence strength | Concern |
-|---|---|---|---|---|---|
-
-### Ablations that matter
-
-### Missing controls
-
-### Statistical/reproducibility concerns
-
-## 7. Source-code reading
-
-### Repository map
-
-### Entrypoints and call chain
-
-| Paper concept | File / symbol / permalink | What the code actually does | Important discrepancy |
+| 论文概念 | 文件 / symbol / permalink | 源码实际行为 | 一致性或差异 |
 |---|---|---|---|
+| | | | |
 
-### Persistent state audit
+<details>
+<summary><strong>持久状态、复现与工程风险</strong></summary>
 
-- State tensors:
-- Hidden auxiliary state:
-- In-place updates:
-- Sensor-dependent gates or normalization:
-- Determinism hazards:
+- 状态张量：
+- 隐式辅助状态：
+- in-place 更新：
+- 传感器内容相关路径：
+- 确定性风险：
+- 环境与版本：
+- 最短复现命令：
 
-### Reproduction path
+</details>
 
-## 8. What transfers to SensorLedger3D
+### 9. 局限与开放问题
 
-### Directly reusable ideas
+每个问题都分开写观察与推断：
 
-### Ideas requiring redesign
+#### 问题 A
 
-### Designs that violate exact-revocation assumptions
+- **[论文/源码] 已观察事实**：
+- **[判断] 为什么值得继续查**：
+- **仍需检索的相邻工作**：
+- **可以区分两种解释的最小公开测试**：
 
-## 9. Open problems and innovation opportunities
+### 10. Reviewer-style 评估
 
-For each item, separate observation from inference.
-
-### Opportunity A
-
-- **Observed evidence**:
-- **Inference**:
-- **Falsifiable hypothesis**:
-- **Minimum experiment**:
-- **Collision search needed**:
-
-### Opportunity B
-
-- **Observed evidence**:
-- **Inference**:
-- **Falsifiable hypothesis**:
-- **Minimum experiment**:
-- **Collision search needed**:
-
-## 10. Reviewer-style assessment
-
-| Axis | Score /10 | Reason |
+| 维度 | 分数 /10 | 理由 |
 |---|---:|---|
-| Novelty | | |
-| Technical depth | | |
-| Experimental rigor | | |
-| Reproducibility | | |
-| Relevance to current project | | |
+| 新颖性 | | |
+| 技术深度 | | |
+| 实验严谨性 | | |
+| 可复现性 | | |
+| 对当前研究地图的价值 | | |
 
-## 11. Actions generated
+### 11. 下一步
 
-- [ ] Add baseline:
-- [ ] Add unit test:
-- [ ] Add literature collision:
-- [ ] Run experiment:
-- [ ] Update claim boundary:
+- [ ] 核对一个关键事实：
+- [ ] 运行一个复现/压力测试：
+- [ ] 检索一组相邻工作：
+- [ ] 更新一个开放问题：
 
-## 12. Evidence ledger
+<details>
+<summary><strong>证据账本</strong></summary>
 
-### Paper evidence
+#### 论文证据
 
-### Source-code evidence
+#### 源码证据
 
-### External verification
+#### 外部身份核验
 
-### Unverified items
+#### 未核验事项
 
+</details>
+
+<!--
+发布前公开性检查：
+- 没有未投稿项目内部代号或私有链接；
+- 没有完整暴露尚未投稿的算法配方、精确阈值或私有结果；
+- Accepted/Preprint 身份有权威来源；
+- “源码已读”和“已经运行”没有混写；
+- 所有源码链接固定到 commit；
+- 已更新 index/papers.csv 并运行 scripts/rebuild_index.py --check。
+-->
