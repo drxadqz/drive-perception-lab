@@ -12,19 +12,19 @@
 > 纯文字读法与可复制 TeX 源；兼容 GitHub 网页和 iPad/iPhone App。
 
 <!-- AUTO:STATS:START -->
-**2 篇精读** · **2 篇正式录用** · **2 篇关键源码已审** · **覆盖 2/13 个感知主方向** · 最近更新：**2026-07-25**
+**3 篇精读** · **3 篇正式录用** · **3 篇关键源码已审** · **覆盖 3/13 个感知主方向** · 最近更新：**2026-07-26**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
-## ▶ [开始今天的精读：OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning（CVPR 2025）](notes/2026/2026-07-25-omnidrive.md)
+## ▶ [开始今天的精读：VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking（CVPR 2023）](notes/2026/2026-07-26-voxelnext.md)
 
-> OmniDrive 用轨迹反事实把 3D 场景、语言推理和规划监督连起来；但更好的开放环指标仍可能来自 ego-status 捷径，且反事实没有模拟其他交通参与者的响应。
+> VoxelNeXt 证明非中心稀疏体素也能直接回归三维框并改善速度—精度折中；但官方默认配置仍使用 NMS、未启用剪枝，跟踪关联代码也未发布。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.html) · **大视觉模型、VLM、LLM 与 VLA** · Surround Camera + Language + Map + Vehicle State · VLM · LLM · 3D Grounding · Counterfactual Reasoning · Planning Interface · Open-loop Evaluation · Data Generation · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/CVPR2023/html/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.html) · **目标与交通参与者感知** · LiDAR · 3D Object Detection · 3D Multi-Object Tracking · Sparse Convolution · Voxel Representation · Efficient Inference · Post-processing · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [官方代码 @ ced20733](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+[论文原文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [官方代码 @ b5b7d393](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 <!-- AUTO:LATEST:END -->
 
 ## 想读其他内容
@@ -37,6 +37,7 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-07-26 · CVPR 2023** — [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](notes/2026/2026-07-26-voxelnext.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-25 · CVPR 2025** — [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](notes/2026/2026-07-25-omnidrive.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-24 · ICCV 2025** — [Occupancy Learning with Spatiotemporal Memory](notes/2026/2026-07-24-st-occ.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->

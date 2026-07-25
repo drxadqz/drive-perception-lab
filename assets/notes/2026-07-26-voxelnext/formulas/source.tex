@@ -1,0 +1,21 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Both blocks are transcribed from VoxelNeXt, CVPR 2023, Eq. (1)-(2).
+% The main note carries the exact paper page and fixed-source provenance.
+
+% BEGIN eq-01-multiscale-sparse-alignment
+\begin{aligned}
+F_c &= F_4 \cup (F_5 \cup F_6),\\
+P'_6 &= \{(x_p\!\times\!2^2,\ y_p\!\times\!2^2,\ z_p\!\times\!2^2)\mid p\in P_6\},\\
+P'_5 &= \{(x_p\!\times\!2^1,\ y_p\!\times\!2^1,\ z_p\!\times\!2^1)\mid p\in P_5\},\\
+P_c &= P_4 \cup (P'_5 \cup P'_6)
+\end{aligned}
+\qquad\text{(1)}
+% END eq-01-multiscale-sparse-alignment
+
+% BEGIN eq-02-sparse-height-compression
+\begin{aligned}
+\bar P_c &= \{(x_p,y_p)\mid p\in P_c\},\\
+\bar F_c &= \left\{\sum_{p\in S_{\bar p}} f_p\ \middle|\ \bar p\in\bar P_c\right\}
+\end{aligned}
+\qquad\text{(2)}
+% END eq-02-sparse-height-compression

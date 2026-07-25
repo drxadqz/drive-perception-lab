@@ -48,7 +48,7 @@
 
 | 编号 | 自动驾驶感知主方向 | 已精读 | 最近更新 | 覆盖状态 |
 |---|---|---:|---|---|
-| P01 | [目标与交通参与者感知](#p01-object-actor-perception) | 0 | — | 待覆盖 |
+| P01 | [目标与交通参与者感知](#p01-object-actor-perception) | 1 | 2026-07-26 | 已有锚点 |
 | P02 | [稠密场景语义与几何](#p02-dense-scene-geometry) | 0 | — | 待覆盖 |
 | P03 | [BEV 与统一场景表示](#p03-bev-unified-representation) | 0 | — | 待覆盖 |
 | P04 | [Occupancy 与 4D 场景理解](#p04-occupancy-4d) | 1 | 2026-07-24 | 已有锚点 |
@@ -67,13 +67,13 @@
 每篇论文只有一个主方向，避免在目录中重复；传感器、任务、表示、可靠性和大模型关系通过后面的交叉索引补充。
 
 <a id="p01-object-actor-perception"></a>
-### P01 · 目标与交通参与者感知（0）
+### P01 · 目标与交通参与者感知（1）
 
 **范围：** 2D/3D 检测、属性与姿态、多目标跟踪、全景跟踪，以及以离散目标、实例或轨迹为核心的感知。
 
 **阅读时追问：** 模型能否稳定发现、定位并持续识别真正影响驾驶决策的交通参与者？
 
-- 尚无完成精读；每日选文会优先检查这一覆盖缺口。
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 <a id="p02-dense-scene-geometry"></a>
 ### P02 · 稠密场景语义与几何（0）
@@ -202,9 +202,9 @@
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
 
-### LiDAR（0）
+### LiDAR（1）
 
-- 尚无完成精读。
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 ### Radar（0）
 
@@ -249,6 +249,14 @@
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 
+### 3D Multi-Object Tracking（1）
+
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
+
+### 3D Object Detection（1）
+
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
+
 ### 3D Occupancy（1）
 
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
@@ -260,6 +268,10 @@
 ### Data Generation（1）
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+
+### Efficient Inference（1）
+
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 ### LLM（1）
 
@@ -277,6 +289,14 @@
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 
+### Post-processing（1）
+
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
+
+### Sparse Convolution（1）
+
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
+
 ### Streaming Perception（1）
 
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
@@ -292,6 +312,10 @@
 ### VLM（1）
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+
+### Voxel Representation（1）
+
+- 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 </details>
 <!-- AUTO:TOPICS:END -->

@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **2** 篇，其中 **2** 篇已由权威来源核验为正式录用。
+共 **3** 篇，其中 **3** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md)
+
+`CVPR 2023` · `正式录用` · **目标与交通参与者感知** · LiDAR · 3D Object Detection · 3D Multi-Object Tracking · Sparse Convolution · Voxel Representation · Efficient Inference · Post-processing
+
+> VoxelNeXt 证明非中心稀疏体素也能直接回归三维框并改善速度—精度折中；但官方默认配置仍使用 NMS、未启用剪枝，跟踪关联代码也未发布。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-07-26-voxelnext.md) · [论文原文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [固定版本源码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 ## 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md)
 
