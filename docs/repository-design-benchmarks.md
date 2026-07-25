@@ -17,7 +17,7 @@
 | [terryum/awesome-deep-learning-papers](https://github.com/terryum/awesome-deep-learning-papers) | 26,167 | 用主题和简短价值说明降低选择成本 | 每篇索引同时显示主题、证据状态与一句话结论 |
 | [dair-ai/AI-Papers-of-the-Week](https://github.com/dair-ai/AI-Papers-of-the-Week) | 12,670 | 当前年份优先，旧内容按年份归档，首页不承担所有细节 | `notes/YYYY/` 按年归档，首页只显示今日和最近条目 |
 | [dair-ai/ML-Papers-Explained](https://github.com/dair-ai/ML-Papers-Explained) | 8,580 | 技术分类清楚，读者可以按问题而非日期进入 | 增加主题路线和自动标签索引 |
-| [arXivTimes/arXivTimes](https://github.com/arXivTimes/arXivTimes) | 3,900 | 一句话总结优先，统一模板区分概要、新颖性、方法、结果和评论 | 单篇笔记先给三分钟结论，再展开证据与判断 |
+| [arXivTimes/arXivTimes](https://github.com/arXivTimes/arXivTimes) | 3,900 | 一句话总结优先，统一模板区分概要、新颖性、方法、结果和评论 | 单篇笔记先给完整摘要译文与术语解释，再用一句话导读展开证据与判断 |
 | [LMD0311/Awesome-World-Model](https://github.com/LMD0311/Awesome-World-Model) | 2,165 | 年份、venue、Paper/Code/Project 链接紧邻展示 | 索引同时给出录用状态、官方论文、代码和固定 SHA |
 | [Thinklab-SJTU/Awesome-LLM4AD](https://github.com/Thinklab-SJTU/Awesome-LLM4AD) | 1,878 | 领域 taxonomy、目录和数据/资源入口适合自动驾驶读者 | 将大模型作为感知交叉轴，并保留完整的传统感知主分类 |
 | [Vincentqyw/cv-arxiv-daily](https://github.com/Vincentqyw/cv-arxiv-daily) | 1,488 | 配置作为单一分类来源，由脚本生成 README/JSON/网页 | CSV 作为唯一真源；脚本生成首页与索引并提供 `--check` |
@@ -28,7 +28,8 @@
 1. **首页回答三个问题**：今天读什么、先看哪一段、全部内容在哪里。
 2. **完成内容优先**：最新笔记放在方法说明和贡献指南之前。
 3. **时间与主题双入口**：既可按日期追踪习惯，也可按研究问题系统学习。
-4. **渐进披露**：3 分钟结论默认可见，源码审计和证据账本放在深读层。
+4. **渐进披露**：摘要完整译文和术语解释先出现，3 分钟结论随后可见，源码
+   审计和证据账本放在深读层。
 5. **论文与代码相邻**：每个关键判断都能回到 proceedings 或固定 commit。
 6. **机器索引只有一个真源**：`index/papers.csv` 驱动首页和 Markdown 索引。
 7. **自动化必须可校验**：生成脚本支持 `--check`，防止新增笔记后首页过期。

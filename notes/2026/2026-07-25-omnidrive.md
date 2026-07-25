@@ -1,28 +1,113 @@
 # 2026-07-25 — OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning
 
-> [!TIP]
-> **先读结论：** OmniDrive 不只问模型“眼前是什么”，还给它一条假设轨迹，
-> 追问“如果这样开，会撞谁、压线还是闯红灯”。作者用这类反事实问答训练
-> 两种 3D 驾驶 VLM，并报告 Omni-L 在无 ego status 时取得 53.7% 反事实 AP、
-> 73.2 CIDEr、1.90% collision 和 3.29% intersection；但实验仍是
-> nuScenes 开放环评测，加入 ego status 后多个规划指标会出现巨大跃升，
-> 而论文明确承认反事实模拟没有考虑其他交通参与者的响应。
-
 `CVPR 2025` · `正式录用` · `论文与官方源码已读` ·
-`Checkpoint 未运行`
+`公开模型尚未在本仓库实际运行`
 
-**主方向：** P11 · 大视觉模型、VLM、LLM 与 VLA ·
-**输入模态：** Surround Camera、Language、Map、Vehicle State ·
-**交叉标签：** 3D Grounding、反事实推理、规划接口、数据生成、开放环评测
+**主方向：** P11 · 大视觉模型、视觉-语言模型、大语言模型与视觉-语言-动作模型 ·
+**模型输入：** 环视相机、语言；部分设置额外加入自车状态 ·
+**训练监督与数据生成上下文：** 三维目标、车道/地图、轨迹 ·
+**交叉标签：** 三维定位与指代、反事实推理、规划接口、数据生成、开放环评测
 
 [▶ 从第一张图开始](#1-看图论文到底做了什么) ·
 [返回首页](../../README.md) · [13 个感知方向](../../index/topics.md) ·
 [全部精读](../../index/papers.md) ·
 [CVF 录用页](https://openaccess.thecvf.com/content/CVPR2025/html/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.html) ·
 [论文 PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) ·
-[代码 @ ced2073](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+[代码 @ ced2073](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12) ·
+[官方 v1.0 发布资产](https://github.com/NVlabs/OmniDrive/releases/tag/v1.0)
+
+证据与行文标签：**[原文翻译]** 忠实翻译作者原文；**[笔记解释]** 帮助读者
+建立直觉；**[论文]** 论文或正式 proceedings 直接支持；**[源码]** 固定
+commit 直接支持；**[判断]** 本笔记基于证据的分析；**[未核验]** 尚未独立
+运行、复算或向作者确认。译文中不混入笔记解释或判断。
+
+## 0. 阅读起点：术语先导与摘要完整翻译
+
+### 0.1 首次术语解释
+
+**术语覆盖声明：** 摘要中的核心专业术语先在这里解释；正文后续第一次出现
+的新术语仍会就地解释，之后全文保持相同中文名、英文名、缩写与符号。
+
+- **视觉-语言模型（Vision-Language Model, VLM）**：把视觉输入与语言
+  表示对齐，使模型能够围绕图像回答问题、生成描述或进行推理。
+- **环视相机（surround cameras）**：安装在车辆不同方向、共同覆盖车身周围
+  视野的多台相机；本文模型的主要视觉输入是六路 nuScenes 相机图像。
+- **大语言模型智能体（Large Language Model Agent, LLM-agent）**：以大语言
+  模型为推理核心、同时接收环境信息并输出解释、决策或动作的系统；本文讨论的
+  agent 仍是驾驶模型框架，不等同于已经具备闭环安全能力的车辆。
+- **端到端自动驾驶（end-to-end autonomous driving）**：以传感器信息为起点、
+  以规划轨迹或控制量为终点进行联合学习；它可以包含可微的感知和规划模块，
+  并不等于系统内部没有中间任务。
+- **三维场景理解（3D scene understanding）**：不仅识别图像中的物体，还要
+  理解物体、车道和本车在真实三维空间中的位置与几何关系。
+- **反事实推理（counterfactual reasoning）**：针对没有真实执行的候选动作或
+  轨迹，分析“如果这样做，可能产生什么结果”；本文主要检查碰撞、闯红灯和
+  离开可行驶区域等后果。
+- **合成数据标注（synthetic data annotation）**：由规则、仿真轨迹和生成模型
+  辅助产生训练标签，而不是让人工逐条从零标注；“合成”不代表可以省去质检。
+- **视觉-语言对齐（vision-language alignment）**：让视觉特征进入与语言
+  token 可交互的表示空间，使 LLM 能够读取并表述场景信息。
+- **三维定位与指代（3D grounding）**：把语言中的对象或关系落到具体三维
+  目标、坐标或车道元素上，而不只生成听起来合理的描述。
+- **开放环规划（open-loop planning）**：在已经录制的日志上预测本车轨迹，
+  预测不会改变其他交通参与者的行为，也不会让环境对模型动作作出反馈。
+- **自车状态（ego status）**：本车速度、历史运动、导航命令等非视觉状态；
+  它能帮助规划，但也可能让模型绕过视觉理解而利用数据集捷径。
+- **CIDEr（Consensus-based Image Description Evaluation）**：比较生成文本
+  与参考描述中加权短语一致性的语言指标；分数高不自动等于三维感知正确。
+- **AP / AR**：Table 5 把反事实任务的 Precision / Recall 汇总为 AP / AR；
+  论文没有进一步给出跨类别聚合公式。本笔记只按表格上下文把它们理解为
+  “平均精确率 / 平均召回率”，不把这一展开当作作者明确定义。
+- **Omni-L 与 Omni-Q**：作者提出的两条基线框架；Omni-L 从成熟 VLM 出发
+  注入三维信息，Omni-Q 从查询式三维感知模型出发连接语言模型。
+- **查询向量（query）与视觉 token（visual token）**：query 是主动从特征中
+  检索信息的可学习向量；visual token 是送入语言模型的一段视觉表示。本文的
+  carrier query 携带语言模型要读取的信息，perception query 接受目标和地图
+  等三维监督。
+- **查询变换器（Querying Transformer, Q-Former）**：用一组可学习 query
+  通过注意力从视觉特征中提取固定数量信息的模块，本文用于 Omni-Q。
+- **多层感知机投影器（Multi-Layer Perceptron Projector, MLP projector）**：
+  用小型全连接网络把视觉特征映射到 LLM hidden space，本文用于 Omni-L。
+- **位置编码与交叉注意力（position encoding / cross-attention）**：前者把
+  三维位置写入特征，后者让 query 作为查询端去读取多视角图像的键和值。
+- **鸟瞰视图（Bird's-Eye View, BEV）**：从车辆上方俯视表示道路、目标与
+  车道的统一坐标空间；它便于三维任务对齐，但不等于模型已经理解所有深度关系。
+- **DriveLM 与 nuScenes**：前者是驾驶视觉问答基准，后者是多传感器自动驾驶
+  数据集；本文分别用它们评测问答迁移和开放环规划。
+
+### 0.2 摘要完整专业中文翻译
+
+**原文锚点：** Abstract，PDF p. 1 / proceedings p. 22442。
+
+<a id="abstract-a01"></a>
+> **[原文翻译] Abstract · PDF p. 1 · A01**
+>
+> 视觉-语言模型（VLM）的进展，使自动驾驶领域越来越关注如何利用其强大的
+> 推理能力。然而，要把这些能力从二维扩展到完整的三维理解，对于现实世界
+> 应用至关重要。为应对这一挑战，我们提出 OmniDrive：一个整体性的视觉-
+> 语言数据集，它通过反事实推理使智能体模型与三维驾驶任务对齐。该方法通过
+> 评估潜在场景及其结果来增强决策能力，这与人类驾驶员考虑替代行动的方式
+> 相似。我们基于反事实的合成数据标注流程能够生成大规模、高质量的数据集，
+> 提供更稠密的监督信号，从而连接规划轨迹与基于语言的推理。进一步地，我们
+> 探索了两种先进的 OmniDrive-Agent 框架，即 Omni-L 和 Omni-Q，用以比较
+> 视觉-语言对齐与三维感知各自的重要性，并由此揭示设计有效 LLM 智能体的
+> 关键认识。在 DriveLM 问答基准和 nuScenes 开放环规划上的显著改进，表明了
+> 我们的数据集与方法的有效性。
+
+**完整性声明：** 上述内容按原摘要唯一实质段落完整、未删减翻译；保留了
+作者关于挑战、方法、数据生成、两种框架、评估目的与实验结论的论证顺序，
+没有加入本笔记的评价或外推。
+
+> [!TIP]
+> **[笔记解释] 读完摘要再看这一句：** OmniDrive 不只问模型“眼前是什么”，
+> 还给它一条假设轨迹，追问“如果这样开，会撞谁、压线还是闯红灯”。作者用
+> 这类反事实问答训练两种 3D 驾驶 VLM，并报告 Omni-L 在无 ego status 时取得
+> 53.7% 反事实 AP、73.2 CIDEr、1.90% collision 和 3.29% intersection；
+> 但实验仍是 nuScenes 开放环评测，加入 ego status 后多个规划指标会出现巨大
+> 跃升，而论文明确承认反事实模拟没有考虑其他交通参与者的响应。
 
 **学习顺序：**
+[0 摘要与术语](#0-阅读起点术语先导与摘要完整翻译) →
 [1 看原图](#1-看图论文到底做了什么) →
 [2 读原式](#2-读公式核心机制怎样表达) →
 [3 看结果](#3-看结果证据是否支持主张) →
@@ -32,12 +117,8 @@
 **只有 10 分钟：** 先读
 [1.1 的路口故事](#11-先讲人话它不是让模型背标准答案而是让模型试走岔路) →
 [Figure 3 的两条模型路线](#14-同一批图像怎样送进大模型omni-l-与-omni-q) →
-[Table 2 的 ego-status 对照](#31-先看一个危险现象加入-ego-status-后指标突然变得太好) →
-[第 5 节的研究切口](#53-最值得继续研究的切口不是再拼一个模块而是验证反事实是否真的落地)。
-
-证据标签：**[论文]** 论文或正式 proceedings 直接支持；
-**[源码]** 固定 commit 直接支持；**[判断]** 本笔记基于证据的解释；
-**[未核验]** 尚未独立运行、复算或向作者确认。
+[Table 2 的 ego-status 对照](#33-先看一个危险现象加入-ego-status-后指标突然变得太好) →
+[第 5 节的研究切口](#533-最值得继续研究的切口不是再拼一个模块而是验证反事实是否真的落地)。
 
 > [!NOTE]
 > “模型能说出合理理由”不等于“模型看对了三维场景”；“开放环轨迹误差更小”
@@ -126,8 +207,9 @@ Figure 2 的四步流程很像给“自动出题老师”加一套审核制度�
    加速、减速和匀速等类型；
 3. **用可计算规则兜底。** 3D boxes、车道中心线和道路拓扑被用于检查
    目标碰撞、道路边界和红灯等条件；
-4. **再让 GPT-4 组织语言并由人检查。** 不合格问答被退回，合格样本才进入
-   大规模数据生成。
+4. **再让 GPT-4 组织语言并由人检查。** 作者先在选定关键帧上人工核验
+   问答质量，并反复调整 checklist 和 prompt；当这套设计满足其泛化要求后，
+   才启动大规模数据生成。论文没有公开逐条样本的通过率或退回规则。
 
 论文还给出一个容易忽略的细节：未来 3 秒内，某个对象到轨迹的最小距离小于
 10 米时，会被列为“close object”。这使问题能指向具体风险对象，而不是只让
@@ -146,10 +228,16 @@ Figure 2 的四步流程很像给“自动出题老师”加一套审核制度�
 > proceedings p. 22446。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf)。
 > 仅作学术讲解所需的局部摘录，原图版权归原作者及其他权利人。
 
-| 路线 | 可以把它想成 | 视觉 token 从哪里来 | 主要偏好 |
-|---|---|---|---|
-| Omni-L | 给成熟 VLM 加一副“三维眼镜” | 多视角 patch 展平，加 3D position encoding，再过 MLP | 优先保持视觉—语言预训练空间 |
-| Omni-Q | 给 3D detector 加一位“语言翻译员” | carrier query 与 detection/map query 交互，再读取多视角特征 | 优先保留稀疏 3D 几何与感知监督 |
+**Omni-L：给成熟 VLM 加一副“三维眼镜”。**
+
+- **视觉 token 从哪里来：** 展平多视角 patch，加入三维位置编码，再经过 MLP；
+- **主要偏好：** 优先保持视觉—语言预训练空间。
+
+**Omni-Q：给三维检测器加一位“语言翻译员”。**
+
+- **视觉 token 从哪里来：** carrier query 与 detection/map query 先交互，
+  再共同读取多视角特征；
+- **主要偏好：** 优先保留稀疏三维几何与感知监督。
 
 Omni-L 的位置编码权重被初始化为零，意图是在不立即破坏原有 VLM 对齐的
 情况下逐步学习三维信息。Omni-Q 则让两类 query 先互相交流：
@@ -258,7 +346,191 @@ reference point、时序对齐、mask 和投影维度；公式表达的是核心
 
 ## 3. 看结果：证据是否支持主张
 
-### 3.1 先看一个危险现象：加入 ego status 后，指标突然变得“太好”
+### 3.1 原文公开的实验配置
+
+**原文锚点：** Experiment §4.1–4.2，PDF p. 5–6 / proceedings
+p. 22446–22447；官方固定 commit 的 setup、训练文档与主配置。
+
+- **数据集与任务。** **[论文]**（§4.2，PDF p. 6）OmniDrive 同时包含场景描述、开放环规划和
+  反事实推理任务。迁移评测使用 DriveLM；论文报告该 benchmark 取自
+  nuScenes 的 696 个场景、4,072 个样本和约 30 万个图像—问题对。
+  **[源码]** [固定 SHA 主配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L170-L253)
+  使用 `CustomNuScenesDataset`，训练集读取
+  `nuscenes2d_ego_temporal_infos_train.pkl`，验证和测试均读取对应的
+  `val.pkl`；setup 要求 nuScenes v1.0-trainval、作者发布的 VQA/description/
+  conversation/keyword 数据及车道—目标关系文件。
+- **传感器与空间范围。** **[源码]**
+  [固定 SHA 输入配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L9-L32)
+  只启用多视角相机，关闭 LiDAR 和
+  Radar 输入；三维监督覆盖 *x*、*y* 方向各 −51.2 m 到 51.2 m，*z* 方向
+  −5 m 到 3 m。这里的 `box_type_3d='LiDAR'` 表示三维框坐标类型，不表示模型
+  使用 LiDAR 点云作为输入。
+- **图像与文本预处理。** **[源码]**
+  [固定 SHA 数据流水线](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L170-L253)
+  记录原图配置为 1600 × 900；图像增强参数
+  `final_dim=(320, 640)` 按 `(H, W)` 表示高 320、宽 640，随后多视角图像
+  又由 `ResizeMultiview3D(img_scale=(640, 640))` 统一 resize 到 640 × 640、按给定
+  mean/std 归一化并 pad 到 32 的倍数。VQA 分词器（tokenizer，把文本转换为
+  模型 token ID）的最大长度为 2,048；
+  测试配置默认只加载 `planning`，源码注释说明一次测试全部问题会很耗时。
+- **模型与初始化。** **[论文]**（§3.3 与 §4.1，PDF p. 5–6）视觉编码器采用
+  EVA-02-L，它通过掩码图像建模
+  （masked image modeling，即遮住部分图像后学习恢复表征）蒸馏 CLIP，以提取
+  与语言对齐的视觉特征。训练分为二维预训练
+  和三维微调：前者初始化 Q-Former/MLP projector，后者加入运动规划、反事实
+  推理等三维驾驶任务。**[源码]**
+  [固定 SHA 模型配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L33-L85)
+  使用 24 层、宽度 1,024 的 EVA
+  ViT，启用 Flash Attention（高效注意力实现）、梯度检查点
+  （gradient checkpointing，用计算换显存）和低秩适配
+  （Low-Rank Adaptation, LoRA），并从
+  `eva02_petr_proj.pth` 与 `pretrain_qformer/` 初始化。
+- **论文方法与当前数据生成代码的版本边界。** **[论文]**（§2.1–2.3，
+  PDF p. 2–4）把用于合成标注的
+  生成模型写为 GPT-4。**[源码]** 固定 commit 的 `data_gen/desc.py`、
+  `conversation.py` 和 `prompt_vision.py` 已使用 GPT-4o，且分别公开了
+  temperature、top-p 和 max_tokens。它们是当前仓库脚本的事实，不能反推
+  论文原始数据就是由 GPT-4o 生成；论文所用 GPT-4 的日期快照和完整调用参数
+  仍未闭合。[固定 SHA 生成脚本](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/desc.py#L112-L144)。
+- **Omni-L / Omni-Q 的实现边界。** **[论文]**（§3.1–3.3，PDF p. 4–5）
+  给出两条框架及共同训练口径。
+  **[源码]** 固定 commit 的公开主配置 `mask_eva_lane_det_vlm.py` 与
+  `eva_base_tinyllama.py` 主要对应带 StreamPETR object/map heads 的
+  Omni-Q 式查询架构；没有发现能够独立闭合论文 Omni-L 的完整配置与训练日志。
+  因此，下文的 config 数字不能无条件套到 Omni-L。
+  [固定 SHA 配置目录中的主配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L20-L85)。
+- **论文报告的优化设置。** **[论文]**（§4.1，PDF p. 5–6）二维预训练的数据与 batch size、学习率
+  和优化器沿用 LLaVA v1.5，本文没有在 PDF 中重新列出这些数值。三维微调使用
+  AdamW、总 batch size 16；projector 学习率为 4e-4，视觉编码器和 LLM
+  学习率均为 2e-5，并使用 cosine annealing。
+- **固定源码配置的优化设置。** **[源码]**
+  [固定 SHA 优化器配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L258-L295)
+  按 8 GPU × 每卡 2 样本运行
+  6 个 epoch，即每个 epoch 1,758 iteration、最多 10,548 iteration。带解耦
+  权重衰减的 AdamW
+  基础学习率为 1e-4、weight decay 为 1e-4，并通过 paramwise decay 为不同
+  模块设置倍率；使用 500 iteration 线性预热（linear warmup）、余弦退火
+  （cosine annealing）、动态 FP16 混合精度 loss scale 和最大范数 35 的
+  梯度裁剪（gradient clipping）。论文按模块
+  直接报告的学习率与 config 的“基础学习率 + 模块倍率”口径不同，复现时不能
+  只抄其中一个数字。
+- **环境与硬件。** **[源码]**
+  [固定 SHA setup](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/docs/setup.md#L3-L75)
+  安装说明指定 Python 3.9、PyTorch 1.13.1 +
+  CUDA 11.7、Flash-Attention 2.5.6、Transformers 4.31.0、MMCV 1.6.2、
+  MMDetection 2.28.2、MMSegmentation 0.30.0 和 MMDetection3D
+  v1.0.0rc6。**[源码]** 官方 v1.0 release 中的一次训练日志另行记录为
+  8 × NVIDIA A100-SXM4-80GB、Python 3.8.10、CUDA Runtime 11.8、
+  PyTorch 1.13.0a0、MMCV 1.6.0、MMDetection 2.28.2 和
+  MMDetection3D 1.0.0rc6+；日志从训练开始到最后一次保存约 14 小时 10 分，
+  随后的验证约 1 小时 30 分，后期训练条目的 `memory` 字段约 38,290 MB。
+  这是一个官方发布运行，不等于论文所有 Table 2–5 结果都由这一运行产生，
+  在没有进一步核验 MMCV 日志语义前，也不能把该字段直接当作每进程、每卡或
+  完整系统的峰值显存，更不能据此推算能耗。
+- **验证、随机性与模型检查点（checkpoint）。** **[源码]**
+  [固定 SHA 运行配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L248-L295)
+  在完整训练
+  结束时执行一次 evaluation，每半个 epoch 保存 checkpoint，最多保留 3 个。
+  官方 v1.0 日志记录 `seed=0`、`deterministic=False`；固定 config 本身没有
+  把 seed 写成自包含参数，论文也没有报告独立重复、误差条、显著性检验或
+  “最佳模型”的选择规则。因此一个公开 seed 的单次运行，仍不能把小幅表格
+  差异自动解释为稳定的统计改进。
+- **推理设置。** **[源码]**
+  [固定 SHA 生成参数](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/detectors/petr3d.py#L433-L454)
+  使用控制随机性的 temperature 0.1、
+  核采样阈值 top-p 0.75、1 个 beam，最多生成 320 个新 token；开放环规划
+  先分布式生成结果，再运行 `evaluation/eval_planning.py`。官方 v1.0
+  `extract_counter.py` 用 8 个并行进程调用 `gpt-3.5-turbo`，并公开
+  temperature 0.7、top-p 0.9、max_tokens 2,000；但没有固定带日期的模型
+  snapshot，也没有报告重复调用的一致性或随机性敏感性。本笔记没有执行这些
+  云端调用或复算指标。
+- **指标与公平对照。** **[论文]**（§4.2，PDF p. 6）描述任务使用 CIDEr；开放环规划使用 1/2/3
+  秒 L2、碰撞率和道路边界相交率；反事实评测先由 GPT-3.5 抽取 safety、
+  collision、red light、drivable area 等关键词，再计算各类 Precision 和
+  Recall。Table 5 再以 AP / AR 汇总，但论文未进一步公开跨类别聚合公式，
+  因而不能仅凭缩写断言其精确实现。DriveLM 综合分数由 GPT Score 0.4、
+  Language Score 0.2、Match
+  Score 0.2、Accuracy 0.2 加权。Table 2 的传统基线主要引用 BEV-Planner
+  的统一复现结果，并分开比较是否输入 ego status。
+- **公开权重与复现入口。** **[源码]**
+  [固定 SHA setup 与下载入口](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/docs/setup.md#L43-L75)
+  提供二维 LLM 权重、视觉编码器加
+  projector 权重、OmniDrive checkpoint、数据包和评测脚本。**[未核验]**
+  “文件已公开”只说明具备复现入口；本仓库没有下载大权重、执行 CUDA forward
+  或复算论文表格。
+
+[环境、数据与预训练权重](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/docs/setup.md#L3-L75) ·
+[训练与开放环评测命令](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/docs/training_inference..md#L1-L40) ·
+[输入、模型与批量配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L9-L85) ·
+[数据流水线与优化设置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L170-L295) ·
+[当前场景描述生成脚本](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/desc.py#L112-L144) ·
+[当前多轮问答生成脚本](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/conversation.py#L105-L137) ·
+[当前视觉提示生成脚本](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/prompt_vision.py#L195-L202) ·
+[官方 v1.0 训练日志](https://github.com/NVlabs/OmniDrive/releases/download/v1.0/20250417_143029.log) ·
+[官方 v1.0 发布页（含反事实抽取脚本）](https://github.com/NVlabs/OmniDrive/releases/tag/v1.0)
+
+### 3.2 原文公开的实验流程
+
+**原文锚点：** Method §3.3 与 Experiment §4.1–4.5，PDF p. 5–7 /
+proceedings p. 22446–22448；官方固定 commit 的数据、训练和评测入口。
+
+1. **数据准备。** **[论文]**（§2.1–2.3，PDF p. 2–4）作者先从真实轨迹和模拟候选轨迹生成场景描述、
+   三维定位、交通规则、反事实与规划问答，再用 checklist 和人工参与的质量
+   控制筛选。**[源码]** setup 下载 nuScenes 与作者信息文件，把 LiDAR 坐标系
+   中的 GT 转到 ego 坐标系并加入车辆总线（CAN bus）状态与导航 command；
+   训练 loader 再装载多视角
+   图像、三维框、车道、VQA、description、conversation 和 keyword。论文
+   数据生成口径是 GPT-4；固定 commit 的现行生成脚本是 GPT-4o，两者必须分别
+   记录，不能把当前脚本版本当成原始数据生成过程的完整复刻。
+   [固定 SHA 数据准备入口](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/docs/setup.md#L43-L75)。
+2. **二维预训练。** **[论文]**（§3.3，PDF p. 5）使用二维图像任务初始化 Omni-Q 的 Q-Former
+   或 Omni-L 的 MLP projector；数据与优化策略沿用 LLaVA v1.5。论文没有在
+   当前 PDF 中完整重复该阶段的数据混合、step 数和所有超参数，复现必须继续
+   回查 LLaVA 设置与作者发布的 `pretrain_qformer` 权重；固定 commit 也没有
+   提供可独立闭合 Omni-L 的完整训练配置与日志。
+3. **三维微调。** **[论文]**（§3.3，PDF p. 5）在运动规划、反事实推理等三维驾驶任务上微调，
+   两个阶段都只计算文本生成损失，不采用 BLIP-2 的 contrastive learning 和
+   matching loss。**[源码]** 同一个 batch 中还计算三维目标与地图监督，再把
+   object/map query 投影成视觉 token 插入 LLM 序列，联合优化感知与文本损失。
+   [固定 SHA 联合训练入口](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/detectors/petr3d.py#L277-L307)。
+4. **保存与验证。** **[源码]**
+   [固定 SHA checkpoint/evaluation 配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L248-L295)
+   显示训练按 8 GPU 分布式执行，半个 epoch 保存一次
+   checkpoint，最终 evaluation interval 对应完整 6 个 epoch；官方 v1.0
+   日志的一次运行使用 seed 0 且 `deterministic=False`。**[未核验]** 公开材料
+   没有形成“多随机种子训练 → 验证集选模 → 报告均值与方差”的闭环，论文也
+   没有把该日志逐项对应到各张结果表。
+5. **任务化推理。** **[源码]**
+   [固定 SHA 测试配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L239-L253)
+   让测试 loader 按 planning、conversation 或
+   counterfactual 分开构造问题；默认 `planning` 模式进行自回归生成并把每个
+   sample 的文本结果写入指定目录。不同任务不是一次统一前向后直接得到所有
+   指标。
+6. **最终评测。** **[论文/源码]**（§4.2，PDF p. 6；
+   [固定 SHA 评测脚本](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/evaluation/eval_planning.py)）开放环规划把生成轨迹送入
+   `eval_planning.py` 计算 L2、碰撞和道路相交；反事实回答先由抽取脚本/GPT-3.5
+   转成事故类别关键词，再与标签计算 Precision/Recall。发布脚本公开了
+   `gpt-3.5-turbo`、temperature 0.7、top-p 0.9、max_tokens 2,000 和 8 个
+   并行进程，但没有固定服务端模型快照或重复调用稳定性；DriveLM 则组合语言、
+   几何匹配、选择题准确率和 GPT 评分。最后分别报告无 ego status 与加入
+   ego status 的规划结果，检查模型是否利用状态捷径。
+7. **迁移与消融。** **[论文]**（§4.4–4.6，PDF p. 6–7）Omni-L 在 DriveLM-only、加入 OmniDrive、
+   加入 LLaVA665K、两者都加入四种预训练组合下比较；Omni-L、Omni-Q、
+   BEV-MLP 以及移除 lane/object supervision 的版本用于区分语言基础能力、
+   三维监督与架构选择的贡献。
+
+**复现仍缺什么：** OmniDrive 自有数据的总问答数、各任务数量和训练/验证
+分布没有像 DriveLM 迁移 benchmark 的 696 scenes / 4,072 samples / 约 30 万
+图像—问题对那样清晰报告；还缺二维预训练的自包含数据混合、step 数和完整
+超参数，论文原始 GPT-4 的日期快照与调用参数，人工质控人员与培训、抽查比例、
+通过/拒绝规则及标注一致性，Omni-L 独立配置与日志，多随机种子统计，最佳
+checkpoint 规则，官方 release 日志与各张论文表格的一一对应，以及
+GPT-3.5 服务端模型快照与重复调用稳定性。闭环模拟器配置也尚未出现，因为论文
+本身没有运行闭环实验。最短可审查流程应是“数据路径检查 → 单样本 loader →
+token/shape 测试 → 单 batch loss → 小子集生成 → 官方 evaluator”，而不是
+直接把公开 checkpoint 或一份官方日志当成所有结果均已复现。
+
+### 3.3 先看一个危险现象：加入 ego status 后，指标突然变得“太好”
 
 ![OmniDrive Table 2：nuScenes 开放环规划中有无 ego status 的 L2、碰撞率与道路边界相交率](../../assets/notes/2026-07-25-omnidrive/table-2-open-loop-planning.png)
 
@@ -292,7 +564,7 @@ Omni-Q 的平均轨迹距离更小，但 Omni-L 的碰撞率和道路边界相�
 > 过拟合风险；它没有单独量化模型到底有多少预测来自图像、多少来自 ego status，
 > 也没有证明低碰撞率能在交互式闭环中维持。
 
-### 3.2 语言对齐与 3D 感知不是二选一：Table 5 给出了更细的证据
+### 3.4 语言对齐与 3D 感知不是二选一：Table 5 给出了更细的证据
 
 ![OmniDrive Table 5：不同架构与移除 3D perception supervision 后的反事实、语言和开放环指标](../../assets/notes/2026-07-25-omnidrive/table-5-ablation.png)
 
@@ -320,11 +592,13 @@ supervision 后进一步到 6.77%。所以正确结论不是“VLM 可以抛弃 
 > 强语言对齐改善整体推理，但 object/lane supervision 仍然为碰撞与道路约束
 > 提供可测的几何支撑；尚未解决的是怎样让两者在同一 token 空间中互不牺牲。
 
-### 3.3 迁移证据与评测边界
+### 3.5 迁移证据与评测边界
 
 **[论文] 迁移到 DriveLM。** Table 3 中，DriveLM 的综合 Score 从 0.53
 提高到加入 OmniDrive 预训练后的 0.56；与 LLaVA665K 一起预训练时达到 0.58。
-这支持生成数据不只记住本论文的评测模板，但增益仍来自相邻的驾驶 VQA 数据域。
+
+**[判断]** 这些结果提供了跨 benchmark 迁移的正面证据，但仍不能排除问题
+模板、场景域或语言分布重合带来的贡献；增益也只来自相邻的驾驶 VQA 数据域。
 
 **[论文] 反事实分类。** Table 4 中，Omni-L 在 “Safe” 上达到 72.1%
 Precision / 58.0% Recall；Omni-Q 在 “Collision” 上达到 32.3% Precision /
@@ -422,6 +696,11 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
   rate 为 4e-4，visual encoder 与 LLM 为 2e-5；
 - **官方 config：** 8 GPU × 每卡 2 样本、EVA ViT 深度 24、1024 维 embedding、
   gradient checkpointing、Flash Attention 和动态 FP16 loss scale；
+- **官方 v1.0 单次日志：** 8 × A100-SXM4-80GB，seed 0、
+  `deterministic=False`，后期训练条目的 `memory` 字段约 38,290 MB；训练约
+  14 小时 10 分后再验证约 1 小时 30 分。该日志没有被作者逐表绑定到论文结果，
+  且该字段的统计语义尚未独立核验，所以只能作为资源量级证据，不能当作
+  每卡峰值显存或 Table 2–5 的完整复现证明；
 - **笔记本阶段：** 适合做数据 loader、单 batch shape、冻结 encoder 的小规模
   smoke test，不适合完整复现 OmniDrive 训练；
 - **4×3090 阶段：** 可以尝试更小 per-GPU batch、gradient accumulation、
@@ -439,6 +718,10 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 - 固定审计 commit：`ced207333cb18b69a232cbb9f82bf52089227f12`；
 - 当前 commit 还包含论文发表后加入的 TensorRT 部署更新，论文核心训练代码仍
   位于 `projects/mmdet3d_plugin` 与 `projects/configs/OmniDrive`；
+- 论文 §2 的原始生成模型口径是 GPT-4；固定 commit 的 `data_gen` 脚本使用
+  GPT-4o。这是论文与现行代码的版本差异，不是可以相互替代的同一证据；
+- 固定 commit 的公开主配置主要闭合 Omni-Q 式查询架构，没有发现 Omni-L
+  独立完整配置与训练日志；
 - tokenizer 最大长度在 detector 初始化中设为 2048；
 - object head 与 map head 的 carrier tokens 最后被拼接，token 数会直接影响
   LLM 上下文长度和显存；
@@ -453,7 +736,69 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 
 ## 5. 记结论：贡献、边界与开放问题
 
-### 5.1 学完必须记住的三点
+### 5.1 原文结论完整翻译
+
+**原文锚点：** Conclusion §6，PDF p. 8 / proceedings p. 22449。
+
+<a id="conclusion-c01"></a>
+> **[原文翻译] Conclusion · PDF p. 8 · C01**
+>
+> 我们提出了 OmniDrive，这是一个旨在利用 LLM 智能体推进端到端自动驾驶的
+> 整体框架。通过引入基于反事实的三维驾驶问答流水线，我们实现了可扩展的
+> 高质量数据生成，并显著增强了决策能力。在 OmniDrive 上预训练的模型，在
+> DriveLM 问答基准和 nuScenes 开放环规划上取得显著提升，凸显了我们数据集
+> 的有效性与质量。此外，我们对 Omni-L 和 Omni-Q 两种先进框架的探索，为
+> 有效 LLM 智能体的设计提供了有价值的认识，并强调了三维空间中视觉-语言
+> 对齐的优势。通过把语言模型与三维环境理解相结合，这些框架展现出改善推理
+> 与感知的潜力。
+
+**完整性声明：** 上述内容是 §6 Conclusion 唯一实质结论段落的完整、未删减
+翻译；保留了作者关于框架目标、数据流水线、两个 benchmark、两种架构和潜在
+能力的表述强度，没有把“展现潜力”扩大为已经证明闭环安全。
+
+### 5.2 原文局限与展望完整翻译
+
+**原文锚点：** Experiment §4.6，PDF p. 7 / proceedings p. 22448；
+Limitations（位于 §6 Conclusion 之后），PDF p. 8 / proceedings p. 22449。
+
+<a id="outlook-o01"></a>
+> **[原文翻译] Future Work · Experiment §4.6 / PDF p. 7 · O01**
+>
+> 这凸显出，未来需要进一步探索如何将传统三维感知栈与语言空间对齐，以提升
+> 性能。
+
+<a id="limitations-l01"></a>
+> **[原文翻译] Limitations · PDF p. 8 · L01**
+>
+> 尽管反事实结果的模拟已经超越单条轨迹，但它尚未考虑其他智能体的反应。
+
+<a id="outlook-o02"></a>
+> **[原文翻译] Future Work within Limitations · PDF p. 8 · O02**
+>
+> 随着闭环规划模拟器研究的推进，我们计划利用闭环结果来提升方法的有效性。
+
+**完整性声明：** L01 与 O02 是论文 Limitations 段落的完整、未删减翻译；
+O01 是 Experiment §4.6 明确提出的另一项后续探索。三段均保留作者原有表述
+强度，没有把“需要探索”改写为已经实现。
+
+**原文缺失声明：** 论文没有单列 Future Work / Outlook 章节；本笔记不代写、
+不补写作者没有提出的展望，只收录 §4.6 和 Limitations 中可定位的两项明确
+展望。
+
+### 5.3 笔记分析与研究启发
+
+**[笔记解释]** 下面先把作者的贡献压缩成可复述的三点，再把论文已经承认的
+局限扩展成可证伪的实验问题。这里不再属于原文翻译。
+
+**[判断]** 所有研究切口都是基于公开论文和固定源码形成的分析，不代表作者
+已经验证，也不代表学界此前无人研究；是否值得成为论文创新仍需后续查重与
+最小实验筛选。
+
+**[笔记解释]** O01 中“这凸显出”的“这”，指 §4.6 观察到的结果：Omni-Q
+虽然受益于三维感知，但其基础语言能力较弱，反事实、语言和开放环综合表现
+低于 Omni-L。这里补充的只是代词指向，不改变作者提出的未来研究方向。
+
+#### 5.3.1 学完必须记住的三点
 
 1. **[论文] 方法核心：** 用候选轨迹组织反事实问答，把 object、lane、规则、
    语言理由和规划监督连接到同一空间问题；
@@ -463,7 +808,7 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 3. **[判断] 最大缺口：** 当前反事实主要是对静态记录和规则做离线判断，
    没有验证其他 agent 会如何响应，也没有证明语言理由来自真实视觉因果证据。
 
-### 5.2 论文明确承认的限制：其他车辆不会“还手”
+#### 5.3.2 论文明确承认的限制：其他车辆不会“还手”
 
 - **已观察事实：** 论文 Limitations 明确写明，反事实结果模拟尚未考虑其他
   agents 的反应，并把 closed-loop simulator 作为未来方向；
@@ -475,7 +820,7 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 - **什么结果会推翻这个方向：** 如果加入交互 rollout 后，风险排序、规划行为
   和跨场景泛化都没有改善，那么复杂的交互式反事实监督没有实际价值。
 
-### 5.3 最值得继续研究的切口：不是再拼一个模块，而是验证“反事实是否真的落地”
+#### 5.3.3 最值得继续研究的切口：不是再拼一个模块，而是验证“反事实是否真的落地”
 
 下面是从论文证据自然长出的研究假设，不是已经成立的论文结论：
 
@@ -508,7 +853,7 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 反事实风险排序”是否稳定、哪些标签容易互相矛盾。若这个最小数据闭环都不成立，
 就不值得等到 4×3090 再做大模型训练。
 
-### 5.4 另外三个必须追问的问题
+#### 5.3.4 另外三个必须追问的问题
 
 **视觉依赖。** 把图像置空、打乱视角、只保留 ego status 或只保留文本先验，
 性能下降多少？如果下降很小，所谓 3D VLM 可能主要依赖 shortcut。
@@ -536,7 +881,8 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 - 已读源码：训练与测试 VQA loader、3D position embedding、object/map heads、
   carrier query mask、联合 loss、视觉 token 注入、LLM generation、训练 config；
 - 已核验资产：论文 Figure 1–3、Table 2、Table 5、Eq. (1)–(2)；
-- 尚未核验：checkpoint 数值、显存、训练吞吐、官方 evaluator 重算、跨域与闭环；
+- 尚未独立核验：模型检查点数值、日志 `memory` 字段对应的真实峰值显存语义、
+  训练吞吐与能耗、官方 evaluator 重算、跨域与闭环性能；
 - 公式资产：由可审查 TeX 生成 light/dark PNG pair，正文零 live MathJax。
 
 </details>

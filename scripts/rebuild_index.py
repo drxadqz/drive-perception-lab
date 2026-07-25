@@ -67,6 +67,38 @@ REQUIRED_NOTE_HEADINGS = (
     "## 5. 记结论：贡献、边界与开放问题",
 )
 
+# The translation-first standard takes effect on 2026-07-25.  The one note
+# published before that date stays readable while it is migrated.  This is an
+# exact, closed allow-list as well as a date gate: every other note, including a
+# newly added historical backfill, receives the stricter checks. Remove the
+# entry after backfilling the one real legacy note.
+TRANSLATION_STANDARD_EFFECTIVE_DATE = date(2026, 7, 25)
+LEGACY_TRANSLATION_NOTE_EXEMPTIONS = frozenset(
+    {
+        "notes/2026/2026-07-24-st-occ.md",
+    }
+)
+
+TRANSLATION_OVERVIEW_HEADING = "阅读起点：术语先导与摘要完整翻译"
+REQUIRED_READING_SUBSECTIONS = (
+    "首次术语解释",
+    "摘要完整专业中文翻译",
+    "原文公开的实验配置",
+    "原文公开的实验流程",
+    "原文结论完整翻译",
+    "原文局限与展望完整翻译",
+    "笔记分析与研究启发",
+)
+ORIGINAL_TRANSLATION_LABEL = "[原文翻译]"
+READER_ANALYSIS_LABEL = "[笔记解释]"
+MISSING_SOURCE_SECTION_LABEL = "**原文缺失声明：**"
+MIN_GLOSSARY_ENTRIES = 3
+MIN_ABSTRACT_TRANSLATION_CHARS = 120
+MIN_CONCLUSION_TRANSLATION_CHARS = 60
+MIN_EXPERIMENT_CONFIG_ROWS = 5
+MIN_EXPERIMENT_CONFIG_BULLETS = 8
+MIN_EXPERIMENT_FLOW_STEPS = 5
+
 MARKDOWN_IMAGE_RE = re.compile(
     r"!\[(?P<alt>[^\]]*)\]\((?P<target><[^>]+>|[^)\s]+)"
     r"(?:\s+[\"'][^\"']*[\"'])?\)"
@@ -119,6 +151,68 @@ NUMBERED_EQUATION_SOURCE_RE = re.compile(
 )
 UNNUMBERED_EQUATION_SOURCE_RE = re.compile(
     r"\*\*原文未编号公式：\*\*[^\n]*\bPDF p\.\s*\d+\b"
+)
+MARKDOWN_HEADING_RE = re.compile(
+    r"^(?P<marks>#{2,4})\s+(?P<title>\S(?:.*\S)?)\s*$"
+)
+HEADING_NUMBER_RE = re.compile(
+    r"^\d+(?:\.\d+)*(?:[.)、：:]|\s)+"
+)
+STABLE_TRANSLATION_ANCHOR_RE = re.compile(
+    r'^<a id="(?P<slug>'
+    r"abstract-a(?P<abstract_number>\d{2})"
+    r"|conclusion-c(?P<conclusion_number>\d{2})"
+    r"|limitations-l(?P<limitations_number>\d{2})"
+    r"|(?:future-work|outlook)-o(?P<outlook_number>\d{2})"
+    r')"></a>$',
+    re.IGNORECASE,
+)
+TRANSLATION_BLOCK_HEADER_RE = re.compile(
+    r"^>\s*\*\*\[原文翻译\]\s+"
+    r"(?P<section>Abstract|Conclusion|Discussion(?:\s*(?:/|and|&)\s*Summary)?"
+    r"|Summary(?:\s*(?:/|and|&)\s*Discussion)?|Concluding Remarks"
+    r"|Limitations?(?:\s*/\s*Discussion)?"
+    r"|Future Work(?:\s*(?:/|within)\s*(?:Outlook|Limitations))?|Outlook)"
+    r"\s*·\s*(?P<source>.+?)\s*·\s*(?P<code>[ACLO]\d{2})\*\*\s*$",
+    re.IGNORECASE,
+)
+ORIGINAL_LOCATION_RE = re.compile(
+    r"(?:"
+    r"\bPDF p\.\s*\d+(?:\s*[-–]\s*\d+)?\b"
+    r"|§\s*(?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)*|Abstract|Conclusion|Discussion|Summary"
+    r"|Limitations?|Future Work|Outlook)"
+    r"|\b(?:Section|Sec\.)\s*(?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)*)\b"
+    r"|\b(?:Appendix|Supplement(?:ary)?)\s+"
+    r"(?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)*)\b"
+    r")",
+    re.IGNORECASE,
+)
+PDF_PAGE_RE = re.compile(
+    r"\bPDF p\.\s*\d+(?:\s*[-–]\s*\d+)?\b",
+    re.IGNORECASE,
+)
+DATED_NOTE_FILENAME_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}-[^/\\]+\.md$",
+    re.IGNORECASE,
+)
+NUMBERED_FLOW_STEP_RE = re.compile(
+    r"^\s*(?P<number>[1-9]\d*)[.)、]\s+"
+    r"\*\*(?P<label>[^*\n]{2,40}?)(?:[。.:：])?\*\*\s*"
+    r"(?P<body>\S.*)$"
+)
+MOBILE_GLOSSARY_ENTRY_RE = re.compile(
+    r"^\s*[-*]\s+\*\*(?P<term>[^*\n]{2,100})\*\*\s*[：:]\s*"
+    r"(?P<explanation>\S.*)\s*$"
+)
+CONFIG_BULLET_RE = re.compile(
+    r"^\s*[-*]\s+\*\*(?P<item>[^*\n]{2,100})\*\*\s*"
+    r"(?P<body>\S.*)$"
+)
+FIXED_SHA_URL_RE = re.compile(
+    r"https://github\.com/[^)\s]+/(?:blob|tree)/[0-9a-fA-F]{40}(?:/|$)"
+)
+EVIDENCE_LABEL_RE = re.compile(
+    r"\[(?:论文|源码|未核验)(?:/(?:论文|源码|未核验))*\]"
 )
 
 # These identifiers came from unpublished planning material and should never
@@ -475,6 +569,811 @@ def scan_markdown(note: str) -> MarkdownStructure:
         rendered_lines=rendered_lines,
         top_level_math_blocks=top_level_math_blocks,
     )
+
+
+def normalized_heading(line: str) -> tuple[int, str] | None:
+    """Return a visible Markdown heading's level and number-free title."""
+
+    match = MARKDOWN_HEADING_RE.fullmatch(line.strip())
+    if match is None:
+        return None
+    title = HEADING_NUMBER_RE.sub("", match.group("title").strip(), count=1)
+    return len(match.group("marks")), title.strip()
+
+
+def visible_reading_sections(
+    structure: MarkdownStructure,
+) -> dict[str, tuple[int, int, list[tuple[int, str]]]]:
+    """Collect uniquely named visible sections required by the reading standard.
+
+    Values are ``(heading level, source line, body lines)``.  A section body
+    ends at the next heading of the same or a higher level, which prevents text
+    in a neighbouring subsection from satisfying its requirements.
+    """
+
+    headings: list[tuple[int, int, int, str]] = []
+    required_titles = {
+        TRANSLATION_OVERVIEW_HEADING,
+        *REQUIRED_READING_SUBSECTIONS,
+    }
+    for index, (source_line, content) in enumerate(structure.top_level_lines):
+        parsed = normalized_heading(content)
+        if parsed is None:
+            continue
+        level, title = parsed
+        headings.append((index, source_line, level, title))
+
+    sections: dict[str, tuple[int, int, list[tuple[int, str]]]] = {}
+    for position, (line_index, source_line, level, title) in enumerate(headings):
+        if title not in required_titles:
+            continue
+        if title in sections:
+            raise ValidationFailure(
+                f"Markdown line {source_line}: reading section {title!r} "
+                "must appear exactly once"
+            )
+        body_end = len(structure.top_level_lines)
+        for next_index, _, next_level, _ in headings[position + 1 :]:
+            if next_level <= level:
+                body_end = next_index
+                break
+        sections[title] = (
+            level,
+            source_line,
+            structure.top_level_lines[line_index + 1 : body_end],
+        )
+    return sections
+
+
+def meaningful_character_count(lines: list[tuple[int, str]]) -> int:
+    """Count prose characters while excluding validation labels and markup."""
+
+    fragments: list[str] = []
+    ignored_labels = (
+        ORIGINAL_TRANSLATION_LABEL,
+        READER_ANALYSIS_LABEL,
+        MISSING_SOURCE_SECTION_LABEL,
+    )
+    for _, raw_line in lines:
+        line = raw_line
+        if any(label in line for label in ignored_labels):
+            continue
+        line = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", line)
+        line = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", line)
+        line = re.sub(r"<[^>]+>", "", line)
+        line = re.sub(r"[*_~`>#|\-\s]", "", line)
+        fragments.append(line)
+    return len("".join(fragments))
+
+
+def section_text(lines: list[tuple[int, str]]) -> str:
+    return "\n".join(content for _, content in lines)
+
+
+def labeled_paragraphs(
+    lines: list[tuple[int, str]],
+    label: str,
+) -> list[str]:
+    """Return labeled prose paragraphs, including wrapped continuation lines."""
+
+    paragraphs: list[str] = []
+    for index, (_, content) in enumerate(lines):
+        if label not in content:
+            continue
+        parts = [content.strip()]
+        cursor = index + 1
+        while cursor < len(lines):
+            _, continuation = lines[cursor]
+            stripped = continuation.strip()
+            if (
+                not stripped
+                or normalized_heading(stripped) is not None
+                or STABLE_TRANSLATION_ANCHOR_RE.fullmatch(stripped)
+                or TRANSLATION_BLOCK_HEADER_RE.fullmatch(stripped)
+            ):
+                break
+            parts.append(stripped)
+            cursor += 1
+        paragraphs.append(" ".join(parts))
+    return paragraphs
+
+
+def markdown_table_rows(lines: list[tuple[int, str]]) -> list[tuple[int, list[str]]]:
+    """Return visible Markdown table rows, excluding separator rows."""
+
+    rows: list[tuple[int, list[str]]] = []
+    for source_line, content in lines:
+        stripped = content.strip()
+        if not (stripped.startswith("|") and stripped.endswith("|")):
+            continue
+        cells = [cell.strip() for cell in stripped[1:-1].split("|")]
+        if cells and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            continue
+        rows.append((source_line, cells))
+    return rows
+
+
+def source_evidence_is_specific(value: str) -> bool:
+    """Return whether an experiment item has a checkable source or absence."""
+
+    if ORIGINAL_LOCATION_RE.search(value):
+        return True
+    if FIXED_SHA_URL_RE.search(value):
+        return True
+    return "[未核验]" in value and bool(
+        re.search(
+            r"(?:未公开|未报告|未披露|未说明|未给出|无法确认|尚未运行|"
+            r"没有提供|没有报告|没有说明)",
+            value,
+        )
+    )
+
+
+def translation_section_family(section_name: str) -> str:
+    """Map a truthful source-section label to its stable translation family."""
+
+    normalized = section_name.casefold()
+    if normalized.startswith("abstract"):
+        return "Abstract"
+    if normalized.startswith(
+        ("conclusion", "discussion", "summary", "concluding remarks")
+    ):
+        return "Conclusion"
+    if normalized.startswith("limitation"):
+        return "Limitations"
+    if normalized.startswith(("future work", "outlook")):
+        return "Future Work"
+    raise ValidationFailure(
+        f"unsupported source section in translation header: {section_name!r}"
+    )
+
+
+def mobile_config_entries(
+    lines: list[tuple[int, str]],
+) -> list[tuple[int, str, str]]:
+    """Collect bold mobile-card bullets together with their indented body."""
+
+    entries: list[tuple[int, str, str]] = []
+    index = 0
+    while index < len(lines):
+        source_line, content = lines[index]
+        match = CONFIG_BULLET_RE.fullmatch(content)
+        if match is None:
+            index += 1
+            continue
+        body_parts = [match.group("body")]
+        cursor = index + 1
+        while cursor < len(lines):
+            _, continuation = lines[cursor]
+            if (
+                not continuation.strip()
+                or CONFIG_BULLET_RE.fullmatch(continuation)
+                or normalized_heading(continuation) is not None
+                or not continuation.startswith((" ", "\t"))
+            ):
+                break
+            body_parts.append(continuation.strip())
+            cursor += 1
+        entries.append(
+            (source_line, match.group("item"), " ".join(body_parts))
+        )
+        index = max(cursor, index + 1)
+    return entries
+
+
+def numbered_flow_entries(
+    lines: list[tuple[int, str]],
+) -> list[tuple[int, re.Match[str], str]]:
+    """Collect numbered experiment steps and their indented continuation text."""
+
+    entries: list[tuple[int, re.Match[str], str]] = []
+    index = 0
+    while index < len(lines):
+        source_line, content = lines[index]
+        match = NUMBERED_FLOW_STEP_RE.fullmatch(content)
+        if match is None:
+            index += 1
+            continue
+        body_parts = [match.group("body")]
+        cursor = index + 1
+        while cursor < len(lines):
+            _, continuation = lines[cursor]
+            if (
+                not continuation.strip()
+                or NUMBERED_FLOW_STEP_RE.fullmatch(continuation)
+                or normalized_heading(continuation) is not None
+                or not continuation.startswith((" ", "\t"))
+            ):
+                break
+            body_parts.append(continuation.strip())
+            cursor += 1
+        entries.append((source_line, match, " ".join(body_parts)))
+        index = max(cursor, index + 1)
+    return entries
+
+
+def parse_translation_blocks(
+    lines: list[tuple[int, str]],
+    *,
+    line: str,
+    section_title: str,
+) -> list[dict[str, object]]:
+    """Parse stable, source-anchored quoted translation blocks."""
+
+    blocks: list[dict[str, object]] = []
+    consumed_headers = 0
+    for index, (anchor_line, content) in enumerate(lines):
+        anchor_match = STABLE_TRANSLATION_ANCHOR_RE.fullmatch(content.strip())
+        if anchor_match is None:
+            continue
+        next_index = index + 1
+        while next_index < len(lines) and not lines[next_index][1].strip():
+            next_index += 1
+        if next_index >= len(lines):
+            raise ValidationFailure(
+                f"CSV line {line}: translation anchor on Markdown line "
+                f"{anchor_line} has no [原文翻译] header"
+            )
+        header_line, header_content = lines[next_index]
+        header_match = TRANSLATION_BLOCK_HEADER_RE.fullmatch(
+            header_content.strip()
+        )
+        if header_match is None:
+            raise ValidationFailure(
+                f"CSV line {line}: translation anchor on Markdown line "
+                f"{anchor_line} must be followed by a canonical [原文翻译] header"
+            )
+        consumed_headers += 1
+        code = header_match.group("code").upper()
+        slug = anchor_match.group("slug").casefold()
+        if not slug.endswith("-" + code.casefold()):
+            raise ValidationFailure(
+                f"CSV line {line}: stable anchor {slug!r} does not match "
+                f"translation code {code!r}"
+            )
+        section_name = header_match.group("section")
+        section_family = translation_section_family(section_name)
+        expected_prefix = {
+            "Abstract": "A",
+            "Conclusion": "C",
+            "Limitations": "L",
+            "Future Work": "O",
+        }
+        if code[0] != expected_prefix[section_family]:
+            raise ValidationFailure(
+                f"CSV line {line}: {section_name!r} translation must use an "
+                f"{expected_prefix[section_family]}NN stable code"
+            )
+        if PDF_PAGE_RE.search(header_match.group("source")) is None:
+            raise ValidationFailure(
+                f"CSV line {line}: [原文翻译] header on Markdown line "
+                f"{header_line} requires a numeric PDF page"
+            )
+
+        translated_lines: list[tuple[int, str]] = []
+        cursor = next_index + 1
+        while cursor < len(lines):
+            translated_line, translated_content = lines[cursor]
+            stripped = translated_content.strip()
+            if STABLE_TRANSLATION_ANCHOR_RE.fullmatch(stripped):
+                break
+            if normalized_heading(stripped) is not None:
+                break
+            if not stripped:
+                cursor += 1
+                continue
+            if not stripped.startswith(">"):
+                break
+            quote = stripped[1:].strip()
+            if quote and not quote.startswith("[!"):
+                translated_lines.append((translated_line, quote))
+            cursor += 1
+        if not translated_lines:
+            raise ValidationFailure(
+                f"CSV line {line}: [原文翻译] block {code} contains no quoted "
+                "Chinese translation"
+            )
+        translated_text = section_text(translated_lines)
+        if READER_ANALYSIS_LABEL in translated_text or "[判断]" in translated_text:
+            raise ValidationFailure(
+                f"CSV line {line}: [原文翻译] block {code} mixes in "
+                "[笔记解释] or [判断]"
+            )
+        blocks.append(
+            {
+                "code": code,
+                "family": section_family,
+                "source_section": section_name,
+                "anchor_line": anchor_line,
+                "end_line": translated_lines[-1][0],
+                "lines": translated_lines,
+            }
+        )
+
+    body = section_text(lines)
+    if body.count(ORIGINAL_TRANSLATION_LABEL) != consumed_headers:
+        raise ValidationFailure(
+            f"CSV line {line}: {section_title!r} contains an unanchored "
+            "[原文翻译] marker"
+        )
+    return blocks
+
+
+def validate_contiguous_translation_codes(
+    blocks: list[dict[str, object]],
+    family: str,
+    *,
+    line: str,
+    required: bool,
+) -> list[dict[str, object]]:
+    family_blocks = [block for block in blocks if block["family"] == family]
+    if required and not family_blocks:
+        raise ValidationFailure(
+            f"CSV line {line}: missing source-anchored {family} translation"
+        )
+    actual_codes = [str(block["code"]) for block in family_blocks]
+    prefix = {"Abstract": "A", "Conclusion": "C", "Limitations": "L", "Future Work": "O"}[
+        family
+    ]
+    expected_codes = [
+        f"{prefix}{number:02d}" for number in range(1, len(family_blocks) + 1)
+    ]
+    if actual_codes != expected_codes:
+        raise ValidationFailure(
+            f"CSV line {line}: {family} stable codes must be unique, ordered, "
+            f"and contiguous from {prefix}01"
+        )
+    return family_blocks
+
+
+def translation_character_count(blocks: list[dict[str, object]]) -> int:
+    lines: list[tuple[int, str]] = []
+    for block in blocks:
+        lines.extend(block["lines"])  # type: ignore[arg-type]
+    return meaningful_character_count(lines)
+
+
+def validate_translation_first_reading(
+    note_path: Path,
+    line: str,
+    *,
+    structure: MarkdownStructure,
+) -> None:
+    """Enforce the translation-first reading contract from 2026-07-25."""
+
+    relative_note = note_path.relative_to(ROOT).as_posix()
+    try:
+        note_date = date.fromisoformat(note_path.name[:10])
+    except ValueError as exc:
+        raise ValidationFailure(
+            f"CSV line {line}: note filename must begin with an ISO publication date"
+        ) from exc
+    if relative_note in LEGACY_TRANSLATION_NOTE_EXEMPTIONS:
+        if note_date >= TRANSLATION_STANDARD_EFFECTIVE_DATE:
+            raise ValidationFailure(
+                f"CSV line {line}: legacy translation exemption "
+                f"{relative_note!r} is not older than the standard"
+            )
+        return
+
+    sections = visible_reading_sections(structure)
+    expected_titles = {
+        TRANSLATION_OVERVIEW_HEADING,
+        *REQUIRED_READING_SUBSECTIONS,
+    }
+    missing = sorted(expected_titles - sections.keys())
+    if missing:
+        raise ValidationFailure(
+            f"CSV line {line}: new note {relative_note!r} is missing required "
+            "translation-first section(s): " + ", ".join(missing)
+        )
+
+    overview_level, overview_line, _ = sections[TRANSLATION_OVERVIEW_HEADING]
+    if overview_level != 2:
+        raise ValidationFailure(
+            f"CSV line {line}: {TRANSLATION_OVERVIEW_HEADING!r} must be an H2"
+        )
+    for title in REQUIRED_READING_SUBSECTIONS:
+        level, heading_line, _ = sections[title]
+        if level != 3:
+            raise ValidationFailure(
+                f"CSV line {line}: {title!r} on Markdown line {heading_line} "
+                "must be an H3"
+            )
+
+    major_lines = {
+        content.strip(): source_line
+        for source_line, content in structure.top_level_lines
+        if content.strip() in REQUIRED_NOTE_HEADINGS
+    }
+    figure_line = major_lines[REQUIRED_NOTE_HEADINGS[0]]
+    result_line = major_lines[REQUIRED_NOTE_HEADINGS[2]]
+    code_line = major_lines[REQUIRED_NOTE_HEADINGS[3]]
+    conclusion_line = major_lines[REQUIRED_NOTE_HEADINGS[4]]
+    glossary_line = sections["首次术语解释"][1]
+    abstract_line = sections["摘要完整专业中文翻译"][1]
+    config_line = sections["原文公开的实验配置"][1]
+    process_line = sections["原文公开的实验流程"][1]
+    translated_conclusion_line = sections["原文结论完整翻译"][1]
+    outlook_line = sections["原文局限与展望完整翻译"][1]
+    analysis_line = sections["笔记分析与研究启发"][1]
+    if not (
+        overview_line < glossary_line < abstract_line < figure_line
+        and result_line < config_line < process_line < code_line
+        and conclusion_line
+        < translated_conclusion_line
+        < outlook_line
+        < analysis_line
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: translation-first sections are out of order or "
+            "outside their abstract/result/conclusion regions"
+        )
+
+    glossary_lines = sections["首次术语解释"][2]
+    entries = []
+    for index, (source_line, content) in enumerate(glossary_lines):
+        match = MOBILE_GLOSSARY_ENTRY_RE.fullmatch(content)
+        if match is not None:
+            explanation_parts = [match.group("explanation")]
+            cursor = index + 1
+            while cursor < len(glossary_lines):
+                _, continuation = glossary_lines[cursor]
+                if (
+                    not continuation.strip()
+                    or MOBILE_GLOSSARY_ENTRY_RE.fullmatch(continuation)
+                    or normalized_heading(continuation) is not None
+                    or not continuation.startswith((" ", "\t"))
+                ):
+                    break
+                explanation_parts.append(continuation.strip())
+                cursor += 1
+            entries.append(
+                (
+                    source_line,
+                    match.group("term"),
+                    " ".join(explanation_parts),
+                )
+            )
+    if len(entries) < MIN_GLOSSARY_ENTRIES:
+        raise ValidationFailure(
+            f"CSV line {line}: '首次术语解释' requires at least "
+            f"{MIN_GLOSSARY_ENTRIES} mobile-friendly bilingual bullet entries"
+        )
+    for source_line, term, explanation in entries:
+        if not re.search(r"[A-Za-z]", term) or not re.search(
+            r"[\u3400-\u9fff]", explanation
+        ):
+            raise ValidationFailure(
+                f"CSV line {line}: terminology bullet on Markdown line "
+                f"{source_line} must include the source-language term or "
+                "abbreviation and a Chinese contextual explanation"
+            )
+        if len(re.sub(r"\s+", "", explanation)) < 12:
+            raise ValidationFailure(
+                f"CSV line {line}: terminology explanation on Markdown line "
+                f"{source_line} is too short"
+            )
+    glossary_body = section_text(glossary_lines)
+    if (
+        re.search(r"(?:首次|第一次)出现", glossary_body) is None
+        or "解释" not in glossary_body
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: terminology guidance must state that new terms "
+            "are explained at first occurrence"
+        )
+
+    abstract_lines = sections["摘要完整专业中文翻译"][2]
+    all_abstract_blocks = parse_translation_blocks(
+        abstract_lines,
+        line=line,
+        section_title="摘要完整专业中文翻译",
+    )
+    abstract_blocks = validate_contiguous_translation_codes(
+        all_abstract_blocks,
+        "Abstract",
+        line=line,
+        required=True,
+    )
+    if len(abstract_blocks) != len(all_abstract_blocks):
+        raise ValidationFailure(
+            f"CSV line {line}: abstract translation section may contain only "
+            "Abstract/A-NN blocks"
+        )
+    abstract_chars = translation_character_count(abstract_blocks)
+    if abstract_chars < MIN_ABSTRACT_TRANSLATION_CHARS:
+        raise ValidationFailure(
+            f"CSV line {line}: complete abstract translation is too short "
+            f"({abstract_chars} < {MIN_ABSTRACT_TRANSLATION_CHARS})"
+        )
+
+    config_lines = sections["原文公开的实验配置"][2]
+    config_body = section_text(config_lines)
+    if ORIGINAL_LOCATION_RE.search(config_body) is None:
+        raise ValidationFailure(
+            f"CSV line {line}: experiment configuration requires an explicit "
+            "paper page or section anchor"
+        )
+    has_code_source = bool(FIXED_SHA_URL_RE.search(config_body))
+    has_code_absence = bool(
+        "[未核验]" in config_body
+        and re.search(r"(?:源码|代码)", config_body)
+        and re.search(r"(?:未公开|未提供|无法确认|没有提供)", config_body)
+    )
+    if not (has_code_source or has_code_absence):
+        raise ValidationFailure(
+            f"CSV line {line}: experiment configuration requires a fixed-SHA "
+            "source link or an explicit [未核验] code-availability statement"
+        )
+
+    config_rows = markdown_table_rows(config_lines)
+    config_header = ["配置项", "公开值或做法", "来源锚点"]
+    config_header_positions = [
+        position
+        for position, (_, cells) in enumerate(config_rows)
+        if cells == config_header
+    ]
+    if len(config_header_positions) > 1:
+        raise ValidationFailure(
+            f"CSV line {line}: experiment configuration contains duplicate "
+            "table headers"
+        )
+    if config_header_positions:
+        config_entries = config_rows[config_header_positions[0] + 1 :]
+        if len(config_entries) < MIN_EXPERIMENT_CONFIG_ROWS:
+            raise ValidationFailure(
+                f"CSV line {line}: table-form experiment configuration requires "
+                f"at least {MIN_EXPERIMENT_CONFIG_ROWS} sourced rows"
+            )
+        for source_line, cells in config_entries:
+            if len(cells) != 3 or any(not cell for cell in cells):
+                raise ValidationFailure(
+                    f"CSV line {line}: experiment configuration row on Markdown "
+                    f"line {source_line} must fill all three columns"
+                )
+            if not source_evidence_is_specific(cells[2]):
+                raise ValidationFailure(
+                    f"CSV line {line}: experiment configuration row on Markdown "
+                    f"line {source_line} needs a PDF/section/fixed-SHA anchor or "
+                    "an explicit [未核验] absence"
+                )
+    else:
+        config_bullets = mobile_config_entries(config_lines)
+        if len(config_bullets) < MIN_EXPERIMENT_CONFIG_BULLETS:
+            raise ValidationFailure(
+                f"CSV line {line}: mobile experiment configuration requires at "
+                f"least {MIN_EXPERIMENT_CONFIG_BULLETS} bold card-style bullets"
+            )
+        for source_line, _, body in config_bullets:
+            if EVIDENCE_LABEL_RE.search(body) is None:
+                raise ValidationFailure(
+                    f"CSV line {line}: configuration bullet on Markdown line "
+                    f"{source_line} needs a [论文], [源码], or [未核验] label"
+                )
+            if not source_evidence_is_specific(body):
+                raise ValidationFailure(
+                    f"CSV line {line}: configuration bullet on Markdown line "
+                    f"{source_line} needs its own PDF/section/fixed-SHA anchor or "
+                    "an explicit [未核验] absence"
+                )
+
+    process_lines = sections["原文公开的实验流程"][2]
+    process_body = section_text(process_lines)
+    if ORIGINAL_LOCATION_RE.search(process_body) is None:
+        raise ValidationFailure(
+            f"CSV line {line}: experiment flow requires an explicit paper page "
+            "or section anchor"
+        )
+    experiment_source_context = config_body + "\n" + process_body
+    if not (
+        FIXED_SHA_URL_RE.search(experiment_source_context)
+        or (
+            "[未核验]" in experiment_source_context
+            and re.search(r"(?:源码|代码)", experiment_source_context)
+            and re.search(
+                r"(?:未公开|未提供|无法确认|没有提供)",
+                experiment_source_context,
+            )
+        )
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: experiment flow requires a fixed-SHA link or an "
+            "explicit [未核验] code-availability statement"
+        )
+    flow_steps = numbered_flow_entries(process_lines)
+    if len(flow_steps) < MIN_EXPERIMENT_FLOW_STEPS:
+        raise ValidationFailure(
+            f"CSV line {line}: experiment flow requires at least "
+            f"{MIN_EXPERIMENT_FLOW_STEPS} numbered, sourced steps"
+        )
+    if [int(match.group("number")) for _, match, _ in flow_steps] != list(
+        range(1, len(flow_steps) + 1)
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: experiment flow step numbers must be contiguous "
+            "from 1"
+        )
+    flow_labels = "；".join(match.group("label") for _, match, _ in flow_steps)
+    semantic_families = (
+        r"(?:数据|标注|预处理|准备)",
+        r"(?:预训练|训练|微调|优化)",
+        r"(?:保存|验证|选模|检查点|checkpoint)",
+        r"(?:推理|后处理|任务)",
+        r"(?:评测|测试|消融|迁移)",
+    )
+    if any(
+        re.search(pattern, flow_labels, re.IGNORECASE) is None
+        for pattern in semantic_families
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: experiment flow must cover data preparation, "
+            "training, checkpoint/validation, inference, and evaluation semantics"
+        )
+    for source_line, _, body in flow_steps:
+        if EVIDENCE_LABEL_RE.search(body) is None:
+            raise ValidationFailure(
+                f"CSV line {line}: experiment flow step on Markdown line "
+                f"{source_line} needs a [论文], [源码], or [未核验] label"
+            )
+        if not source_evidence_is_specific(body):
+            raise ValidationFailure(
+                f"CSV line {line}: experiment flow step on Markdown line "
+                f"{source_line} needs its own PDF/section/fixed-SHA anchor or "
+                "an explicit [未核验] absence"
+            )
+
+    conclusion_lines = sections["原文结论完整翻译"][2]
+    conclusion_blocks = parse_translation_blocks(
+        conclusion_lines,
+        line=line,
+        section_title="原文结论完整翻译",
+    )
+    conclusion_family = validate_contiguous_translation_codes(
+        conclusion_blocks,
+        "Conclusion",
+        line=line,
+        required=True,
+    )
+    if len(conclusion_family) != len(conclusion_blocks):
+        raise ValidationFailure(
+            f"CSV line {line}: conclusion translation section may contain only "
+            "Conclusion/C-NN blocks"
+        )
+    conclusion_chars = translation_character_count(conclusion_family)
+    if conclusion_chars < MIN_CONCLUSION_TRANSLATION_CHARS:
+        raise ValidationFailure(
+            f"CSV line {line}: complete conclusion translation is too short "
+            f"({conclusion_chars} < {MIN_CONCLUSION_TRANSLATION_CHARS})"
+        )
+    conclusion_source_sections = {
+        str(block["source_section"]) for block in conclusion_family
+    }
+    has_named_conclusion = any(
+        section.casefold() == "conclusion"
+        for section in conclusion_source_sections
+    )
+    if not has_named_conclusion:
+        conclusion_missing_declarations = labeled_paragraphs(
+            conclusion_lines,
+            MISSING_SOURCE_SECTION_LABEL,
+        )
+        alternative_names = {
+            section.casefold() for section in conclusion_source_sections
+        }
+        has_precise_conclusion_declaration = any(
+            re.search(
+                r"(?:未单列|没有单列|未设置|没有独立|无独立)",
+                declaration,
+            )
+            and re.search(r"(?:Conclusion|结论)", declaration, re.IGNORECASE)
+            and any(
+                name in declaration.casefold()
+                for name in alternative_names
+            )
+            and re.search(
+                r"(?:不代写|不补写|不虚构|不伪造|不冒充|不改写)",
+                declaration,
+            )
+            for declaration in conclusion_missing_declarations
+        )
+        if not has_precise_conclusion_declaration:
+            actual_sections = ", ".join(sorted(conclusion_source_sections))
+            raise ValidationFailure(
+                f"CSV line {line}: a paper without a named Conclusion must add "
+                f"a precise {MISSING_SOURCE_SECTION_LABEL} naming the real "
+                f"closing section ({actual_sections}) and promising not to "
+                "invent or relabel author conclusions"
+            )
+
+    outlook_lines = sections["原文局限与展望完整翻译"][2]
+    outlook_body = section_text(outlook_lines)
+    outlook_blocks = parse_translation_blocks(
+        outlook_lines,
+        line=line,
+        section_title="原文局限与展望完整翻译",
+    )
+    limitation_blocks = validate_contiguous_translation_codes(
+        outlook_blocks,
+        "Limitations",
+        line=line,
+        required=False,
+    )
+    future_blocks = validate_contiguous_translation_codes(
+        outlook_blocks,
+        "Future Work",
+        line=line,
+        required=False,
+    )
+    if len(limitation_blocks) + len(future_blocks) != len(outlook_blocks):
+        raise ValidationFailure(
+            f"CSV line {line}: limitation/outlook section may contain only "
+            "Limitations/L-NN and Future Work/O-NN blocks"
+        )
+    missing_lines = labeled_paragraphs(
+        outlook_lines,
+        MISSING_SOURCE_SECTION_LABEL,
+    )
+    for missing_line in missing_lines:
+        if (
+            not re.search(
+                r"(?:未单列|没有单列|未提供|没有独立|无独立)",
+                missing_line,
+            )
+            or not re.search(r"(?:不代写|不补写|不虚构)", missing_line)
+        ):
+            raise ValidationFailure(
+                f"CSV line {line}: {MISSING_SOURCE_SECTION_LABEL} must identify "
+                "the absent source section and promise not to invent author views"
+            )
+    has_limitation_absence = any(
+        re.search(r"(?:Limitations?|局限)", content, re.IGNORECASE)
+        for content in missing_lines
+    )
+    has_future_absence = any(
+        re.search(r"(?:Future Work|Outlook|未来工作|展望)", content, re.IGNORECASE)
+        for content in missing_lines
+    )
+    if not limitation_blocks and not has_limitation_absence:
+        raise ValidationFailure(
+            f"CSV line {line}: translate source limitations or add a precise "
+            f"{MISSING_SOURCE_SECTION_LABEL}"
+        )
+    if not future_blocks and not has_future_absence:
+        raise ValidationFailure(
+            f"CSV line {line}: translate source Future Work or add a precise "
+            f"{MISSING_SOURCE_SECTION_LABEL}"
+        )
+    for family, blocks in (
+        ("Limitations", limitation_blocks),
+        ("Future Work", future_blocks),
+    ):
+        if blocks and translation_character_count(blocks) < 30:
+            raise ValidationFailure(
+                f"CSV line {line}: {family} translation is too short to be complete"
+            )
+    if READER_ANALYSIS_LABEL in outlook_body or "[判断]" in outlook_body:
+        raise ValidationFailure(
+            f"CSV line {line}: source limitation/outlook translation must not "
+            "mix in [笔记解释] or [判断]"
+        )
+
+    analysis_lines = sections["笔记分析与研究启发"][2]
+    analysis_body = section_text(analysis_lines)
+    if ORIGINAL_TRANSLATION_LABEL in analysis_body:
+        raise ValidationFailure(
+            f"CSV line {line}: '笔记分析与研究启发' must not contain "
+            "[原文翻译]"
+        )
+    if READER_ANALYSIS_LABEL not in analysis_body or "[判断]" not in analysis_body:
+        raise ValidationFailure(
+            f"CSV line {line}: '笔记分析与研究启发' requires both "
+            "[笔记解释] and [判断]"
+        )
+    if meaningful_character_count(analysis_lines) < 80:
+        raise ValidationFailure(
+            f"CSV line {line}: '笔记分析与研究启发' is too short"
+        )
 
 
 def safe_note_path(value: str, line: str) -> Path:
@@ -1376,6 +2275,11 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
                 f"CSV line {line}: figure/formula/result/code/conclusion headings "
                 "are out of order"
             )
+        validate_translation_first_reading(
+            note_path,
+            line,
+            structure=structure,
+        )
         validate_note_assets(
             note_path,
             line,
@@ -1798,12 +2702,55 @@ def write_text(path: Path, content: str) -> None:
         handle.write(content)
 
 
+def legacy_translation_migration_debt(
+    rows: list[dict[str, str]],
+) -> list[str]:
+    """Return indexed legacy notes that still need the new reading sections."""
+
+    indexed_paths = {row["note_path"] for row in rows}
+    return sorted(indexed_paths & LEGACY_TRANSLATION_NOTE_EXEMPTIONS)
+
+
+def validate_dated_note_inventory(
+    rows: list[dict[str, str]],
+    *,
+    root: Path | None = None,
+) -> None:
+    """Require every dated note under ``notes/`` to be indexed exactly once."""
+
+    repository_root = root or ROOT
+    notes_root = repository_root / "notes"
+    counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        counts[row["note_path"]] += 1
+
+    dated_notes = sorted(
+        path.relative_to(repository_root).as_posix()
+        for path in notes_root.rglob("*.md")
+        if DATED_NOTE_FILENAME_RE.fullmatch(path.name)
+    )
+    failures = [
+        (path, counts.get(path, 0))
+        for path in dated_notes
+        if counts.get(path, 0) != 1
+    ]
+    if failures:
+        details = ", ".join(
+            f"{path} ({count} CSV entries)" for path, count in failures
+        )
+        raise ValidationFailure(
+            "every dated note under notes/ must be indexed exactly once: "
+            + details
+        )
+
+
 def main() -> int:
     args = parse_args()
     try:
         rows = load_rows()
         rows.sort(key=lambda row: (row["date"], row["paper_key"]), reverse=True)
         validate_rows(rows)
+        validate_dated_note_inventory(rows)
         validate_public_markdown()
         targets = expected_files(rows)
 
@@ -1830,6 +2777,12 @@ def main() -> int:
         else:
             print("OK: generated pages are current")
         print(f"OK: validated {len(rows)} indexed paper(s)")
+        legacy_debt = legacy_translation_migration_debt(rows)
+        if legacy_debt:
+            print(
+                "NOTICE: legacy note(s) still need translation-first backfill: "
+                + ", ".join(legacy_debt)
+            )
         return 0
     except ValidationFailure as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
