@@ -29,6 +29,7 @@ from urllib.parse import SplitResult, unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "index" / "papers.csv"
+TAXONOMY_PATH = ROOT / "index" / "taxonomy.json"
 README_PATH = ROOT / "README.md"
 PAPERS_MD_PATH = ROOT / "index" / "papers.md"
 TOPICS_MD_PATH = ROOT / "index" / "topics.md"
@@ -47,6 +48,8 @@ REQUIRED_FIELDS = (
     "doi",
     "repo_url",
     "repo_commit",
+    "primary_track",
+    "modalities",
     "topics",
     "selection_score",
     "verification_stage",
@@ -218,6 +221,78 @@ def parse_args() -> argparse.Namespace:
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig").replace("\r\n", "\n")
+
+
+def load_taxonomy() -> dict[str, object]:
+    """Load and validate the stable perception taxonomy definition."""
+
+    if not TAXONOMY_PATH.is_file():
+        raise ValidationFailure(
+            f"Missing taxonomy: {TAXONOMY_PATH.relative_to(ROOT).as_posix()}"
+        )
+    try:
+        taxonomy = json.loads(read_text(TAXONOMY_PATH))
+    except json.JSONDecodeError as exc:
+        raise ValidationFailure(f"Invalid taxonomy JSON: {exc}") from exc
+    if not isinstance(taxonomy, dict) or taxonomy.get("schema_version") != 1:
+        raise ValidationFailure("taxonomy.json must be an object with schema_version 1")
+
+    tracks = taxonomy.get("tracks")
+    modalities = taxonomy.get("modalities")
+    large_model_tags = taxonomy.get("large_model_tags")
+    if not isinstance(tracks, list) or not tracks:
+        raise ValidationFailure("taxonomy.json tracks must be a non-empty list")
+    if not isinstance(modalities, list) or not modalities:
+        raise ValidationFailure("taxonomy.json modalities must be a non-empty list")
+    if not isinstance(large_model_tags, list) or not large_model_tags:
+        raise ValidationFailure(
+            "taxonomy.json large_model_tags must be a non-empty list"
+        )
+
+    track_ids: set[str] = set()
+    track_names: set[str] = set()
+    for position, track in enumerate(tracks, start=1):
+        if not isinstance(track, dict):
+            raise ValidationFailure(
+                f"taxonomy track {position} must be a JSON object"
+            )
+        required = ("id", "name", "scope", "question")
+        if any(not isinstance(track.get(field), str) or not track[field].strip() for field in required):
+            raise ValidationFailure(
+                f"taxonomy track {position} requires non-empty id/name/scope/question"
+            )
+        track_id = track["id"]
+        expected_prefix = f"p{position:02d}-"
+        if (
+            not track_id.startswith(expected_prefix)
+            or not re.fullmatch(r"p\d{2}-[a-z0-9-]+", track_id)
+        ):
+            raise ValidationFailure(
+                f"taxonomy track {position} id must start with {expected_prefix!r}"
+            )
+        normalized_name = track["name"].casefold()
+        if track_id in track_ids or normalized_name in track_names:
+            raise ValidationFailure("taxonomy track ids and names must be unique")
+        track_ids.add(track_id)
+        track_names.add(normalized_name)
+
+    def validate_string_list(values: object, field: str) -> list[str]:
+        if (
+            not isinstance(values, list)
+            or not values
+            or any(not isinstance(value, str) or not value.strip() for value in values)
+        ):
+            raise ValidationFailure(
+                f"taxonomy.json {field} must contain non-empty strings"
+            )
+        normalized = [value.casefold() for value in values]
+        if len(normalized) != len(set(normalized)):
+            raise ValidationFailure(f"taxonomy.json {field} contains duplicates")
+        return values
+
+    validate_string_list(modalities, "modalities")
+    validate_string_list(large_model_tags, "large_model_tags")
+    return taxonomy
 
 
 def load_rows() -> list[dict[str, str]]:
@@ -1104,6 +1179,11 @@ def validate_note_assets(
 
 
 def validate_rows(rows: list[dict[str, str]]) -> None:
+    taxonomy = load_taxonomy()
+    allowed_tracks = track_map(taxonomy)
+    allowed_modalities = {
+        value.casefold(): value for value in taxonomy["modalities"]
+    }
     unique_fields: dict[str, set[str]] = {
         "paper_key": set(),
         "title": set(),
@@ -1211,14 +1291,46 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
                 f"CSV line {line}: NoOfficialCode cannot include repo_url"
             )
 
-        topics = topic_list(row)
-        if not 1 <= len(topics) <= 5:
+        if row["primary_track"] not in allowed_tracks:
             raise ValidationFailure(
-                f"CSV line {line}: topics must contain between 1 and 5 tags"
+                f"CSV line {line}: primary_track must be one of "
+                + ", ".join(allowed_tracks)
+            )
+
+        modalities = modality_list(row)
+        if not modalities:
+            raise ValidationFailure(
+                f"CSV line {line}: modalities must contain at least one value"
+            )
+        normalized_modalities = [value.casefold() for value in modalities]
+        if len(normalized_modalities) != len(set(normalized_modalities)):
+            raise ValidationFailure(
+                f"CSV line {line}: modalities contain duplicates"
+            )
+        invalid_modalities = [
+            value
+            for value in modalities
+            if value.casefold() not in allowed_modalities
+        ]
+        if invalid_modalities:
+            raise ValidationFailure(
+                f"CSV line {line}: unsupported modalities: "
+                + ", ".join(invalid_modalities)
+            )
+
+        topics = topic_list(row)
+        if not 1 <= len(topics) <= 8:
+            raise ValidationFailure(
+                f"CSV line {line}: topics must contain between 1 and 8 tags"
             )
         normalized_topics = [topic.casefold() for topic in topics]
         if len(normalized_topics) != len(set(normalized_topics)):
             raise ValidationFailure(f"CSV line {line}: topics contain duplicates")
+        if "autonomous driving" in normalized_topics:
+            raise ValidationFailure(
+                f"CSV line {line}: topics must be specific; remove "
+                "'Autonomous Driving'"
+            )
         if len(row["takeaway"]) > 160:
             raise ValidationFailure(
                 f"CSV line {line}: takeaway is too long ({len(row['takeaway'])} chars)"
@@ -1350,6 +1462,21 @@ def topic_list(row: dict[str, str]) -> list[str]:
     return [item.strip() for item in row["topics"].split(";") if item.strip()]
 
 
+def modality_list(row: dict[str, str]) -> list[str]:
+    return [item.strip() for item in row["modalities"].split(";") if item.strip()]
+
+
+def track_map(taxonomy: dict[str, object]) -> dict[str, dict[str, str]]:
+    return {
+        track["id"]: track
+        for track in taxonomy["tracks"]
+    }
+
+
+def track_name(row: dict[str, str], taxonomy: dict[str, object]) -> str:
+    return track_map(taxonomy)[row["primary_track"]]["name"]
+
+
 def root_link(path: str) -> str:
     return PurePosixPath(path).as_posix()
 
@@ -1366,19 +1493,31 @@ def code_link(row: dict[str, str], label: str | None = None) -> str:
     return f"[{text}]({row['repo_url']}/tree/{sha})"
 
 
-def render_stats(rows: list[dict[str, str]]) -> str:
+def render_stats(
+    rows: list[dict[str, str]],
+    taxonomy: dict[str, object],
+) -> str:
     accepted = sum(row["publication_status"] == "Accepted" for row in rows)
     audited = sum(row["code_audit_status"] == "Audited" for row in rows)
+    covered = len({row["primary_track"] for row in rows})
+    track_total = len(taxonomy["tracks"])
     latest_date = rows[0]["date"]
     return (
         f"**{len(rows)} 篇精读** · **{accepted} 篇正式录用** · "
-        f"**{audited} 篇关键源码已审** · 最近更新：**{latest_date}**"
+        f"**{audited} 篇关键源码已审** · "
+        f"**覆盖 {covered}/{track_total} 个感知主方向** · "
+        f"最近更新：**{latest_date}**"
     )
 
 
-def render_latest(row: dict[str, str]) -> str:
+def render_latest(
+    row: dict[str, str],
+    taxonomy: dict[str, object],
+) -> str:
     note = root_link(row["note_path"])
     topics = " · ".join(md_escape(topic) for topic in topic_list(row))
+    modalities = " + ".join(md_escape(item) for item in modality_list(row))
+    primary = md_escape(track_name(row, taxonomy))
     identity = status_label(row)
     if row["publication_status"] == "Accepted":
         identity = f"[{identity}]({row['proceedings_url']})"
@@ -1392,7 +1531,7 @@ def render_latest(row: dict[str, str]) -> str:
             "**进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 "
             "→ 固定版本源码 → 证据边界",
             "",
-            f"{identity} · {topics} · "
+            f"{identity} · **{primary}** · {modalities} · {topics} · "
             f"{code_audit_label(row)} · "
             f"**{md_escape(row['reproduction_status'])}**",
             "",
@@ -1414,7 +1553,10 @@ def render_recent(rows: list[dict[str, str]], limit: int = 3) -> str:
     return "\n".join(output)
 
 
-def render_papers_md(rows: list[dict[str, str]]) -> str:
+def render_papers_md(
+    rows: list[dict[str, str]],
+    taxonomy: dict[str, object],
+) -> str:
     accepted = sum(row["publication_status"] == "Accepted" for row in rows)
     lines = [
         "# 全部论文精读",
@@ -1432,13 +1574,16 @@ def render_papers_md(rows: list[dict[str, str]]) -> str:
     for row in rows:
         note = index_link(row["note_path"])
         topics = " · ".join(md_escape(topic) for topic in topic_list(row))
+        modalities = " + ".join(md_escape(item) for item in modality_list(row))
+        primary = md_escape(track_name(row, taxonomy))
         lines.extend(
             (
                 "",
                 f"## {row['date']} · [{md_escape(row['title'])}]({note})",
                 "",
                 f"`{md_escape(row['venue'])} {row['year']}` · "
-                f"`{status_label(row)}` · {topics}",
+                f"`{status_label(row)}` · **{primary}** · "
+                f"{modalities} · {topics}",
                 "",
                 f"> {md_escape(row['takeaway'])}",
                 "",
@@ -1465,25 +1610,146 @@ def render_papers_md(rows: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
-def render_topics(rows: list[dict[str, str]]) -> str:
-    grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
+def render_topics(
+    rows: list[dict[str, str]],
+    taxonomy: dict[str, object],
+) -> str:
+    by_track: dict[str, list[dict[str, str]]] = defaultdict(list)
+    by_modality: dict[str, list[dict[str, str]]] = defaultdict(list)
+    by_topic: dict[str, list[dict[str, str]]] = defaultdict(list)
     for row in rows:
+        by_track[row["primary_track"]].append(row)
+        for modality in modality_list(row):
+            by_modality[modality].append(row)
         for topic in topic_list(row):
-            grouped[topic].append(row)
+            by_topic[topic].append(row)
 
-    lines = []
-    for topic in sorted(grouped, key=str.casefold):
-        topic_rows = sorted(grouped[topic], key=lambda row: row["date"], reverse=True)
-        lines.extend((f"### {md_escape(topic)} ({len(topic_rows)})", ""))
-        for row in topic_rows:
-            note = index_link(row["note_path"])
-            suffix = f" · {code_link(row, '代码')}" if row["repo_url"] else ""
-            lines.append(
-                f"- {row['date']} · [{md_escape(row['title'])}]({note}) — "
-                f"{md_escape(row['venue'])} {row['year']} · "
-                f"[论文]({row['paper_url']}){suffix}"
+    large_model_tags = {
+        value.casefold() for value in taxonomy["large_model_tags"]
+    }
+    large_model_rows = [
+        row
+        for row in rows
+        if (
+            row["primary_track"]
+            in {"p11-vfm-vlm-llm-vla", "p12-world-models-generative-4d"}
+            or any(topic.casefold() in large_model_tags for topic in topic_list(row))
+        )
+    ]
+
+    def paper_line(row: dict[str, str], *, include_track: bool = False) -> str:
+        note = index_link(row["note_path"])
+        suffix = f" · {code_link(row, '代码')}" if row["repo_url"] else ""
+        modalities = " + ".join(md_escape(item) for item in modality_list(row))
+        track = (
+            f" · {md_escape(track_name(row, taxonomy))}"
+            if include_track
+            else ""
+        )
+        return (
+            f"- {row['date']} · [{md_escape(row['title'])}]({note}) — "
+            f"{md_escape(row['venue'])} {row['year']} · "
+            f"{status_label(row)}{track} · {modalities} · "
+            f"[论文]({row['paper_url']}){suffix}"
+        )
+
+    lines = [
+        "## 全方向覆盖总表",
+        "",
+        "> 这里列出完整分类，而不是只显示已经读过的热门方向。"
+        "“0 篇”表示本仓库尚未覆盖，不代表学界没有相关工作。",
+        "",
+        "| 编号 | 自动驾驶感知主方向 | 已精读 | 最近更新 | 覆盖状态 |",
+        "|---|---|---:|---|---|",
+    ]
+    for track in taxonomy["tracks"]:
+        track_rows = sorted(
+            by_track.get(track["id"], []),
+            key=lambda row: (row["date"], row["paper_key"]),
+            reverse=True,
+        )
+        latest = track_rows[0]["date"] if track_rows else "—"
+        status = "已有锚点" if track_rows else "待覆盖"
+        lines.append(
+            f"| {track['id'].split('-', 1)[0].upper()} | "
+            f"[{md_escape(track['name'])}](#{track['id']}) | "
+            f"{len(track_rows)} | {latest} | {status} |"
+        )
+
+    lines.extend(
+        (
+            "",
+            "## 按 13 个主方向精读",
+            "",
+            "每篇论文只有一个主方向，避免在目录中重复；传感器、任务、"
+            "表示、可靠性和大模型关系通过后面的交叉索引补充。",
+        )
+    )
+    for track in taxonomy["tracks"]:
+        track_rows = sorted(
+            by_track.get(track["id"], []),
+            key=lambda row: (row["date"], row["paper_key"]),
+            reverse=True,
+        )
+        lines.extend(
+            (
+                "",
+                f"<a id=\"{track['id']}\"></a>",
+                f"### {track['id'].split('-', 1)[0].upper()} · "
+                f"{md_escape(track['name'])}（{len(track_rows)}）",
+                "",
+                f"**范围：** {md_escape(track['scope'])}",
+                "",
+                f"**阅读时追问：** {md_escape(track['question'])}",
+                "",
             )
+        )
+        if track_rows:
+            lines.extend(paper_line(row) for row in track_rows)
+        else:
+            lines.append("- 尚无完成精读；每日选文会优先检查这一覆盖缺口。")
+
+    lines.extend(("", "## 与大模型结合的感知论文", ""))
+    if large_model_rows:
+        for row in sorted(
+            large_model_rows,
+            key=lambda item: (item["date"], item["paper_key"]),
+            reverse=True,
+        ):
+            lines.append(paper_line(row, include_track=True))
+    else:
+        lines.append(
+            "- 尚无完成精读。VFM、VLM、LLM、VLA 与世界模型只有在"
+            "具有明确感知贡献或感知评测时才进入这里。"
+        )
+
+    lines.extend(("", "## 按输入模态浏览", ""))
+    for modality in taxonomy["modalities"]:
+        modality_rows = sorted(
+            by_modality.get(modality, []),
+            key=lambda row: (row["date"], row["paper_key"]),
+            reverse=True,
+        )
+        lines.extend((f"### {md_escape(modality)}（{len(modality_rows)}）", ""))
+        if modality_rows:
+            lines.extend(
+                paper_line(row, include_track=True) for row in modality_rows
+            )
+        else:
+            lines.append("- 尚无完成精读。")
         lines.append("")
+
+    lines.extend(("<details>", "<summary><strong>展开细任务与方法标签</strong></summary>", ""))
+    for topic in sorted(by_topic, key=str.casefold):
+        topic_rows = sorted(
+            by_topic[topic],
+            key=lambda row: (row["date"], row["paper_key"]),
+            reverse=True,
+        )
+        lines.extend((f"### {md_escape(topic)}（{len(topic_rows)}）", ""))
+        lines.extend(paper_line(row, include_track=True) for row in topic_rows)
+        lines.append("")
+    lines.extend(("</details>", ""))
     return "\n".join(lines).rstrip()
 
 
@@ -1510,17 +1776,18 @@ def replace_block(text: str, name: str, body: str) -> str:
 
 
 def expected_files(rows: list[dict[str, str]]) -> dict[Path, str]:
+    taxonomy = load_taxonomy()
     readme = read_text(README_PATH)
-    readme = replace_block(readme, "STATS", render_stats(rows))
-    readme = replace_block(readme, "LATEST", render_latest(rows[0]))
+    readme = replace_block(readme, "STATS", render_stats(rows, taxonomy))
+    readme = replace_block(readme, "LATEST", render_latest(rows[0], taxonomy))
     readme = replace_block(readme, "RECENT", render_recent(rows))
 
     topics = read_text(TOPICS_MD_PATH)
-    topics = replace_block(topics, "TOPICS", render_topics(rows))
+    topics = replace_block(topics, "TOPICS", render_topics(rows, taxonomy))
 
     return {
         README_PATH: readme.rstrip() + "\n",
-        PAPERS_MD_PATH: render_papers_md(rows).rstrip() + "\n",
+        PAPERS_MD_PATH: render_papers_md(rows, taxonomy).rstrip() + "\n",
         TOPICS_MD_PATH: topics.rstrip() + "\n",
     }
 

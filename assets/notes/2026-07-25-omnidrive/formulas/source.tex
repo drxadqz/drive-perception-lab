@@ -1,0 +1,31 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Both blocks are transcribed from OmniDrive, CVPR 2025, Eq. (1)-(2).
+% The main note carries the exact paper page and source-code provenance.
+
+% BEGIN eq-01-query-self-attention
+\begin{aligned}
+(\mathbf Q,\mathbf K,\mathbf V)
+&=
+\bigl([\mathbf Q_c,\mathbf Q_d],
+[\mathbf Q_c,\mathbf Q_d],
+[\mathbf Q_c,\mathbf Q_d]\bigr),\\
+\widetilde{\mathbf Q}
+&=
+\mathrm{MultiHeadAttention}(\mathbf Q,\mathbf K,\mathbf V)
+\end{aligned}
+\qquad\text{(1)}
+% END eq-01-query-self-attention
+
+% BEGIN eq-02-image-cross-attention
+\begin{aligned}
+(\mathbf Q,\mathbf K,\mathbf V)
+&=
+\bigl([\mathbf Q_c,\mathbf Q_d],
+\mathbf P_m+\mathbf F_m,
+\mathbf F_m\bigr),\\
+\widetilde{\mathbf Q}
+&=
+\mathrm{MultiHeadAttention}(\mathbf Q,\mathbf K,\mathbf V)
+\end{aligned}
+\qquad\text{(2)}
+% END eq-02-image-cross-attention

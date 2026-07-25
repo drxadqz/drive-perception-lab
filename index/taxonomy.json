@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "tracks": [
+    {
+      "id": "p01-object-actor-perception",
+      "name": "目标与交通参与者感知",
+      "scope": "2D/3D 检测、属性与姿态、多目标跟踪、全景跟踪，以及以离散目标、实例或轨迹为核心的感知。",
+      "question": "模型能否稳定发现、定位并持续识别真正影响驾驶决策的交通参与者？"
+    },
+    {
+      "id": "p02-dense-scene-geometry",
+      "name": "稠密场景语义与几何",
+      "scope": "语义、实例与全景分割，深度、立体、光流、场景流、自由空间、路面、路缘和静态三维重建。",
+      "question": "像素、点、表面和流场是否足够准确地描述可通行空间与细粒度几何？"
+    },
+    {
+      "id": "p03-bev-unified-representation",
+      "name": "BEV 与统一场景表示",
+      "scope": "相机、LiDAR 或雷达到 BEV 的视角变换，稀疏查询、统一多任务 BEV，以及向量或图式场景表示。",
+      "question": "统一表示保留了哪些三维信息，又在哪里因压缩、遮挡或坐标变换而失真？"
+    },
+    {
+      "id": "p04-occupancy-4d",
+      "name": "Occupancy 与 4D 场景理解",
+      "scope": "几何或语义 Occupancy、场景补全、实例 Occupancy、Occupancy Flow、时序 Occupancy 与未来 4D Occupancy。",
+      "question": "体素或场表示能否同时覆盖可见、遮挡和动态区域，并在时间上保持可信？"
+    },
+    {
+      "id": "p05-temporal-predictive-perception",
+      "name": "时序与预测性感知",
+      "scope": "多帧融合、流式记忆、4D 检测、检测—跟踪—预测联合建模、运动估计和未来环境状态预测。",
+      "question": "历史信息何时真正改善当前与未来感知，何时会积累陈旧或错误状态？"
+    },
+    {
+      "id": "p06-sensors-multimodal-fusion",
+      "name": "传感器与多模态融合",
+      "scope": "Camera、LiDAR、Radar、Event、Thermal 等传感器建模，跨模态对齐、标定、异步融合与缺失模态。",
+      "question": "不同传感器的信息是否互补，并能否在标定误差、时延和故障下安全退化？"
+    },
+    {
+      "id": "p07-road-map-localization",
+      "name": "道路结构、HD Map 与定位",
+      "scope": "车道、道路边界、交通灯与标志、拓扑关系、在线矢量地图、地图更新、定位、里程计与 SLAM。",
+      "question": "系统能否从实时观测恢复可行驶拓扑，并识别地图过期或定位漂移？"
+    },
+    {
+      "id": "p08-cooperative-perception",
+      "name": "协同感知",
+      "scope": "V2V、V2I、V2X 的原始、特征或目标级共享，协同 BEV、Occupancy 与地图，以及时延、带宽和异构性。",
+      "question": "额外视角在通信受限、不同步甚至不可信时，是否仍带来可验证的感知增益？"
+    },
+    {
+      "id": "p09-robust-open-trustworthy",
+      "name": "鲁棒、开放世界与可信感知",
+      "scope": "恶劣天气、自然扰动、传感器故障、域偏移、OOD、开放集或开放词汇、长尾、不确定性、校准与失效诊断。",
+      "question": "模型能否知道自己何时可能错，并在未知、退化和长尾场景中给出可用风险信号？"
+    },
+    {
+      "id": "p10-data-learning-foundation",
+      "name": "数据中心学习与基础预训练",
+      "scope": "自监督、半监督、弱监督、预训练、跨模态蒸馏、自动标注、主动学习、持续或联邦学习与数据筛选。",
+      "question": "怎样利用未标注、多域和长尾数据获得真正可迁移的驾驶表征，而不是只扩大训练集？"
+    },
+    {
+      "id": "p11-vfm-vlm-llm-vla",
+      "name": "大视觉模型、VLM、LLM 与 VLA",
+      "scope": "VFM 驱动感知、开放词汇 Grounding、驾驶 VQA 与场景推理、LLM 教师或数据引擎，以及有明确感知贡献的 VLA 接口。",
+      "question": "语言与基础模型是否真正增强三维视觉理解，还是只在感知错误之上生成流畅解释？"
+    },
+    {
+      "id": "p12-world-models-generative-4d",
+      "name": "世界模型与生成式 3D/4D 建模",
+      "scope": "Image、Video、BEV、Occupancy 或 LiDAR 世界模型，动作条件动力学、多步未来、反事实与闭环 Rollout。",
+      "question": "生成的未来是否在几何、物理和行为上可用于预测与决策，而不只是视觉逼真？"
+    },
+    {
+      "id": "p13-data-generation-evaluation-deployment",
+      "name": "数据生成、仿真、评测与部署",
+      "scope": "合成数据、NeRF/3DGS 传感器仿真、场景生成与挖掘、Benchmark、指标协议、闭环测试、实时部署和安全验证。",
+      "question": "数据、指标、仿真与系统约束是否测到了真实能力，并能否复现和部署？"
+    }
+  ],
+  "modalities": [
+    "Monocular Camera",
+    "Stereo Camera",
+    "Surround Camera",
+    "LiDAR",
+    "Radar",
+    "Event Camera",
+    "Thermal",
+    "GNSS/IMU",
+    "V2X",
+    "Language",
+    "Map",
+    "Simulation",
+    "Vehicle State"
+  ],
+  "large_model_tags": [
+    "Foundation Model",
+    "VFM",
+    "VLM",
+    "LLM",
+    "VLA",
+    "World Model"
+  ]
+}

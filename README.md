@@ -1,37 +1,39 @@
-# 自动驾驶论文精读
+# 自动驾驶感知全方向论文精读
 
-> 每天早上 **08:00（Asia/Shanghai）** 精读一篇自动驾驶感知、VLM/VLA
-> 或世界模型方向的高质量论文。每篇都把原文图、标准公式、关键实验和固定版本
-> 源码放在同一条学习路径里。
+> 每天完成一篇高质量精读，系统覆盖自动驾驶感知的全部主方向，并纳入
+> VFM、VLM、LLM、VLA、世界模型与感知的真实交叉。每篇都把原文图、
+> 标准公式、关键实验和固定版本源码放在同一条学习路径里。
 >
 > 块级公式采用紧裁的 2× 深浅色 PNG，行内变量保持标准数学排版，并保留
 > 纯文字读法与可复制 TeX 源；兼容 GitHub 网页和 iPad/iPhone App。
 
 <!-- AUTO:STATS:START -->
-**1 篇精读** · **1 篇正式录用** · **1 篇关键源码已审** · 最近更新：**2026-07-24**
+**2 篇精读** · **2 篇正式录用** · **2 篇关键源码已审** · **覆盖 2/13 个感知主方向** · 最近更新：**2026-07-25**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
-## ▶ [开始今天的精读：Occupancy Learning with Spatiotemporal Memory（ICCV 2025）](notes/2026/2026-07-24-st-occ.md)
+## ▶ [开始今天的精读：OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning（CVPR 2025）](notes/2026/2026-07-25-omnidrive.md)
 
-> ST-Occ 用场景坐标中的持久 3D 记忆提升 Occupancy 精度与时间一致性，但证据仍局限于单一数据域，且源码中的状态更新比论文示意更复杂。
+> OmniDrive 用轨迹反事实把 3D 场景、语言推理和规划监督连起来；但更好的开放环指标仍可能来自 ego-status 捷径，且反事实没有模拟其他交通参与者的响应。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/ICCV2025/html/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.html) · 3D Occupancy · Temporal Memory · Autonomous Driving · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.html) · **大视觉模型、VLM、LLM 与 VLA** · Surround Camera + Language + Map + Vehicle State · VLM · LLM · 3D Grounding · Counterfactual Reasoning · Planning Interface · Open-loop Evaluation · Data Generation · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [官方代码 @ 1633f62e](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
+[论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [官方代码 @ ced20733](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 <!-- AUTO:LATEST:END -->
 
 ## 想读其他内容
 
 - [查看全部精读](index/papers.md)：按日期打开每一篇完整笔记；
-- [按主题学习](index/topics.md)：Occupancy、鲁棒性、VLM/VLA、世界模型等；
+- [按 13 个感知主方向学习](index/topics.md)：查看完整分类、当前覆盖缺口、
+  大模型交叉索引和输入模态索引；
 - [查看研究缺口](index/open_questions.md)：跨论文累计、仍待验证的问题。
 
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-07-25 · CVPR 2025** — [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](notes/2026/2026-07-25-omnidrive.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-24 · ICCV 2025** — [Occupancy Learning with Spatiotemporal Memory](notes/2026/2026-07-24-st-occ.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
