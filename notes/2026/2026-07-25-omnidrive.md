@@ -8,7 +8,7 @@
 **训练监督与数据生成上下文：** 三维目标、车道/地图、轨迹 ·
 **交叉标签：** 三维定位与指代、反事实推理、规划接口、数据生成、开放环评测
 
-[▶ 从第一张图开始](#1-看图论文到底做了什么) ·
+[▶ 从摘要与术语开始](#0-阅读起点术语先导与摘要完整翻译) ·
 [返回首页](../../README.md) · [13 个感知方向](../../index/topics.md) ·
 [全部精读](../../index/papers.md) ·
 [CVF 录用页](https://openaccess.thecvf.com/content/CVPR2025/html/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.html) ·
@@ -65,7 +65,8 @@ commit 直接支持；**[判断]** 本笔记基于证据的分析；**[未核验
   carrier query 携带语言模型要读取的信息，perception query 接受目标和地图
   等三维监督。
 - **查询变换器（Querying Transformer, Q-Former）**：用一组可学习 query
-  通过注意力从视觉特征中提取固定数量信息的模块，本文用于 Omni-Q。
+  通过注意力从视觉特征中提取固定数量信息的模块；Omni-Q 借鉴其 query
+  decoder / 交互思想，固定源码的主体仍是 StreamPETR / PETR transformer。
 - **多层感知机投影器（Multi-Layer Perceptron Projector, MLP projector）**：
   用小型全连接网络把视觉特征映射到 LLM hidden space，本文用于 Omni-L。
 - **位置编码与交叉注意力（position encoding / cross-attention）**：前者把
@@ -109,6 +110,7 @@ commit 直接支持；**[判断]** 本笔记基于证据的分析；**[未核验
 **学习顺序：**
 [0 摘要与术语](#0-阅读起点术语先导与摘要完整翻译) →
 [1 看原图](#1-看图论文到底做了什么) →
+[1.5 架构与创新](#15-整体算法架构与创新设计) →
 [2 读原式](#2-读公式核心机制怎样表达) →
 [3 看结果](#3-看结果证据是否支持主张) →
 [4 对源码](#4-对源码公式如何落地) →
@@ -117,6 +119,7 @@ commit 直接支持；**[判断]** 本笔记基于证据的分析；**[未核验
 **只有 10 分钟：** 先读
 [1.1 的路口故事](#11-先讲人话它不是让模型背标准答案而是让模型试走岔路) →
 [Figure 3 的两条模型路线](#14-同一批图像怎样送进大模型omni-l-与-omni-q) →
+[1.5 的架构与创新卡](#15-整体算法架构与创新设计) →
 [Table 2 的 ego-status 对照](#33-先看一个危险现象加入-ego-status-后指标突然变得太好) →
 [第 5 节的研究切口](#533-最值得继续研究的切口不是再拼一个模块而是验证反事实是否真的落地)。
 
@@ -239,8 +242,10 @@ Figure 2 的四步流程很像给“自动出题老师”加一套审核制度�
   再共同读取多视角特征；
 - **主要偏好：** 优先保留稀疏三维几何与感知监督。
 
-Omni-L 的位置编码权重被初始化为零，意图是在不立即破坏原有 VLM 对齐的
-情况下逐步学习三维信息。Omni-Q 则让两类 query 先互相交流：
+**[论文]** Omni-L 的位置编码权重被初始化为零，作者给出的直接理由是提高
+训练稳定性。**[笔记解释]** 从接口行为看，这也意味着训练起点更接近原有
+VLM 表示，但“保持原对齐分布”是本笔记的解释，不是论文额外证明的因果效果。
+Omni-Q 则让两类 query 先互相交流：
 
 - carrier query 负责携带可送入 LLM 的视觉信息；
 - perception query 继续承担目标和地图等 3D 监督；
@@ -250,6 +255,174 @@ Omni-L 的位置编码权重被初始化为零，意图是在不立即破坏原�
 
 > Omni-Q 把 3D 感知 query 当作语言 token 的教师和邻居；Omni-L 尽量让
 > 原有 VLM 视觉 token 保持熟悉的分布，再额外注入三维位置。
+
+### 1.5 整体算法架构与创新设计
+
+OmniDrive 实际包含两层“算法”：上游先把日志变成反事实监督，下游再用
+Omni-L 或 Omni-Q 学习。若只讲其中一层，就解释不了为什么作者既贡献数据集，
+又同时比较语言对齐路线和稀疏 3D query 路线。
+
+**原方法瓶颈：** **[论文]** 通用 VLM 的强项主要来自二维图文预训练，缺少
+自动驾驶所需的三维目标、车道和轨迹结构；传统 3D 感知模型又不擅长用语言解释
+“如果走另一条轨迹会怎样”。单条专家轨迹只给一个正例，无法密集监督错误行为
+及原因。来源：论文 §1–§2，PDF p. 1–4。
+
+**主干网络与基线：** **[论文/源码]** 两条路线都以 EVA‑02‑L 视觉编码器和
+LLaVA 风格语言模型为基础。Omni-L 通过 3D position encoding 加 MLP
+projector 生成视觉 token；Omni-Q 继承 StreamPETR 式 3D object/map queries，
+再加入 carrier queries 与 LLM。公开主配置使用 24 层、宽度 1,024 的 EVA ViT，
+而且主要闭合 Omni-Q，不能把其中全部超参数无条件套给 Omni-L。来源：
+EVA‑02‑L 是大规模视觉预训练得到的 ViT‑Large 图像主干；StreamPETR 是用
+稀疏 object queries 跨帧读取多相机特征并预测 3D 目标的时序感知框架。
+论文 §3.1–§4.1，PDF p. 4–6；
+[固定 SHA 配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L20-L85)。
+
+**继承与新增边界：** **[论文/源码]** EVA、LLaVA / LLM、StreamPETR object
+head 和 map head 是继承的基础能力；本文新增的核心是反事实标注流程、驾驶
+任务数据混合、Omni-L 的 3D-aware visual-token 接口，以及 Omni-Q 中
+carrier/perception queries 的有向交互和联合 object/map/language 训练。
+来源：论文 Figure 1–3 / §2–§3，PDF p. 1–5；
+[固定 SHA detector](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/detectors/petr3d.py#L277-L307)。
+
+**端到端信息流：** **[论文/源码]** nuScenes 多视角图像、3D boxes、地图、
+真实/模拟轨迹 → 关键帧与轨迹采样 → collision / red-light / drivable-area
+checklist → GPT-4 组织问题答案并经人工质检 → EVA 提取多视角 feature →
+Omni-L 用 3D position + MLP projector，或 Omni-Q 用 perception/carrier
+queries 的 self-/cross-attention → 视觉 token 插入语言 prompt → LLM 生成
+描述、反事实答案和规划文本，同时 Omni-Q 还输出 object/map 预测。来源：
+论文 Figure 1–3，PDF p. 1–5；
+[固定 SHA 多模态入口](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/llava_arch.py#L56-L138)。
+
+**总体训练方式：** **[论文/源码]** 第一阶段沿用 LLaVA v1.5 的二维数据与
+优化口径，分别初始化 Omni-Q 的 query interface 或 Omni-L 的 MLP projector；
+第二阶段再加入规划和反事实任务。这里必须按路线区分：Omni-L 的公开方法只有
+视觉—语言生成路径；Omni-Q 的固定实现还在同一训练中联合 object/map heads
+与语言 next-token loss。论文所谓“不使用 contrastive / matching、只计算
+text-generation loss”描述的是语言侧目标，不能据此抹掉 Omni-Q 的 3D 感知
+损失。论文报告 AdamW、总 batch 16、projector 学习率 4×10<sup>−4</sup>、
+视觉编码器与 LLM 各 2×10<sup>−5</sup>；固定主配置则以基础学习率和
+param-wise multiplier 表达，不能只抄一个数。来源：论文 §3.3–§4.1，
+PDF p. 5–6；
+[固定 SHA optimizer](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L258-L295)。
+
+#### 创新模块 1：Counterfactual Data Generation Pipeline
+
+**位置与接口：** 它位于模型训练之前，把 nuScenes 的场景、几何标注和候选
+轨迹变成可直接喂给 VLM 的驾驶问答，是监督生产模块而非神经网络 layer。
+
+**输入：** 六路图像、3D objects、车道与道路拓扑、自车状态、专家轨迹和
+模拟候选轨迹，以及描述和问答 prompt。
+
+**内部变换：** 先按 CLIP 语义与轨迹相似度筛关键帧，再把候选轨迹归类并用
+碰撞、红灯、道路边界等 checklist 产生结构化事实；随后让 GPT-4 组织语言，
+作者通过人工检查持续修改 prompt 和规则后再进行规模化生成。
+
+**输出：** 场景描述、3D grounding、交通规则、反事实、决策与规划等多类
+问答，并把候选轨迹及其风险原因绑定到同一训练样本。
+
+**为什么这样设计：** **[判断]** 这是本笔记根据前述监督稀疏瓶颈与论文流程
+所做的因果重建，不是作者原句：为了把“专家只示范一条安全轨迹”的稀疏监督
+扩展成多条没被执行的错误选择及可解释后果，先用几何规则约束事实、再用生成
+模型负责语言表达，可以减少纯 LLM 凭空编造驾驶关系的空间。
+
+**训练信号：** **[论文/源码]** 数据生成器本身不接受论文模型的反向传播；
+它产出的问答成为 LLM next-token supervision，结构化目标与地图标注继续监督
+3D heads。来源：论文 §2–§3.3，PDF p. 2–5。
+
+**作用与证据：** **[论文]** DriveLM 迁移消融显示加入 OmniDrive pretraining
+后总分由 0.53 提高到 0.56，与 LLaVA665K 共同使用达到 0.58；但这证明的是
+整套数据预训练价值，不是 checklist 中任一规则的独立贡献。来源：论文
+Table 3，PDF p. 6。
+
+**论文位置：** **[论文]** Figure 2 与 §2.1–§2.3，PDF p. 2–4。
+
+**源码入口：** **[源码]**
+[`prompt_vision.py` 的轨迹检查入口 @ 固定 SHA](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/prompt_vision.py#L162-L175)；
+[`planning_utils.py` 的碰撞/红灯/可行驶区规则 @ 固定 SHA](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/planning_utils.py#L1-L200)；
+[`prompt_utils.py` 的模拟轨迹问答组装 @ 固定 SHA](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/data_gen/prompt_utils.py#L729-L810)。
+
+#### 创新模块 2：Omni-L 3D-aware Visual Token Interface
+
+**位置与接口：** 它位于 EVA 多视角视觉 feature 与 LLM hidden space 之间，
+用较轻的投影接口改造成熟 VLM，而不先经过稀疏 3D detector queries。
+
+**输入：** 展平后的多视角 patch feature、相机几何派生的 3D position
+encoding，以及语言 prompt 中预留的 image-token 位置。
+
+**内部变换：** 给视觉 feature 注入零初始化的 3D position encoding，再通过
+MLP projector 映射到 LLM hidden size；视觉 token 被插入 image-token 位置，
+这些位置的 language label 设为 ignore，LLM 只对答案 token 计算生成损失。
+
+**输出：** 保持较强二维视觉—语言预训练分布、同时携带三维位置信息的视觉
+token，供 LLM 生成描述、反事实答案与规划。
+
+**为什么这样设计：** **[判断]** 这是本笔记根据前述二维对齐与三维几何之间
+的瓶颈所做的因果重建，不是作者原句：从成熟 VLM 出发、只在 token 接口注入
+三维几何，可以避免用重型 3D query stack 完全改写已有 vision-language
+alignment。**[论文]** 作者对位置分支零初始化只明确给出“提高训练稳定性”
+这一理由，论文 §3.2，PDF p. 5；“尽量保留原表示”是笔记解释而非已验证效果。
+
+**训练信号：** **[论文/源码]** projector 先在二维阶段初始化，再与视觉
+编码器、LLM 和驾驶任务联合微调；主要语言监督为 autoregressive next-token
+loss。来源：论文 §3.2 与 §3.3，PDF p. 4–5。
+
+**作用与证据：** **[未核验]** Table 2、4、5 报告 Omni-L 整条路线在多项
+语言、反事实与碰撞/道路相交指标上有优势，但原文未提供只移除 3D position
+encoder 或只更换 MLP projector 的独立消融或受控对照，因此不能把整条
+Omni-L 路线的收益单独归因给某一层。来源：论文 Tables 2、4、5，
+PDF p. 6–7。
+
+**论文位置：** **[论文]** Figure 3 与 §3.2，PDF p. 4–5。
+
+**源码入口：** **[源码]**
+[`prepare_inputs_labels_for_multimodal` @ 固定 SHA](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/llava_arch.py#L56-L138)；固定提交没有独立闭合 Omni-L 的完整配置与训练日志。
+
+#### 创新模块 3：Omni-Q Carrier–Perception Query Coupling
+
+**位置与接口：** 它位于 EVA image feature 与 object/map heads、LLM 之间，
+让传统 3D perception queries 和专门送往语言模型的 carrier queries 共享
+一次信息交互。
+
+**输入：** carrier queries、object/map perception queries、带 3D position
+embedding 的多视角 feature、时序 memory 与 attention masks。
+
+**内部变换：** 两类 query 先拼接做 hybrid self-attention；固定源码使用有向
+mask 阻止普通 perception query 反向读取 carrier token，而 carrier 仍能读取
+几何 query。随后两类 query 共同对多视角 feature 做 cross-attention，
+object/map carrier 输出再拼成 LLM visual tokens。
+
+**输出：** 一路产生 3D object 与 lane/map predictions，另一路产生与 LLM
+hidden space 对齐的 carrier tokens，因此语言、目标和地图可在同一 batch 联训。
+
+**为什么这样设计：** **[判断]** 这是本笔记根据前述语言—三维接口瓶颈与
+attention mask 所做的因果重建，不是作者原句：让 carrier 读取受三维监督
+约束的稀疏表示，可以把几何信息送往语言端；而有向 mask 实现的是前向读取的
+非对称性——perception query 不读取 carrier。它并不切断 VLM loss 经
+perception K/V、共享 decoder 或 backbone 的反向梯度；“减少任务干扰”仍需
+专门消融，不能写成已经避免了语言噪声污染。
+
+**训练信号：** **[论文/源码]** 同一训练 step 联合计算 3D object loss、
+map/lane loss 与 VLM next-token loss。carrier query embedding 的直接学习
+信号主要来自 VLM next-token loss；由于 perception 输出在前向时不读取
+carrier，object/map loss 不直接监督 carrier query embedding，但三类损失仍
+共同更新共享视觉主干和部分 decoder 参数。来源：论文 §3.1 与 §3.3，
+PDF p. 4–5。
+
+**作用与证据：** **[论文]** Table 5 的组件消融中，只去掉 lane supervision
+时，Omni-Q 的 collision 从 3.79% 恶化到 4.65%；同时去掉 object 与 lane
+supervision 时进一步恶化到 6.77%。这支持三维监督对整条 query 路线有作用；
+但该表没有单独消融 attention mask，不能把差异归因给 mask。来源：论文
+Table 5，PDF p. 7。
+
+**论文位置：** **[论文]** Figure 3、Eq. (1)–(2) 与 §3.1，PDF p. 5。
+
+**源码入口：** **[源码]** 对应公开实现位于
+[`DN 训练分支的有向 mask @ 固定 SHA`](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L455-L456)；
+[`无 DN / 推理分支的有向 mask @ 固定 SHA`](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L470-L474)；
+[`carrier 输出且无 detach @ 固定 SHA`](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L558-L588)。
+
+想继续核对两条路线在固定提交中的真实张量、mask、梯度路径和公开实现边界，
+可直接跳到 [第 4 节源码审计](#4-对源码公式如何落地)。
 
 ## 2. 读公式：核心机制怎样表达
 
@@ -295,10 +468,13 @@ reference points、时序 memory、denoising mask 和 query mask。
 **回到上面的图：** 对应 Figure 3 Omni-Q 中下方的 Hybrid Attention。
 
 **落到源码：**
-[StreamPETR head 构造 extra query、mask 并调用 transformer](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L533-L562)。
+[DN 训练分支的有向 mask](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L455-L456)；
+[无 DN / 推理分支的有向 mask](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L470-L474)；
+[carrier 输出路径](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L558-L588)。
 固定提交中 `num_extra` 对应提供给 VLM 的 carrier tokens；当 `with_mask=True`
 时，普通 perception query 被阻止反向读取 carrier token，但 carrier 仍可读取
-perception query。
+perception query。carrier 输出没有 detach，因此该前向 mask 不等于切断
+VLM loss 的反向梯度。
 
 **公式省略了什么：** 论文写的是对称 self-attention 形式，源码却通过
 attention mask 加入了方向性约束；此外源码还把时序 memory 送进 transformer，
@@ -489,9 +665,11 @@ proceedings p. 22446–22448；官方固定 commit 的数据、训练和评测�
    回查 LLaVA 设置与作者发布的 `pretrain_qformer` 权重；固定 commit 也没有
    提供可独立闭合 Omni-L 的完整训练配置与日志。
 3. **三维微调。** **[论文]**（§3.3，PDF p. 5）在运动规划、反事实推理等三维驾驶任务上微调，
-   两个阶段都只计算文本生成损失，不采用 BLIP-2 的 contrastive learning 和
-   matching loss。**[源码]** 同一个 batch 中还计算三维目标与地图监督，再把
-   object/map query 投影成视觉 token 插入 LLM 序列，联合优化感知与文本损失。
+   两条路线的语言侧都只计算文本生成损失，不采用 BLIP-2 的 contrastive
+   learning 和 matching loss。Omni-L 没有论文公开的 object/map heads；
+   **[源码]** Omni-Q 固定实现则在同一个 batch 中另算三维目标与地图监督，
+   再把 object/map query 投影成视觉 token 插入 LLM 序列，联合优化感知与
+   文本损失。
    [固定 SHA 联合训练入口](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/detectors/petr3d.py#L277-L307)。
 4. **保存与验证。** **[源码]**
    [固定 SHA checkpoint/evaluation 配置](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/configs/OmniDrive/mask_eva_lane_det_vlm.py#L248-L295)
@@ -568,8 +746,8 @@ Omni-Q 的平均轨迹距离更小，但 Omni-L 的碰撞率和道路边界相�
 
 ![OmniDrive Table 5：不同架构与移除 3D perception supervision 后的反事实、语言和开放环指标](../../assets/notes/2026-07-25-omnidrive/table-5-ablation.png)
 
-> **原图出处：** Wang et al., CVPR 2025, Table 5，PDF p. 8 /
-> proceedings p. 22449。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf)。
+> **原图出处：** Wang et al., CVPR 2025, Table 5，PDF p. 7 /
+> proceedings p. 22448。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf)。
 > 仅作学术讲解所需的局部摘录，原图版权归原作者及其他权利人。
 
 从表中可以读出三层结论。
@@ -658,11 +836,15 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
   cross-attention；
 - **源码行为：** `num_extra` 创建 carrier queries；object 和 map head
   分别产生一组 VLM memory；`with_mask` 阻止普通 perception queries 读取
-  carrier token，减少语言 token 对几何任务的反向干扰；
+  carrier token，从而建立前向读取的非对称性；这不等于切断 VLM loss 经
+  perception K/V、共享 decoder 或视觉 backbone 的反向梯度；
 - **需要留意：** carrier 可以读取 perception query，信息通道是有方向的。
-  论文简化式没有把这种 mask 结构显式写出。
+  论文简化式没有把这种 mask 结构显式写出，也没有 mask-only 消融证明它
+  已经减少任务干扰。
 
-[object head 的 carrier query、mask 与输出](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L470-L478) ·
+[object head 的 DN 训练 mask](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L455-L456) ·
+[object head 的无 DN / 推理 mask](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L470-L474) ·
+[object carrier 输出无 detach](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py#L558-L588) ·
 [map head 的 query 拼接与 mask](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/dense_heads/petr_head_map.py#L402-L430)
 
 ### 4.3 目标、地图与语言怎样在一次训练中相遇
@@ -674,7 +856,7 @@ drivable area 等关键词，再与标签比较。DriveLM 还同时使用语言�
 - **需要留意：** 源码变量名 `images` 在这里并不是原始 RGB 图，而是已经
   压缩、投影后的视觉 query tokens。
 
-[Petr3D 联合 object、map 与 VLM loss](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/detectors/petr3d.py#L277-L307)
+[Petr3D 联合 object、map 与 VLM loss](https://github.com/NVlabs/OmniDrive/blob/ced207333cb18b69a232cbb9f82bf52089227f12/projects/mmdet3d_plugin/models/detectors/petr3d.py#L277-L302)
 
 ### 4.4 VLM token 真正插入语言序列的位置
 
