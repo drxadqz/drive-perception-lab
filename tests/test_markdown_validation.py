@@ -417,6 +417,348 @@ class IndexedNoteValidationTests(unittest.TestCase):
                     rebuild.safe_note_path(value, "2")
 
 
+class TranslationFirstReadingValidationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.future_path = (
+            ROOT / "notes" / "2026" / "2026-07-26-future-paper.md"
+        )
+        cls.valid_note = """# 2026-07-26 — Future Paper
+
+## 阅读起点：术语先导与摘要完整翻译
+
+### 首次术语解释
+
+- **鸟瞰视图（Bird's-eye view, BEV）**：把车辆周围的多视角观测转换到俯视坐标系中的统一空间表示。
+- **占据状态（Occupancy）**：描述三维空间单元是否被物体占据以及可能所属语义类别的表示。
+- **反事实推理（Counterfactual reasoning）**：分析没有实际发生的候选行为及其可能后果的推理过程。
+
+专业名词均在首次出现时解释，并按照本文语境锁定标准中文译法与后续写法。
+
+### 摘要完整专业中文翻译
+
+<a id="abstract-a01"></a>
+> **[原文翻译] Abstract · PDF p. 1 · A01**
+>
+> 本文研究复杂道路环境中的统一感知问题。现有系统往往把目标检测、场景表示和行为推理拆成彼此独立的任务，因此难以利用任务之间互补的信息。为解决这一问题，作者提出一种联合学习框架，把多视角视觉观测转换为结构化鸟瞰表示，并用显式查询连接交通参与者、道路结构和候选驾驶行为。该方法在多个公开数据集上进行训练和评测，在保持三维感知能力的同时改善了场景理解与行为推理结果。实验还表明，各监督信号之间的联合优化以及严格的时序对齐都对最终性能至关重要。
+
+## 1. 看图：论文到底做了什么
+
+图文教学内容。
+
+## 2. 读公式：核心机制怎样表达
+
+公式教学内容。
+
+## 3. 看结果：证据是否支持主张
+
+### 原文公开的实验配置
+
+**统一来源锚点：** 论文 Section 4，PDF p. 6–8；[官方配置 @ 固定 SHA](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/config.py#L1-L20)。
+
+| 配置项 | 公开值或做法 | 来源锚点 |
+|---|---|---|
+| 数据集与划分 | 使用公开训练集、验证集和官方测试划分 | 论文 Section 4.1，PDF p. 6 |
+| 输入与预处理 | 使用六路环视相机并执行统一尺度预处理 | 论文 §4.1，PDF p. 6 |
+| 优化器与训练周期 | 使用公开优化器参数和二十四轮训练 | 论文 Section 4.2，PDF p. 7 |
+| 训练硬件与随机种子 | 作者没有报告随机种子和完整硬件型号 | [未核验] 原文未报告 |
+| 指标与基线 | 使用官方感知、语言和规划评测脚本 | 论文 §4.3，PDF p. 8 |
+
+### 原文公开的实验流程
+
+**统一来源锚点：** 论文 Section 4，PDF p. 6–8；[运行入口 @ 固定 SHA](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/tools/run.py#L1-L20)。
+
+1. **数据准备：** [论文] 校验标定、时序索引和官方划分（论文 Section 4.1，PDF p. 6）。
+2. **训练阶段：** [源码] 生成统一表示并按公开损失训练（论文 Section 4.2，PDF p. 7）。
+3. **验证与选模：** [未核验] 作者未报告完整的选模与重复实验策略。
+4. **推理与后处理：** [论文] 按官方流程组装多视角输入（论文 §4.3，PDF p. 8）。
+5. **最终评测：** [源码] 调用官方脚本计算全部主指标（论文 Section 4.3，PDF p. 8）。
+
+## 4. 对源码：公式如何落地
+
+源码核对内容。
+
+## 5. 记结论：贡献、边界与开放问题
+
+### 原文结论完整翻译
+
+<a id="conclusion-c01"></a>
+> **[原文翻译] Conclusion · PDF p. 12 · C01**
+>
+> 作者总结，统一的场景表示能够连接多视角感知、结构化环境理解和候选行为推理。通过在公开基准上的系统实验，该框架在主要感知指标上取得了具有竞争力的结果，并证明联合监督与时序对齐是性能提升的重要来源。作者同时强调，这些结果只覆盖所采用的数据分布与离线评测协议，不能直接等同于真实车辆中的闭环安全性。
+
+### 原文局限与展望完整翻译
+
+<a id="limitations-l01"></a>
+> **[原文翻译] Limitations / Discussion · PDF p. 12 · L01**
+>
+> 作者指出，当前实验仍依赖规模有限且地域分布受限的数据，模型面对极端天气、罕见交通参与者和传感器异常时的可靠性尚未得到充分验证。
+
+<a id="future-work-o01"></a>
+> **[原文翻译] Future Work / Outlook · PDF p. 12 · O01**
+>
+> 未来工作将扩展跨城市和跨传感器评测，引入能够反映其他交通参与者反应的交互式闭环环境，并研究不确定性估计、失效检测以及更高效的部署方案。
+
+### 笔记分析与研究启发
+
+**[笔记解释]** 这项工作的关键接口使感知证据可以进入后续推理，而不只是并列训练多个任务。
+
+**[判断]** 开放环指标仍可能受到数据集先验和自车状态捷径影响，因此正式复现时应加入跨区域压力测试、输入破坏实验和交互式闭环评测。这个研究启发属于笔记作者基于证据作出的分析，不能混写成论文作者的原始结论。
+"""
+
+    def validate(self, note: str, path: Path | None = None) -> None:
+        rebuild.validate_translation_first_reading(
+            path or self.future_path,
+            "2",
+            structure=rebuild.scan_markdown(note),
+        )
+
+    def assert_invalid(self, note: str) -> None:
+        with self.assertRaises(rebuild.ValidationFailure):
+            self.validate(note)
+
+    def test_complete_translation_first_note_passes(self) -> None:
+        self.validate(self.valid_note)
+
+    def test_effective_date_and_closed_legacy_allowlist(self) -> None:
+        self.assertEqual(
+            rebuild.TRANSLATION_STANDARD_EFFECTIVE_DATE.isoformat(),
+            "2026-07-25",
+        )
+        self.assertEqual(
+            rebuild.LEGACY_TRANSLATION_NOTE_EXEMPTIONS,
+            {"notes/2026/2026-07-24-st-occ.md"},
+        )
+        rebuild.validate_translation_first_reading(
+            ROOT / "notes" / "2026" / "2026-07-24-st-occ.md",
+            "2",
+            structure=rebuild.scan_markdown("# Legacy note\n"),
+        )
+        with self.assertRaises(rebuild.ValidationFailure):
+            rebuild.validate_translation_first_reading(
+                ROOT / "notes" / "2026" / "2026-07-24-backdated.md",
+                "2",
+                structure=rebuild.scan_markdown("# Backdated note\n"),
+            )
+        self.validate(
+            self.valid_note,
+            ROOT / "notes" / "2026" / "2026-07-23-compliant-backfill.md",
+        )
+
+    def test_effective_date_note_cannot_keep_legacy_shape(self) -> None:
+        self.assert_invalid(
+            "# 2026-07-25 — Legacy shape\n\n"
+            + "\n\n".join(rebuild.REQUIRED_NOTE_HEADINGS)
+        )
+
+    def test_every_required_subsection_is_enforced(self) -> None:
+        for title in rebuild.REQUIRED_READING_SUBSECTIONS:
+            with self.subTest(section=title):
+                mutated = re.sub(
+                    rf"^### (?:\d+(?:\.\d+)*[.)]?\s+)?{re.escape(title)}\n"
+                    r".*?(?=^##{2,3} |\Z)",
+                    "",
+                    self.valid_note,
+                    count=1,
+                    flags=re.MULTILINE | re.DOTALL,
+                )
+                self.assert_invalid(mutated)
+
+    def test_hidden_required_section_does_not_count(self) -> None:
+        opener = self.valid_note.index("### 原文公开的实验配置")
+        closer = self.valid_note.index("### 原文公开的实验流程")
+        mutated = (
+            self.valid_note[:opener]
+            + "<details>\n<summary>hidden</summary>\n\n"
+            + self.valid_note[opener:closer]
+            + "</details>\n\n"
+            + self.valid_note[closer:]
+        )
+        self.assert_invalid(mutated)
+
+    def test_translation_requires_matching_stable_anchor(self) -> None:
+        mutated = self.valid_note.replace(
+            '<a id="abstract-a01"></a>',
+            '<a id="abstract-a02"></a>',
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_translation_header_requires_numeric_pdf_page(self) -> None:
+        mutated = self.valid_note.replace(
+            "Abstract · PDF p. 1 · A01",
+            "Abstract · 原文附近 · A01",
+            1,
+        )
+        self.assert_invalid(mutated)
+        section_name_only = self.valid_note.replace(
+            "Abstract · PDF p. 1 · A01",
+            "Abstract · Abstract · A01",
+            1,
+        )
+        self.assert_invalid(section_name_only)
+
+    def test_translation_and_reader_analysis_cannot_mix(self) -> None:
+        mutated = self.valid_note.replace(
+            "> 本文研究复杂道路环境",
+            "> **[笔记解释]** [判断] 我认为。\n>\n> 本文研究复杂道路环境",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_abstract_translation_cannot_be_a_short_summary(self) -> None:
+        start = self.valid_note.index(
+            "> 本文研究复杂道路环境中的统一感知问题"
+        )
+        end = self.valid_note.index("\n\n## 1.", start)
+        mutated = (
+            self.valid_note[:start]
+            + "> 本文提出一种自动驾驶感知方法并进行了实验。"
+            + self.valid_note[end:]
+        )
+        self.assert_invalid(mutated)
+
+    def test_glossary_requires_explained_bilingual_terms(self) -> None:
+        mutated = self.valid_note.replace(
+            "- **反事实推理（Counterfactual reasoning）**："
+            "分析没有实际发生的候选行为及其可能后果的推理过程。\n",
+            "",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_glossary_must_precede_abstract_translation(self) -> None:
+        glossary_start = self.valid_note.index("### 首次术语解释")
+        abstract_start = self.valid_note.index("### 摘要完整专业中文翻译")
+        main_start = self.valid_note.index("## 1. 看图")
+        glossary = self.valid_note[glossary_start:abstract_start]
+        abstract = self.valid_note[abstract_start:main_start]
+        mutated = (
+            self.valid_note[:glossary_start]
+            + abstract
+            + glossary
+            + self.valid_note[main_start:]
+        )
+        self.assert_invalid(mutated)
+
+    def test_experiment_config_rows_need_specific_sources(self) -> None:
+        mutated = self.valid_note.replace(
+            "论文 Section 4.1，PDF p. 6",
+            "论文实验部分附近",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_mobile_config_bullets_need_their_own_specific_sources(self) -> None:
+        config_start = self.valid_note.index(
+            "### 原文公开的实验配置"
+        )
+        flow_start = self.valid_note.index(
+            "### 原文公开的实验流程",
+            config_start,
+        )
+        mobile_config = """### 原文公开的实验配置
+
+**统一来源锚点：** 论文 Section 4，PDF p. 6–8；[官方配置 @ 固定 SHA](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/config.py#L1-L20)。
+
+- **数据集与划分。** **[论文]** 使用官方训练与验证划分；来源：论文 Section 4.1，PDF p. 6。
+- **输入与预处理。** **[论文]** 使用六路相机并统一缩放；
+  来源：论文 §4.1，PDF p. 6。
+- **模型初始化。** **[源码]** 使用公开预训练权重；来源：[固定 SHA 配置](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/config.py#L21-L30)。
+- **优化器。** **[论文]** 使用作者报告的优化设置；来源：论文 Section 4.2，PDF p. 7。
+- **训练周期。** **[源码]** 按公开配置完成训练；来源：[固定 SHA 配置](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/config.py#L31-L40)。
+- **随机性。** **[未核验]** 原文未报告随机种子、重复次数或误差条。
+- **推理设置。** **[源码]** 使用公开推理入口；来源：[固定 SHA 脚本](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/tools/run.py#L1-L20)。
+- **指标与基线。** **[论文]** 使用官方评测协议；来源：论文 Section 4.3，PDF p. 8。
+
+"""
+        mobile_note = (
+            self.valid_note[:config_start]
+            + mobile_config
+            + self.valid_note[flow_start:]
+        )
+        self.validate(mobile_note)
+        mutated = mobile_note.replace(
+            "来源：论文 Section 4.1，PDF p. 6。",
+            "来源：论文实验部分附近。",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_experiment_flow_requires_five_sourced_stages(self) -> None:
+        mutated = self.valid_note.replace(
+            "[源码] 调用官方脚本计算全部主指标",
+            "调用官方脚本计算全部主指标",
+            1,
+        )
+        self.assert_invalid(mutated)
+        vague_source = self.valid_note.replace(
+            "1. **数据准备：** [论文] 校验标定、时序索引和官方划分"
+            "（论文 Section 4.1，PDF p. 6）。",
+            "1. **数据准备：** [论文] 校验标定、时序索引和官方划分"
+            "（论文实验部分附近）。",
+            1,
+        )
+        self.assert_invalid(vague_source)
+
+    def test_real_closing_section_can_replace_absent_conclusion(self) -> None:
+        marker = "### 原文结论完整翻译\n\n"
+        declaration = (
+            "**原文缺失声明：** 论文没有独立 Conclusion；已检查真实收束章节 "
+            "Discussion，本节忠实翻译该连续段落，不冒充、不改写为作者未设置"
+            "的 Conclusion。\n\n"
+        )
+        discussion_note = self.valid_note.replace(
+            marker,
+            marker + declaration,
+            1,
+        ).replace(
+            "[原文翻译] Conclusion · PDF p. 12 · C01",
+            "[原文翻译] Discussion · §5 Discussion / PDF p. 12 · C01",
+            1,
+        )
+        self.validate(discussion_note)
+        self.assert_invalid(discussion_note.replace(declaration, "", 1))
+
+    def test_every_dated_note_is_indexed_exactly_once(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            notes = root / "notes" / "2026"
+            notes.mkdir(parents=True)
+            dated = notes / "2026-07-26-paper.md"
+            dated.write_text("# note\n", encoding="utf-8")
+            (notes / "README.md").write_text("# guide\n", encoding="utf-8")
+            row = {"note_path": "notes/2026/2026-07-26-paper.md"}
+
+            rebuild.validate_dated_note_inventory([row], root=root)
+            with self.assertRaises(rebuild.ValidationFailure):
+                rebuild.validate_dated_note_inventory([], root=root)
+            with self.assertRaises(rebuild.ValidationFailure):
+                rebuild.validate_dated_note_inventory([row, row], root=root)
+
+    def test_absent_future_work_requires_non_invention_declaration(self) -> None:
+        start = self.valid_note.index('<a id="future-work-o01"></a>')
+        end = self.valid_note.index("### 笔记分析与研究启发")
+        declaration = (
+            "**原文缺失声明：** 原文未单列独立的 Future Work 或展望；"
+            "已检查结论与附录，本节不代写作者观点。\n\n"
+        )
+        mutated = self.valid_note[:start] + declaration + self.valid_note[end:]
+        self.validate(mutated)
+        self.assert_invalid(mutated.replace("不代写", "将补写", 1))
+
+    def test_analysis_requires_existing_explanation_and_judgment_labels(self) -> None:
+        mutated = self.valid_note.replace("**[判断]**", "**分析**", 1)
+        self.assert_invalid(mutated)
+
+    def test_migration_debt_is_reported_explicitly(self) -> None:
+        rows = rebuild.load_rows()
+        self.assertEqual(
+            rebuild.legacy_translation_migration_debt(rows),
+            ["notes/2026/2026-07-24-st-occ.md"],
+        )
+
+
 class MathLintRegressionTests(unittest.TestCase):
     def lint_text(self, text: str) -> list[math_lint.LintError]:
         with tempfile.TemporaryDirectory() as directory:
