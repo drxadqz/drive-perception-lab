@@ -363,10 +363,11 @@ def load_taxonomy() -> dict[str, object]:
             raise ValidationFailure(
                 f"taxonomy track {position} must be a JSON object"
             )
-        required = ("id", "name", "scope", "question")
+        required = ("id", "name", "intro", "scope", "question")
         if any(not isinstance(track.get(field), str) or not track[field].strip() for field in required):
             raise ValidationFailure(
-                f"taxonomy track {position} requires non-empty id/name/scope/question"
+                f"taxonomy track {position} requires non-empty "
+                "id/name/intro/scope/question"
             )
         track_id = track["id"]
         expected_prefix = f"p{position:02d}-"
@@ -3045,14 +3046,30 @@ def render_topics(
         )
 
     lines = [
-        "## 全方向覆盖总表",
+        "## 13 个方向一分钟速览",
         "",
-        "> 这里列出完整分类，而不是只显示已经读过的热门方向。"
-        "“0 篇”表示本仓库尚未覆盖，不代表学界没有相关工作。",
+        "下面先用一句话说明每个方向到底研究什么；需要查看具体任务边界、"
+        "阅读问题和已收录论文时，再进入后面的对应章节。",
         "",
-        "| 编号 | 自动驾驶感知主方向 | 已精读 | 最近更新 | 覆盖状态 |",
-        "|---|---|---:|---|---|",
     ]
+    for track in taxonomy["tracks"]:
+        lines.append(
+            f"- **{track['id'].split('-', 1)[0].upper()} · "
+            f"{md_escape(track['name'])}：** {md_escape(track['intro'])}"
+        )
+
+    lines.extend(
+        (
+            "",
+            "## 全方向覆盖总表",
+            "",
+            "> 这里列出完整分类，而不是只显示已经读过的热门方向。"
+            "“0 篇”表示本仓库尚未覆盖，不代表学界没有相关工作。",
+            "",
+            "| 编号 | 自动驾驶感知主方向 | 已精读 | 最近更新 | 覆盖状态 |",
+            "|---|---|---:|---|---|",
+        )
+    )
     for track in taxonomy["tracks"]:
         track_rows = sorted(
             by_track.get(track["id"], []),

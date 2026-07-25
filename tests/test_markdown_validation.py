@@ -1315,6 +1315,10 @@ class PerceptionTaxonomyTests(unittest.TestCase):
             [track["id"].split("-", 1)[0] for track in tracks],
             [f"p{number:02d}" for number in range(1, 14)],
         )
+        for track in tracks:
+            with self.subTest(track=track["id"]):
+                self.assertTrue(track["intro"].strip())
+                self.assertLessEqual(len(track["intro"]), 90)
 
     def test_every_paper_has_one_valid_track_and_modalities(self) -> None:
         allowed_tracks = {
@@ -1333,6 +1337,8 @@ class PerceptionTaxonomyTests(unittest.TestCase):
         rendered = rebuild.render_topics(self.rows, self.taxonomy)
         for track in self.taxonomy["tracks"]:
             self.assertIn(track["name"], rendered)
+            self.assertIn(track["intro"], rendered)
+        self.assertIn("13 个方向一分钟速览", rendered)
         self.assertIn("待覆盖", rendered)
         self.assertIn("与大模型结合的感知论文", rendered)
         self.assertIn("按输入模态浏览", rendered)
