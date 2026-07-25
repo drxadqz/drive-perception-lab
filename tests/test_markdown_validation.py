@@ -520,32 +520,19 @@ class TranslationFirstReadingValidationTests(unittest.TestCase):
     def test_complete_translation_first_note_passes(self) -> None:
         self.validate(self.valid_note)
 
-    def test_effective_date_and_closed_legacy_allowlist(self) -> None:
-        self.assertEqual(
-            rebuild.TRANSLATION_STANDARD_EFFECTIVE_DATE.isoformat(),
-            "2026-07-25",
-        )
-        self.assertEqual(
-            rebuild.LEGACY_TRANSLATION_NOTE_EXEMPTIONS,
-            {"notes/2026/2026-07-24-st-occ.md"},
-        )
-        rebuild.validate_translation_first_reading(
-            ROOT / "notes" / "2026" / "2026-07-24-st-occ.md",
-            "2",
-            structure=rebuild.scan_markdown("# Legacy note\n"),
-        )
+    def test_no_historical_note_is_exempt_from_translation_contract(self) -> None:
         with self.assertRaises(rebuild.ValidationFailure):
             rebuild.validate_translation_first_reading(
-                ROOT / "notes" / "2026" / "2026-07-24-backdated.md",
+                ROOT / "notes" / "2026" / "2026-07-24-st-occ.md",
                 "2",
-                structure=rebuild.scan_markdown("# Backdated note\n"),
+                structure=rebuild.scan_markdown("# Legacy note\n"),
             )
         self.validate(
             self.valid_note,
             ROOT / "notes" / "2026" / "2026-07-23-compliant-backfill.md",
         )
 
-    def test_effective_date_note_cannot_keep_legacy_shape(self) -> None:
+    def test_any_note_cannot_keep_legacy_shape(self) -> None:
         self.assert_invalid(
             "# 2026-07-25 — Legacy shape\n\n"
             + "\n\n".join(rebuild.REQUIRED_NOTE_HEADINGS)
@@ -751,12 +738,423 @@ class TranslationFirstReadingValidationTests(unittest.TestCase):
         mutated = self.valid_note.replace("**[判断]**", "**分析**", 1)
         self.assert_invalid(mutated)
 
-    def test_migration_debt_is_reported_explicitly(self) -> None:
-        rows = rebuild.load_rows()
-        self.assertEqual(
-            rebuild.legacy_translation_migration_debt(rows),
-            ["notes/2026/2026-07-24-st-occ.md"],
+    def test_real_st_occ_note_meets_the_new_contract(self) -> None:
+        note_path = ROOT / "notes" / "2026" / "2026-07-24-st-occ.md"
+        structure = rebuild.scan_markdown(
+            note_path.read_text(encoding="utf-8")
         )
+        rebuild.validate_translation_first_reading(
+            note_path,
+            "3",
+            structure=structure,
+        )
+        rebuild.validate_architecture_reading(
+            note_path,
+            "3",
+            structure=structure,
+            code_audit_status="Audited",
+            repo_commit="1633f62e2e6677a5fa474905977acfeca4e7819e",
+            repo_url="https://github.com/matthew-leng/ST-Occ",
+        )
+
+
+class ArchitectureReadingValidationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.note_path = (
+            ROOT / "notes" / "2026" / "2026-07-26-architecture-paper.md"
+        )
+        cls.valid_note = """# 2026-07-26 — Architecture Paper
+
+## 1. 看图：论文到底做了什么
+
+### 整体算法架构与创新设计
+
+**原方法瓶颈：** **[论文]** 旧方法需要保存多份稠密历史表示，计算与显存会随序列长度持续增长。来源：论文 §1，PDF p. 1。
+
+**主干网络与基线：** **[论文/源码]** 使用 ResNet-50、FPN 和公开单帧基线，先得到当前三维表示。来源：论文 §3.1，PDF p. 4；[固定 SHA 配置](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/config.py#L1-L20)。
+
+**继承与新增边界：** **[论文/源码]** ResNet 与预测头沿用基线；本文只新增场景记忆和可信融合模块。来源：论文 §3.2，PDF p. 5；[固定 SHA 实现](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/model.py#L1-L20)。
+
+**端到端信息流：** **[论文]** 多相机图像进入 backbone 和 encoder，当前表示读取历史状态，经新增模块融合后进入预测头并写回状态。来源：论文 Figure 2 / §3，PDF p. 4。
+
+**总体训练方式：** **[论文/源码]** 先训练单帧分支，再联合优化分类损失、时序损失和状态更新路径。来源：论文 §3.4，PDF p. 6；[固定 SHA 配置](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/config.py#L21-L40)。
+
+#### 创新模块 1：Scene Memory
+
+**位置与接口：** 位于当前帧编码器和时序融合模块之间，负责跨帧保存可检索状态。
+
+**输入：** 当前三维表示、历史场景状态、车辆位姿和有效位置掩码。
+
+**内部变换：** 把局部网格映射到场景坐标，读取同一真实位置的历史，再按索引更新对应区域。
+
+**输出：** 对齐后的历史表示，以及供下一帧继续使用的更新场景状态。
+
+**为什么这样设计：** **[判断]** 这是本笔记根据前述瓶颈与论文结构所做的因果重建，不是作者原句：为了解决逐帧队列随时间增长的问题，用真实场景位置作为地址可以避免保存多份重复历史。
+
+**训练信号：** **[论文]** 模块没有单独标签，通过最终分类损失和时序一致性损失联合训练。来源：论文 §3.4，PDF p. 6。
+
+**作用与证据：** **[论文]** Table 2 的受控消融显示加入该模块后主指标提高，但论文没有把读取和写回再分别消融。来源：论文 Table 2，PDF p. 8。
+
+**论文位置：** **[论文]** Figure 2 与 §3.2，PDF p. 4–5。
+
+**源码入口：** **[源码]** [SceneMemory @ 固定 SHA](https://github.com/example/repo/blob/0123456789abcdef0123456789abcdef01234567/model.py#L41-L90)。
+
+## 2. 读公式：核心机制怎样表达
+"""
+
+    def validate(
+        self,
+        note: str,
+        *,
+        repo_commit: str = "0123456789abcdef0123456789abcdef01234567",
+        repo_url: str = "https://github.com/example/repo",
+        code_audit_status: str = "Audited",
+    ) -> None:
+        rebuild.validate_architecture_reading(
+            self.note_path,
+            "2",
+            structure=rebuild.scan_markdown(note),
+            code_audit_status=code_audit_status,
+            repo_commit=repo_commit,
+            repo_url=repo_url,
+        )
+
+    def assert_invalid(self, note: str) -> None:
+        with self.assertRaises(rebuild.ValidationFailure):
+            self.validate(note)
+
+    def test_complete_architecture_card_passes(self) -> None:
+        self.validate(self.valid_note)
+
+    def test_every_overview_field_is_required(self) -> None:
+        for field in rebuild.ARCHITECTURE_OVERVIEW_LABELS:
+            with self.subTest(field=field):
+                mutated = re.sub(
+                    rf"^\*\*{re.escape(field)}：\*\*.*?(?=^\*\*|^####)",
+                    "",
+                    self.valid_note,
+                    count=1,
+                    flags=re.MULTILINE | re.DOTALL,
+                )
+                self.assert_invalid(mutated)
+
+    def test_every_module_field_is_required(self) -> None:
+        for field in rebuild.ARCHITECTURE_MODULE_FIELDS:
+            with self.subTest(field=field):
+                mutated = re.sub(
+                    rf"^\*\*{re.escape(field)}：\*\*.*?(?=^\*\*|^##)",
+                    "",
+                    self.valid_note,
+                    count=1,
+                    flags=re.MULTILINE | re.DOTALL,
+                )
+                self.assert_invalid(mutated)
+
+    def test_design_rationale_must_be_causal(self) -> None:
+        mutated = self.valid_note.replace(
+            "**[判断]** 这是本笔记根据前述瓶颈与论文结构所做的因果重建，"
+            "不是作者原句：为了解决逐帧队列随时间增长的问题，用真实场景"
+            "位置作为地址可以避免保存多份重复历史。",
+            "该模块使用真实场景位置作为地址，并且保存一份场景历史状态。",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_design_rationale_accepts_sourced_paper_motivation(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*为什么这样设计：\*\*.*$",
+            "**为什么这样设计：** **[论文]** 作者为了解决逐帧队列随时间"
+            "增长的瓶颈，使用真实场景位置作为地址，从而避免保存多份重复"
+            "历史。来源：论文 §3.2，PDF p. 5。",
+            self.valid_note,
+            count=1,
+        )
+        self.validate(mutated)
+
+    def test_design_rationale_rejects_unlabeled_inference(self) -> None:
+        mutated = self.valid_note.replace(
+            "**[判断]** 这是本笔记根据前述瓶颈与论文结构所做的因果重建，"
+            "不是作者原句：",
+            "",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_reconstructed_motivation_must_disclaim_author_wording(self) -> None:
+        mutated = self.valid_note.replace(
+            "这是本笔记根据前述瓶颈与论文结构所做的因果重建，不是作者原句",
+            "本文笔记判断上述内容完全来自作者，并根据前述瓶颈做因果重建",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_paper_motivation_needs_a_paper_anchor_not_only_code(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*为什么这样设计：\*\*.*$",
+            "**为什么这样设计：** **[论文]** 作者为了解决逐帧队列增长，"
+            "采用场景地址，从而避免重复历史。来源："
+            "[固定 SHA](https://github.com/example/repo/blob/"
+            "0123456789abcdef0123456789abcdef01234567/model.py#L1-L20)。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_module_effect_requires_ablation_or_explicit_absence(self) -> None:
+        mutated = self.valid_note.replace(
+            "Table 2 的受控消融显示加入该模块后主指标提高，但论文没有把读取"
+            "和写回再分别消融。来源：论文 Table 2，PDF p. 8。",
+            "该模块很重要而且能够提高最终效果。来源：论文 §3，PDF p. 8。",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_method_figure_cannot_masquerade_as_effect_evidence(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*作用与证据：\*\*.*$",
+            "**作用与证据：** **[论文]** Figure 2 只画出该模块，笔记据此"
+            "声称结果提高。来源：论文 Figure 2，PDF p. 4。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_negative_control_word_is_not_empirical_evidence(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*作用与证据：\*\*.*$",
+            "**作用与证据：** **[论文]** 作者没有做任何受控对照，但这个"
+            "模块肯定有效。来源：论文 §3，PDF p. 4。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_whole_system_result_cannot_replace_module_ablation(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*作用与证据：\*\*.*$",
+            "**作用与证据：** **[论文]** 论文没有做该模块的独立消融；"
+            "Table 2 只是整套系统主结果提高 1.0 点，因此仍不能把增益归因"
+            "给该模块。来源：论文 Table 2，PDF p. 8。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_explicit_absence_of_independent_ablation_passes(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*作用与证据：\*\*.*$",
+            "**作用与证据：** **[未核验]** 原文未提供该模块的独立消融或"
+            "受控对照，因此不能把整套系统增益单独归因给它。来源：论文 "
+            "§3.2，PDF p. 5。",
+            self.valid_note,
+            count=1,
+        )
+        self.validate(mutated)
+
+    def test_module_source_requires_fixed_sha(self) -> None:
+        mutated = self.valid_note.replace(
+            "https://github.com/example/repo/blob/"
+            "0123456789abcdef0123456789abcdef01234567/model.py#L41-L90",
+            "https://github.com/example/repo/blob/main/model.py",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_fixed_sha_source_must_match_official_repository(self) -> None:
+        mutated = self.valid_note.replace(
+            "https://github.com/example/repo/blob/",
+            "https://github.com/attacker/unrelated/blob/",
+        )
+        self.assert_invalid(mutated)
+
+    def test_repo_commit_comparison_is_case_insensitive(self) -> None:
+        self.validate(
+            self.valid_note,
+            repo_commit="0123456789ABCDEF0123456789ABCDEF01234567",
+        )
+
+    def test_fixed_sha_source_requires_source_provenance(self) -> None:
+        mutated = self.valid_note.replace(
+            "**源码入口：** **[源码]**",
+            "**源码入口：**",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_audited_note_cannot_claim_source_is_unavailable(self) -> None:
+        mutated = re.sub(
+            r"(?m)^\*\*源码入口：\*\*.*$",
+            "**源码入口：** **[未核验]** 作者未提供官方源码，无法确认实现。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_no_official_code_and_not_audited_are_distinct(self) -> None:
+        no_official_code = re.sub(
+            r"(?m)^\*\*源码入口：\*\*.*$",
+            "**源码入口：** **[未核验]** 作者未提供官方源码，无法确认该创新"
+            "单元在任何公开实现中的具体落点。",
+            self.valid_note,
+            count=1,
+        )
+        self.validate(
+            no_official_code,
+            repo_commit="",
+            repo_url="",
+            code_audit_status="NoOfficialCode",
+        )
+        with self.assertRaises(rebuild.ValidationFailure):
+            self.validate(
+                no_official_code,
+                repo_commit="",
+                repo_url="",
+                code_audit_status="NotAudited",
+            )
+
+        pending_audit = re.sub(
+            r"(?m)^\*\*源码入口：\*\*.*$",
+            "**源码入口：** **[未核验]** 官方仓库存在，但尚未完成源码审计，"
+            "当前不声称已经确认该模块的真实实现落点。",
+            self.valid_note,
+            count=1,
+        )
+        self.validate(
+            pending_audit,
+            repo_commit="",
+            repo_url="https://github.com/example/repo",
+            code_audit_status="NotAudited",
+        )
+        with self.assertRaises(rebuild.ValidationFailure):
+            self.validate(
+                pending_audit,
+                repo_commit="",
+                repo_url="",
+                code_audit_status="NoOfficialCode",
+            )
+
+    def test_paper_location_requires_paper_provenance(self) -> None:
+        mutated = self.valid_note.replace(
+            "**论文位置：** **[论文]**",
+            "**论文位置：** **[源码]**",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_overview_fields_must_begin_their_own_paragraph(self) -> None:
+        mutated = self.valid_note.replace(
+            "\n\n**主干网络与基线：**",
+            " **主干网络与基线：**",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_module_fields_must_begin_their_own_paragraph(self) -> None:
+        mutated = self.valid_note.replace(
+            "\n\n**输入：**",
+            " **输入：**",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_overview_field_must_be_substantive_and_own_its_source(self) -> None:
+        short = re.sub(
+            r"(?m)^\*\*原方法瓶颈：\*\*.*$",
+            "**原方法瓶颈：** **[论文]** 缺陷。来源：论文 §1，PDF p. 1。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(short)
+        missing_anchor = re.sub(
+            r"(?m)^\*\*原方法瓶颈：\*\*.*$",
+            "**原方法瓶颈：** **[论文]** 旧方法需要保存多份稠密历史表示，"
+            "计算、显存与状态重复会随序列长度不断增长，而且历史误差会被"
+            "反复传播。",
+            self.valid_note,
+            count=1,
+        )
+        self.assert_invalid(missing_anchor)
+
+    def _append_second_card(self, number: int = 2) -> str:
+        start = self.valid_note.index("#### 创新模块 1：Scene Memory")
+        end = self.valid_note.index("\n## 2. 读公式")
+        card = self.valid_note[start:end]
+        card = card.replace(
+            "#### 创新模块 1：Scene Memory",
+            f"#### 创新模块 {number}：Second Unit",
+            1,
+        )
+        return self.valid_note[:end] + "\n\n" + card + self.valid_note[end:]
+
+    def test_card_numbers_are_continuous_and_unique(self) -> None:
+        self.validate(self._append_second_card(2))
+        self.assert_invalid(self._append_second_card(1))
+        self.assert_invalid(self._append_second_card(3))
+
+    def test_card_names_are_unique_independent_of_number(self) -> None:
+        duplicated_name = self._append_second_card(2).replace(
+            "#### 创新模块 2：Second Unit",
+            "#### 创新模块 2：Scene Memory",
+            1,
+        )
+        self.assert_invalid(duplicated_name)
+
+    def test_non_network_innovation_unit_is_supported(self) -> None:
+        mutated = self.valid_note.replace(
+            "#### 创新模块 1：Scene Memory",
+            "#### 创新单元 1：Dataset Construction Protocol",
+            1,
+        )
+        self.validate(mutated)
+
+    def test_architecture_h3_must_have_section_one_as_parent(self) -> None:
+        mutated = self.valid_note.replace(
+            "### 整体算法架构与创新设计",
+            "## 9. 临时附录\n\n### 整体算法架构与创新设计",
+            1,
+        )
+        self.assert_invalid(mutated)
+
+    def test_architecture_markdown_tables_are_rejected(self) -> None:
+        mutated = self.valid_note.replace(
+            "#### 创新模块 1：Scene Memory",
+            "| 模块 | 输入 | 输出 |\n|---|---|---|\n| memory | 当前 | 历史 |\n\n"
+            "#### 创新模块 1：Scene Memory",
+            1,
+        )
+        self.assert_invalid(mutated)
+        without_outer_pipes = self.valid_note.replace(
+            "#### 创新模块 1：Scene Memory",
+            "模块 | 输入 | 输出\n---|---|---\nmemory | 当前 | 历史\n\n"
+            "#### 创新模块 1：Scene Memory",
+            1,
+        )
+        self.assert_invalid(without_outer_pipes)
+        one_hyphen_separator = self.valid_note.replace(
+            "#### 创新模块 1：Scene Memory",
+            "| 模块 | 输入 | 输出 |\n|-|-|-|\n| memory | 当前 | 历史 |\n\n"
+            "#### 创新模块 1：Scene Memory",
+            1,
+        )
+        self.assert_invalid(one_hyphen_separator)
+        quoted_table = self.valid_note.replace(
+            "#### 创新模块 1：Scene Memory",
+            "> | 模块 | 输入 | 输出 |\n> |-|-|-|\n"
+            "> | memory | 当前 | 历史 |\n\n"
+            "#### 创新模块 1：Scene Memory",
+            1,
+        )
+        self.assert_invalid(quoted_table)
+
+    def test_architecture_html_table_is_rejected(self) -> None:
+        mutated = self.valid_note.replace(
+            "#### 创新模块 1：Scene Memory",
+            "<table><tr><th>模块</th></tr><tr><td>memory</td></tr></table>\n\n"
+            "#### 创新模块 1：Scene Memory",
+            1,
+        )
+        self.assert_invalid(mutated)
 
 
 class MathLintRegressionTests(unittest.TestCase):

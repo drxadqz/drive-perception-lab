@@ -67,18 +67,6 @@ REQUIRED_NOTE_HEADINGS = (
     "## 5. 记结论：贡献、边界与开放问题",
 )
 
-# The translation-first standard takes effect on 2026-07-25.  The one note
-# published before that date stays readable while it is migrated.  This is an
-# exact, closed allow-list as well as a date gate: every other note, including a
-# newly added historical backfill, receives the stricter checks. Remove the
-# entry after backfilling the one real legacy note.
-TRANSLATION_STANDARD_EFFECTIVE_DATE = date(2026, 7, 25)
-LEGACY_TRANSLATION_NOTE_EXEMPTIONS = frozenset(
-    {
-        "notes/2026/2026-07-24-st-occ.md",
-    }
-)
-
 TRANSLATION_OVERVIEW_HEADING = "阅读起点：术语先导与摘要完整翻译"
 REQUIRED_READING_SUBSECTIONS = (
     "首次术语解释",
@@ -88,6 +76,29 @@ REQUIRED_READING_SUBSECTIONS = (
     "原文结论完整翻译",
     "原文局限与展望完整翻译",
     "笔记分析与研究启发",
+)
+ARCHITECTURE_SUBSECTION_TITLE = "整体算法架构与创新设计"
+ARCHITECTURE_OVERVIEW_LABELS = (
+    "原方法瓶颈",
+    "主干网络与基线",
+    "继承与新增边界",
+    "端到端信息流",
+    "总体训练方式",
+)
+ARCHITECTURE_MODULE_FIELDS = (
+    "位置与接口",
+    "输入",
+    "内部变换",
+    "输出",
+    "为什么这样设计",
+    "训练信号",
+    "作用与证据",
+    "论文位置",
+    "源码入口",
+)
+ARCHITECTURE_CARD_HEADING_RE = re.compile(
+    r"^创新(?P<kind>模块|单元)\s*(?P<number>[1-9]\d*)"
+    r"\s*[：:]\s*(?P<name>\S.*)"
 )
 ORIGINAL_TRANSLATION_LABEL = "[原文翻译]"
 READER_ANALYSIS_LABEL = "[笔记解释]"
@@ -115,6 +126,7 @@ INLINE_CODE_RE = re.compile(r"`+[^`\n]*`+")
 DETAILS_TAG_RE = re.compile(r"</?details\b[^>]*>", re.IGNORECASE)
 HTML_IMAGE_RE = re.compile(r"<img\b", re.IGNORECASE)
 HTML_PICTURE_TAG_RE = re.compile(r"</?(?:picture|source)\b", re.IGNORECASE)
+HTML_TABLE_TAG_RE = re.compile(r"</?table\b", re.IGNORECASE)
 FIGURE_ID_RE = re.compile(r"\bFigure\s+S?\d+[A-Za-z]?\b")
 TABLE_ID_RE = re.compile(r"\bTable\s+S?\d+[A-Za-z]?\b")
 PDF_PAGE_RE = re.compile(r"\bPDF p\.\s*\d+\b")
@@ -214,6 +226,7 @@ FIXED_SHA_URL_RE = re.compile(
 EVIDENCE_LABEL_RE = re.compile(
     r"\[(?:论文|源码|未核验)(?:/(?:论文|源码|未核验))*\]"
 )
+JUDGMENT_LABEL_RE = re.compile(r"\[判断\]")
 
 # These identifiers came from unpublished planning material and should never
 # re-enter the current public tree through the daily automation.
@@ -595,6 +608,7 @@ def visible_reading_sections(
     required_titles = {
         TRANSLATION_OVERVIEW_HEADING,
         *REQUIRED_READING_SUBSECTIONS,
+        ARCHITECTURE_SUBSECTION_TITLE,
     }
     for index, (source_line, content) in enumerate(structure.top_level_lines):
         parsed = normalized_heading(content)
@@ -678,18 +692,125 @@ def labeled_paragraphs(
     return paragraphs
 
 
+def anchored_field_paragraphs(
+    lines: list[tuple[int, str]],
+    fields: tuple[str, ...],
+) -> dict[str, list[str]]:
+    """Collect vertical-card fields whose labels begin a visible paragraph.
+
+    Requiring ``**字段：**`` at the start prevents several nominal fields from
+    being packed into one line and sharing a single provenance anchor.
+    """
+
+    field_patterns = {
+        field: re.compile(rf"^\*\*{re.escape(field)}：\*\*\s*(?P<value>.*)$")
+        for field in fields
+    }
+    paragraphs = {field: [] for field in fields}
+    index = 0
+    while index < len(lines):
+        _, content = lines[index]
+        stripped = content.strip()
+        matched_field: str | None = None
+        for field, pattern in field_patterns.items():
+            if pattern.fullmatch(stripped):
+                matched_field = field
+                break
+        if matched_field is None:
+            index += 1
+            continue
+
+        parts = [stripped]
+        cursor = index + 1
+        while cursor < len(lines):
+            _, continuation = lines[cursor]
+            continuation_stripped = continuation.strip()
+            if not continuation_stripped:
+                break
+            if normalized_heading(continuation_stripped) is not None:
+                break
+            if any(
+                pattern.fullmatch(continuation_stripped)
+                for pattern in field_patterns.values()
+            ):
+                break
+            parts.append(continuation_stripped)
+            cursor += 1
+        paragraphs[matched_field].append(" ".join(parts))
+        index = cursor
+    return paragraphs
+
+
+def plain_prose_character_count(value: str) -> int:
+    """Count substantive prose after removing links, labels, and markup."""
+
+    plain = re.sub(r"https?://\S+", "", value)
+    plain = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", plain)
+    plain = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", plain)
+    plain = re.sub(r"\[(?:论文|源码|未核验|判断)(?:/[^\]]+)?\]", "", plain)
+    plain = re.sub(r"<[^>]+>", "", plain)
+    plain = re.sub(r"[*_`>#|\-\s]", "", plain)
+    return len(plain)
+
+
+def has_evidence_token(value: str, token: str) -> bool:
+    """Return whether a bracketed provenance label contains ``token``."""
+
+    for label in re.findall(r"\[([^\]\n]+)\]", value):
+        if token in {part.strip() for part in label.split("/")}:
+            return True
+    return False
+
+
+def _markdown_table_cells(value: str) -> list[str] | None:
+    """Split a GitHub Markdown table row, with or without outer pipes."""
+
+    stripped = value.strip()
+    while stripped.startswith(">"):
+        stripped = stripped[1:].lstrip()
+    if "|" not in stripped:
+        return None
+    if stripped.startswith("|"):
+        stripped = stripped[1:]
+    if stripped.endswith("|"):
+        stripped = stripped[:-1]
+    cells = [cell.strip() for cell in stripped.split("|")]
+    if len(cells) < 2:
+        return None
+    return cells
+
+
 def markdown_table_rows(lines: list[tuple[int, str]]) -> list[tuple[int, list[str]]]:
-    """Return visible Markdown table rows, excluding separator rows."""
+    """Return rows from valid visible GitHub Markdown table blocks."""
 
     rows: list[tuple[int, list[str]]] = []
-    for source_line, content in lines:
-        stripped = content.strip()
-        if not (stripped.startswith("|") and stripped.endswith("|")):
+    index = 0
+    while index + 1 < len(lines):
+        header_line, header_content = lines[index]
+        header_cells = _markdown_table_cells(header_content)
+        separator_cells = _markdown_table_cells(lines[index + 1][1])
+        if (
+            header_cells is None
+            or separator_cells is None
+            or len(header_cells) != len(separator_cells)
+            or not all(
+                re.fullmatch(r":?-+:?", cell)
+                for cell in separator_cells
+            )
+        ):
+            index += 1
             continue
-        cells = [cell.strip() for cell in stripped[1:-1].split("|")]
-        if cells and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
-            continue
-        rows.append((source_line, cells))
+
+        rows.append((header_line, header_cells))
+        cursor = index + 2
+        while cursor < len(lines):
+            source_line, content = lines[cursor]
+            cells = _markdown_table_cells(content)
+            if cells is None or len(cells) != len(header_cells):
+                break
+            rows.append((source_line, cells))
+            cursor += 1
+        index = cursor
     return rows
 
 
@@ -707,6 +828,18 @@ def source_evidence_is_specific(value: str) -> bool:
             value,
         )
     )
+
+
+def github_repo_identity(value: str) -> tuple[str, str] | None:
+    """Return a normalized GitHub ``(owner, repo)`` pair."""
+
+    parsed = urlsplit(value)
+    if parsed.scheme != "https" or parsed.netloc.casefold() != "github.com":
+        return None
+    parts = [part for part in parsed.path.split("/") if part]
+    if len(parts) < 2:
+        return None
+    return parts[0].casefold(), parts[1].removesuffix(".git").casefold()
 
 
 def translation_section_family(section_name: str) -> str:
@@ -939,22 +1072,9 @@ def validate_translation_first_reading(
     *,
     structure: MarkdownStructure,
 ) -> None:
-    """Enforce the translation-first reading contract from 2026-07-25."""
+    """Enforce the translation-first reading contract for every indexed note."""
 
     relative_note = note_path.relative_to(ROOT).as_posix()
-    try:
-        note_date = date.fromisoformat(note_path.name[:10])
-    except ValueError as exc:
-        raise ValidationFailure(
-            f"CSV line {line}: note filename must begin with an ISO publication date"
-        ) from exc
-    if relative_note in LEGACY_TRANSLATION_NOTE_EXEMPTIONS:
-        if note_date >= TRANSLATION_STANDARD_EFFECTIVE_DATE:
-            raise ValidationFailure(
-                f"CSV line {line}: legacy translation exemption "
-                f"{relative_note!r} is not older than the standard"
-            )
-        return
 
     sections = visible_reading_sections(structure)
     expected_titles = {
@@ -1374,6 +1494,365 @@ def validate_translation_first_reading(
         raise ValidationFailure(
             f"CSV line {line}: '笔记分析与研究启发' is too short"
         )
+
+
+def validate_architecture_reading(
+    note_path: Path,
+    line: str,
+    *,
+    structure: MarkdownStructure,
+    code_audit_status: str | None = None,
+    repo_commit: str = "",
+    repo_url: str = "",
+) -> None:
+    """Require an evidence-grounded architecture and innovation explanation."""
+
+    relative_note = note_path.relative_to(ROOT).as_posix()
+    sections = visible_reading_sections(structure)
+    if ARCHITECTURE_SUBSECTION_TITLE not in sections:
+        raise ValidationFailure(
+            f"CSV line {line}: note {relative_note!r} is missing required "
+            f"architecture section {ARCHITECTURE_SUBSECTION_TITLE!r}"
+        )
+
+    level, architecture_line, architecture_lines = sections[
+        ARCHITECTURE_SUBSECTION_TITLE
+    ]
+    if level != 3:
+        raise ValidationFailure(
+            f"CSV line {line}: {ARCHITECTURE_SUBSECTION_TITLE!r} on Markdown "
+            f"line {architecture_line} must be an H3"
+        )
+
+    major_lines = {
+        content.strip(): source_line
+        for source_line, content in structure.top_level_lines
+        if content.strip() in REQUIRED_NOTE_HEADINGS
+    }
+    if not (
+        major_lines[REQUIRED_NOTE_HEADINGS[0]]
+        < architecture_line
+        < major_lines[REQUIRED_NOTE_HEADINGS[1]]
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: {ARCHITECTURE_SUBSECTION_TITLE!r} must appear "
+            "inside Section 1 before the formula section"
+        )
+
+    preceding_h2: str | None = None
+    for source_line, content in structure.top_level_lines:
+        if source_line >= architecture_line:
+            break
+        parsed = normalized_heading(content)
+        if parsed is not None and parsed[0] == 2:
+            preceding_h2 = content.strip()
+    if preceding_h2 != REQUIRED_NOTE_HEADINGS[0]:
+        raise ValidationFailure(
+            f"CSV line {line}: {ARCHITECTURE_SUBSECTION_TITLE!r} must be a "
+            "direct H3 child of Section 1"
+        )
+
+    if markdown_table_rows(architecture_lines) or any(
+        HTML_TABLE_TAG_RE.search(content)
+        for _, content in architecture_lines
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: architecture explanation must use vertical "
+            "mobile-friendly cards; Markdown tables are prohibited in this section"
+        )
+
+    module_positions: list[tuple[int, int, str, int, str]] = []
+    for index, (source_line, content) in enumerate(architecture_lines):
+        parsed = normalized_heading(content)
+        if parsed is None:
+            continue
+        heading_level, title = parsed
+        heading_match = ARCHITECTURE_CARD_HEADING_RE.fullmatch(title)
+        if heading_level == 4 and heading_match is not None:
+            module_positions.append(
+                (
+                    index,
+                    source_line,
+                    title,
+                    int(heading_match.group("number")),
+                    heading_match.group("name").strip(),
+                )
+            )
+    if not module_positions:
+        raise ValidationFailure(
+            f"CSV line {line}: {ARCHITECTURE_SUBSECTION_TITLE!r} requires at "
+            "least one H4 '创新模块 N：名称' or "
+            "'创新单元 N：名称' card"
+        )
+    module_names = [
+        name.casefold() for _, _, _, _, name in module_positions
+    ]
+    if len(module_names) != len(set(module_names)):
+        raise ValidationFailure(
+            f"CSV line {line}: architecture card names must be unique"
+        )
+    module_numbers = [number for _, _, _, number, _ in module_positions]
+    if module_numbers != list(range(1, len(module_numbers) + 1)):
+        raise ValidationFailure(
+            f"CSV line {line}: architecture card numbers must be unique and "
+            "continuous from 1"
+        )
+
+    overview_lines = architecture_lines[: module_positions[0][0]]
+    overview_fields = anchored_field_paragraphs(
+        overview_lines,
+        ARCHITECTURE_OVERVIEW_LABELS,
+    )
+    overview_minimum_chars = {
+        "原方法瓶颈": 40,
+        "主干网络与基线": 40,
+        "继承与新增边界": 40,
+        "端到端信息流": 50,
+        "总体训练方式": 40,
+    }
+    for field in ARCHITECTURE_OVERVIEW_LABELS:
+        label = f"**{field}：**"
+        paragraphs = overview_fields[field]
+        if len(paragraphs) != 1:
+            raise ValidationFailure(
+                f"CSV line {line}: architecture overview requires exactly one "
+                f"paragraph beginning with {label}"
+            )
+        paragraph = paragraphs[0]
+        if plain_prose_character_count(paragraph) < overview_minimum_chars[field]:
+            raise ValidationFailure(
+                f"CSV line {line}: architecture overview field {field!r} "
+                "is too short to explain the method"
+            )
+        if EVIDENCE_LABEL_RE.search(paragraph) is None:
+            raise ValidationFailure(
+                f"CSV line {line}: architecture overview field {field!r} "
+                "requires a [论文], [源码], or [未核验] label"
+            )
+        if not source_evidence_is_specific(paragraph):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture overview field {field!r} "
+                "requires its own PDF/section/fixed-SHA anchor or an explicit "
+                "[未核验] absence"
+            )
+
+    minimum_field_chars = {
+        "位置与接口": 12,
+        "输入": 8,
+        "内部变换": 18,
+        "输出": 8,
+        "为什么这样设计": 24,
+        "训练信号": 16,
+        "作用与证据": 20,
+        "论文位置": 8,
+        "源码入口": 8,
+    }
+    for position, (start_index, source_line, title, _, _) in enumerate(
+        module_positions
+    ):
+        card_end = len(architecture_lines)
+        if position + 1 < len(module_positions):
+            card_end = module_positions[position + 1][0]
+        for index in range(start_index + 1, card_end):
+            parsed = normalized_heading(architecture_lines[index][1])
+            if parsed is not None and parsed[0] <= 4:
+                card_end = index
+                break
+        card_lines = architecture_lines[start_index + 1 : card_end]
+        parsed_card_fields = anchored_field_paragraphs(
+            card_lines,
+            ARCHITECTURE_MODULE_FIELDS,
+        )
+        card_fields: dict[str, str] = {}
+        for field in ARCHITECTURE_MODULE_FIELDS:
+            label = f"**{field}：**"
+            paragraphs = parsed_card_fields[field]
+            if len(paragraphs) != 1:
+                raise ValidationFailure(
+                    f"CSV line {line}: architecture card {title!r} on "
+                    f"Markdown line {source_line} requires exactly one "
+                    f"paragraph beginning with {label}"
+                )
+            paragraph = paragraphs[0]
+            value = paragraph.split(label, 1)[1]
+            if plain_prose_character_count(value) < minimum_field_chars[field]:
+                raise ValidationFailure(
+                    f"CSV line {line}: architecture card {title!r} field "
+                    f"{field!r} is too short"
+                )
+            card_fields[field] = paragraph
+
+        why_text = card_fields["为什么这样设计"]
+        causal_language = re.search(
+            r"(?:因为|因此|为了|解决|避免|针对|瓶颈|动机|使得|从而)",
+            why_text,
+        )
+        paper_motivation = (
+            has_evidence_token(why_text, "论文")
+            and ORIGINAL_LOCATION_RE.search(why_text)
+        )
+        reconstructed_motivation = (
+            has_evidence_token(why_text, "判断")
+            and re.search(r"(?:笔记|本文笔记).*(?:推断|判断|因果重建)", why_text)
+            and re.search(r"(?:前述|上述|原方法|瓶颈|失败模式)", why_text)
+            and re.search(
+                r"(?:不是作者原句|并非作者(?:的)?(?:原句|明确(?:说明|表述|动机))"
+                r"|原文未(?:直接|明确)(?:说明|表述|给出))",
+                why_text,
+            )
+        )
+        if causal_language is None or not (
+            paper_motivation or reconstructed_motivation
+        ):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} must explain "
+                "a causal rationale as either [论文] with a source anchor or "
+                "[判断] explicitly marked as the note's bottleneck-based reconstruction"
+            )
+
+        training_text = card_fields["训练信号"]
+        if (
+            EVIDENCE_LABEL_RE.search(training_text) is None
+            or not source_evidence_is_specific(training_text)
+        ):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} training signal "
+                "requires an evidence label and a specific source or absence"
+            )
+
+        evidence_text = card_fields["作用与证据"]
+        positive_intervention = re.search(
+            r"(?:加入|移除|去掉|删除|替换|启用|关闭|有无|"
+            r"\bwith(?:out)?\b|相比|相对|优于|劣于|从.+?到|→)",
+            evidence_text,
+            re.IGNORECASE,
+        )
+        whole_system_substitution = (
+            re.search(
+                r"(?:没有|未做|未提供|并非|不是|无).{0,30}"
+                r"(?:独立)?(?:消融|受控(?:对照|比较))",
+                evidence_text,
+            )
+            and re.search(r"(?:整套系统|全模型|完整模型|整条路线)", evidence_text)
+        )
+        empirical_evidence = (
+            has_evidence_token(evidence_text, "论文")
+            and source_evidence_is_specific(evidence_text)
+            and re.search(r"(?:消融|受控对照|受控比较)", evidence_text)
+            and re.search(
+                r"(?:Table|表|Figure|图)\s*[A-Z]?\d+",
+                evidence_text,
+                re.IGNORECASE,
+            )
+            and re.search(
+                r"(?:\d+(?:\.\d+)?\s*(?:%|mIoU|AP|AR|GB|ms|FPS|分|点)"
+                r"|提高|提升|下降|降低|改善|优于|增加|减少|恶化)",
+                evidence_text,
+                re.IGNORECASE,
+            )
+            and positive_intervention
+            and not whole_system_substitution
+        )
+        explicit_absence = (
+            has_evidence_token(evidence_text, "未核验")
+            and re.search(
+                r"(?:原文|论文).*(?:未提供|未报告|未给出).*独立"
+                r"(?:消融|对照|比较)",
+                evidence_text,
+            )
+            and re.search(r"(?:不能|无法).*单独归因", evidence_text)
+        )
+        if not (empirical_evidence or explicit_absence):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} must map its "
+                "claimed role to a numbered Table/Figure ablation or controlled "
+                "comparison "
+                "with a result, or use [未核验] to state that no independent "
+                "evidence exists and the effect cannot be attributed separately"
+            )
+
+        paper_text = card_fields["论文位置"]
+        if (
+            not has_evidence_token(paper_text, "论文")
+            or ORIGINAL_LOCATION_RE.search(paper_text) is None
+        ):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} requires a "
+                "[论文] PDF/section anchor"
+            )
+
+        source_text = card_fields["源码入口"]
+        source_absence = (
+            "[未核验]" in source_text
+            and re.search(r"(?:源码|代码)", source_text)
+            and re.search(
+                r"(?:未公开|未提供|没有提供|无法确认|未找到)",
+                source_text,
+            )
+        )
+        source_pending = (
+            "[未核验]" in source_text
+            and re.search(
+                r"(?:尚未|还未|未完成).*(?:审计|核对|检查)",
+                source_text,
+            )
+        )
+        fixed_sha_links = FIXED_SHA_URL_RE.findall(source_text)
+        if fixed_sha_links and not has_evidence_token(source_text, "源码"):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} fixed-SHA "
+                "entry requires a [源码] provenance label"
+            )
+        if code_audit_status == "Audited" and not fixed_sha_links:
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} cannot claim "
+                "source is unavailable or pending when index status is Audited"
+            )
+        if code_audit_status == "NoOfficialCode" and not source_absence:
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} must use an "
+                "explicit [未核验] official-code absence when index status is "
+                "NoOfficialCode"
+            )
+        if (
+            code_audit_status == "NotAudited"
+            and not (fixed_sha_links or source_pending)
+        ):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} must say the "
+                "source is not yet audited, rather than claiming it does not exist"
+            )
+        expected_repo_identity = github_repo_identity(repo_url) if repo_url else None
+        normalized_commit = repo_commit.casefold()
+        matching_official_links: list[str] = []
+        for link in fixed_sha_links:
+            sha_match = re.search(
+                r"/(?:blob|tree)/([0-9a-fA-F]{40})(?:/|$)",
+                link,
+            )
+            if sha_match is None:
+                continue
+            link_commit = sha_match.group(1).casefold()
+            link_repo_identity = github_repo_identity(link)
+            if (
+                (not normalized_commit or link_commit == normalized_commit)
+                and (
+                    expected_repo_identity is None
+                    or link_repo_identity == expected_repo_identity
+                )
+            ):
+                matching_official_links.append(link)
+        if (repo_commit or repo_url) and fixed_sha_links and not matching_official_links:
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} source link "
+                "must match the official GitHub repository and repo_commit "
+                "recorded in index/papers.csv"
+            )
+        if not (fixed_sha_links or source_absence or source_pending):
+            raise ValidationFailure(
+                f"CSV line {line}: architecture card {title!r} requires a "
+                "fixed-SHA source link or an explicit [未核验] no-code statement"
+            )
 
 
 def safe_note_path(value: str, line: str) -> Path:
@@ -2280,6 +2759,14 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
             line,
             structure=structure,
         )
+        validate_architecture_reading(
+            note_path,
+            line,
+            structure=structure,
+            code_audit_status=row["code_audit_status"],
+            repo_commit=row["repo_commit"],
+            repo_url=row["repo_url"],
+        )
         validate_note_assets(
             note_path,
             line,
@@ -2702,15 +3189,6 @@ def write_text(path: Path, content: str) -> None:
         handle.write(content)
 
 
-def legacy_translation_migration_debt(
-    rows: list[dict[str, str]],
-) -> list[str]:
-    """Return indexed legacy notes that still need the new reading sections."""
-
-    indexed_paths = {row["note_path"] for row in rows}
-    return sorted(indexed_paths & LEGACY_TRANSLATION_NOTE_EXEMPTIONS)
-
-
 def validate_dated_note_inventory(
     rows: list[dict[str, str]],
     *,
@@ -2777,12 +3255,6 @@ def main() -> int:
         else:
             print("OK: generated pages are current")
         print(f"OK: validated {len(rows)} indexed paper(s)")
-        legacy_debt = legacy_translation_migration_debt(rows)
-        if legacy_debt:
-            print(
-                "NOTICE: legacy note(s) still need translation-first backfill: "
-                + ", ".join(legacy_debt)
-            )
         return 0
     except ValidationFailure as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
