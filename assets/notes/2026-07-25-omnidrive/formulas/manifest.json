@@ -1,0 +1,37 @@
+{
+  "formulas": {
+    "eq-01-query-self-attention": {
+      "dark_png_sha256": "56bdc93b47a97f39935e582642da762e1a424c5f314644018c5d71af71e9dfa0",
+      "display_height": 92,
+      "display_width": 584,
+      "light_png_sha256": "e4ac4daf8d867ad1ae98381e05b5107127150db6086dd69581d1867da05e8fc4",
+      "pixel_height": 183,
+      "pixel_width": 1169,
+      "source_sha256": "5a71364d4b69a378e3ace5ea90e2bc352fdd90af02d9bd4dad6a0cd6c246bc8c"
+    },
+    "eq-02-image-cross-attention": {
+      "dark_png_sha256": "ee8da121c5d2b567b2ec2abec845f957573d2c794a840f6f9cb351e70771e624",
+      "display_height": 92,
+      "display_width": 584,
+      "light_png_sha256": "f0d8c71679d094dc2d1d65c9242ba2ceb09bb2b7ab1c0c7ea67ae2153873ab69",
+      "pixel_height": 183,
+      "pixel_width": 1169,
+      "source_sha256": "108bfb7c9d046f7609ec512c2c9103a583875ead462f762fc817e8940d7e1ef8"
+    }
+  },
+  "profile": {
+    "dark_background": "#0d1117",
+    "dark_foreground": "#f0f6fc",
+    "horizontal_padding": 28,
+    "layout": "content-sized-2x",
+    "light_background": "#ffffff",
+    "light_foreground": "#1f2328",
+    "maximum_display_height": 180,
+    "maximum_display_width": 720,
+    "minimum_display_height": 36,
+    "minimum_display_width": 96,
+    "output_scale": 2,
+    "vertical_padding": 20
+  },
+  "version": 2
+}

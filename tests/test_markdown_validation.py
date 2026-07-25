@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -43,6 +44,23 @@ class IndexedNoteValidationTests(unittest.TestCase):
             for line in cls.note.splitlines()
             if rebuild.FORMULA_PICTURE_RE.fullmatch(line)
         )
+        cls.first_formula_match = rebuild.FORMULA_PICTURE_RE.fullmatch(
+            cls.first_formula_picture
+        )
+        assert cls.first_formula_match is not None
+        cls.first_formula_stem = Path(
+            cls.first_formula_match.group("light")
+        ).name.removesuffix("-light.png")
+        cls.first_formula_width = int(cls.first_formula_match.group("width"))
+        cls.first_formula_height = int(cls.first_formula_match.group("height"))
+        source_link_match = re.search(
+            r"\[可复制 TeX\]\((?P<target>[^)\n]+source\.tex"
+            r"#L[1-9]\d*-L[1-9]\d*)\)",
+            cls.note,
+        )
+        assert source_link_match is not None
+        cls.first_formula_source_link = source_link_match.group(0)
+        cls.first_formula_source_target = source_link_match.group("target")
 
     def validate_mutation(
         self,
@@ -109,8 +127,15 @@ class IndexedNoteValidationTests(unittest.TestCase):
             )
 
     def hide_method_section(self, opener: str, closer: str) -> str:
-        image_start = self.note.index("![ST-Occ Figure 2")
+        method_heading = self.note.index("## 1. 看图")
         formula_heading = self.note.index("## 2. 读公式")
+        image_match = re.search(
+            r"^!\[[^\n]+\]\([^)]+\)$",
+            self.note[method_heading:formula_heading],
+            re.MULTILINE,
+        )
+        assert image_match is not None
+        image_start = method_heading + image_match.start()
         return (
             self.note[:image_start]
             + opener
@@ -188,35 +213,44 @@ class IndexedNoteValidationTests(unittest.TestCase):
         self.assert_mutation_fails(mutated)
 
     def test_formula_picture_requires_both_existing_theme_images(self) -> None:
+        dark_name = Path(self.first_formula_match.group("dark")).name
         mutated = self.note.replace(
-            "eq-05-unified-memory-read-dark.png",
-            "eq-05-unified-memory-read-missing-dark.png",
+            dark_name,
+            f"{self.first_formula_stem}-missing-dark.png",
             1,
         )
         self.assert_mutation_fails(mutated)
 
     def test_formula_picture_theme_stems_must_match(self) -> None:
+        dark_name = Path(self.first_formula_match.group("dark")).name
         mutated = self.note.replace(
-            "eq-05-unified-memory-read-dark.png",
-            "eq-06-unified-memory-write-dark.png",
+            dark_name,
+            "different-formula-dark.png",
             1,
         )
         self.assert_mutation_fails(mutated)
 
     def test_formula_picture_display_bounds_and_2x_density_are_enforced(self) -> None:
+        dimensions = (
+            f'width="{self.first_formula_width}" '
+            f'height="{self.first_formula_height}"'
+        )
         with self.subTest("display bounds"):
-            mutated = self.note.replace(
-                'width="402" height="55"',
-                'width="721" height="55"',
+            malformed = self.first_formula_picture.replace(
+                dimensions,
+                f'width="721" height="{self.first_formula_height}"',
                 1,
             )
+            mutated = self.note.replace(self.first_formula_picture, malformed, 1)
             self.assert_mutation_fails(mutated)
         with self.subTest("2x density"):
-            mutated = self.note.replace(
-                'width="402" height="55"',
-                'width="403" height="55"',
+            malformed = self.first_formula_picture.replace(
+                dimensions,
+                f'width="{self.first_formula_width + 1}" '
+                f'height="{self.first_formula_height}"',
                 1,
             )
+            mutated = self.note.replace(self.first_formula_picture, malformed, 1)
             self.assert_mutation_fails(mutated)
 
     def test_formula_picture_theme_dimensions_must_match(self) -> None:
@@ -224,7 +258,7 @@ class IndexedNoteValidationTests(unittest.TestCase):
 
         def mismatched_dimensions(path: Path) -> tuple[int, int]:
             width, height = original_dimensions(path)
-            if path.name == "eq-05-unified-memory-read-dark.png":
+            if path.name == f"{self.first_formula_stem}-dark.png":
                 return width + 2, height
             return width, height
 
@@ -244,7 +278,7 @@ class IndexedNoteValidationTests(unittest.TestCase):
         )
 
         manifest = json.loads(self.formula_manifest)
-        entry = manifest["formulas"]["eq-05-unified-memory-read"]
+        entry = manifest["formulas"][self.first_formula_stem]
         entry["dark_png_sha256"] = "0" * 64
         self.assert_mutation_fails(
             self.note,
@@ -252,7 +286,7 @@ class IndexedNoteValidationTests(unittest.TestCase):
         )
 
         manifest = json.loads(self.formula_manifest)
-        entry = manifest["formulas"]["eq-05-unified-memory-read"]
+        entry = manifest["formulas"][self.first_formula_stem]
         entry["display_width"] += 1
         self.assert_mutation_fails(
             self.note,
@@ -265,40 +299,45 @@ class IndexedNoteValidationTests(unittest.TestCase):
         def glob_with_legacy(path: Path, pattern: str):
             results = list(original_glob(path, pattern))
             if path.resolve() == self.formula_directory.resolve():
-                results.append(path / "eq-05-unified-memory-read.png")
+                results.append(path / f"{self.first_formula_stem}.png")
             return iter(results)
 
         with mock.patch.object(Path, "glob", new=glob_with_legacy):
             self.assert_mutation_fails(self.note)
 
     def test_formula_assets_cannot_cross_note_directories(self) -> None:
+        dark_target = self.first_formula_match.group("dark")
         mutated = self.note.replace(
-            "assets/notes/2026-07-24-st-occ/formulas/"
-            "eq-05-unified-memory-read-dark.png",
-            "assets/notes/another-note/formulas/"
-            "eq-05-unified-memory-read-dark.png",
+            dark_target,
+            dark_target.replace(
+                f"assets/notes/{self.note_path.stem}/",
+                "assets/notes/another-note/",
+                1,
+            ),
             1,
         )
         self.assert_mutation_fails(mutated)
 
     def test_formula_source_link_is_required(self) -> None:
         mutated = self.note.replace(
-            "formulas/source.tex#L5-L9",
-            "formulas/copyable-source.txt",
+            self.first_formula_source_link,
+            "[可复制 TeX](../../assets/notes/another-note/"
+            "formulas/copyable-source.txt)",
             1,
         )
         self.assert_mutation_fails(mutated)
 
     def test_formula_source_link_must_be_unique(self) -> None:
-        source_link = (
-            "[可复制 TeX](../../assets/notes/2026-07-24-st-occ/"
-            "formulas/source.tex#L5-L9)"
+        source_link = self.first_formula_source_link
+        mutated = self.note.replace(
+            source_link,
+            f"{source_link} · {source_link}",
+            1,
         )
-        mutated = self.note.replace(source_link, f"{source_link} · {source_link}", 1)
         self.assert_mutation_fails(mutated)
 
     def test_formula_source_anchor_rejects_upstream_line_drift(self) -> None:
-        marker = "% BEGIN eq-07-class-activation-update"
+        marker = f"% BEGIN {self.first_formula_stem}"
         shifted_source = self.formula_source.replace(
             marker,
             "% harmless upstream comment that shifts later line anchors\n" + marker,
@@ -323,7 +362,12 @@ class IndexedNoteValidationTests(unittest.TestCase):
         self.assert_mutation_fails(mutated)
 
     def test_numbered_formula_rejects_placeholder_identifier(self) -> None:
-        mutated = self.note.replace("Eq. (5)", "Eq. (X)", 1)
+        mutated = re.sub(
+            r"Eq\. \(\d+\)",
+            "Eq. (X)",
+            self.note,
+            count=1,
+        )
         self.assert_mutation_fails(mutated)
 
     def test_formula_modes_are_exclusive(self) -> None:
@@ -336,10 +380,13 @@ class IndexedNoteValidationTests(unittest.TestCase):
         self.assert_mutation_fails(mutated)
 
     def test_original_formula_declaration_must_stay_in_section_two(self) -> None:
-        marker = (
-            "**原文公式：** 论文 Eq. (5)，PDF p. 4 / "
-            "proceedings p. 26572。"
+        marker_match = re.search(
+            r"^\*\*原文公式：\*\*[^\n]+$",
+            self.note,
+            re.MULTILINE,
         )
+        assert marker_match is not None
+        marker = marker_match.group(0)
         mutated = self.note.replace(marker, "公式见后文。", 1)
         mutated = mutated.replace(
             "## 4. 对源码：公式如何落地",
@@ -513,6 +560,62 @@ class MathLintRegressionTests(unittest.TestCase):
     def test_html_tokens_inside_code_fence_are_ignored(self) -> None:
         text = "```text\n</details>\n<!-- literal code example\n```\n"
         self.assertEqual(self.lint_text(text), [])
+
+
+class PerceptionTaxonomyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.taxonomy = rebuild.load_taxonomy()
+        cls.rows = rebuild.load_rows()
+
+    def test_taxonomy_has_thirteen_ordered_tracks(self) -> None:
+        tracks = self.taxonomy["tracks"]
+        self.assertEqual(len(tracks), 13)
+        self.assertEqual(
+            [track["id"].split("-", 1)[0] for track in tracks],
+            [f"p{number:02d}" for number in range(1, 14)],
+        )
+
+    def test_every_paper_has_one_valid_track_and_modalities(self) -> None:
+        allowed_tracks = {
+            track["id"] for track in self.taxonomy["tracks"]
+        }
+        allowed_modalities = set(self.taxonomy["modalities"])
+        for row in self.rows:
+            with self.subTest(paper=row["paper_key"]):
+                self.assertIn(row["primary_track"], allowed_tracks)
+                self.assertTrue(rebuild.modality_list(row))
+                self.assertTrue(
+                    set(rebuild.modality_list(row)) <= allowed_modalities
+                )
+
+    def test_generated_topics_shows_zero_coverage_tracks_too(self) -> None:
+        rendered = rebuild.render_topics(self.rows, self.taxonomy)
+        for track in self.taxonomy["tracks"]:
+            self.assertIn(track["name"], rendered)
+        self.assertIn("待覆盖", rendered)
+        self.assertIn("与大模型结合的感知论文", rendered)
+        self.assertIn("按输入模态浏览", rendered)
+
+    def test_coverage_count_is_derived_from_primary_tracks(self) -> None:
+        expected = len({row["primary_track"] for row in self.rows})
+        stats = rebuild.render_stats(self.rows, self.taxonomy)
+        self.assertIn(
+            f"覆盖 {expected}/{len(self.taxonomy['tracks'])} 个感知主方向",
+            stats,
+        )
+
+    def test_invalid_track_and_modality_are_rejected(self) -> None:
+        with self.subTest("track"):
+            rows = [dict(row) for row in self.rows]
+            rows[0]["primary_track"] = "p99-invented"
+            with self.assertRaises(rebuild.ValidationFailure):
+                rebuild.validate_rows(rows)
+        with self.subTest("modality"):
+            rows = [dict(row) for row in self.rows]
+            rows[0]["modalities"] = "Imaginary Sensor"
+            with self.assertRaises(rebuild.ValidationFailure):
+                rebuild.validate_rows(rows)
 
 
 if __name__ == "__main__":

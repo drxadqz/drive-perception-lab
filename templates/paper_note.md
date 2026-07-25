@@ -6,6 +6,10 @@
 `Venue YYYY` · `Accepted / Preprint` ·
 `论文已读 / 源码已读 / 已运行或未运行`
 
+**主方向：** PXX · 中文方向名 ·
+**输入模态：** Surround Camera / LiDAR / Language ·
+**交叉标签：** 任务、表示、学习范式、可靠性或大模型关系
+
 [▶ 从第一张图开始](#1-看图论文到底做了什么) ·
 [返回首页](../../README.md) · [全部精读](../../index/papers.md) ·
 [官方论文](https://example.org/paper.pdf) ·
