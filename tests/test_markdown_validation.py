@@ -147,6 +147,12 @@ class IndexedNoteValidationTests(unittest.TestCase):
     def test_current_note_passes(self) -> None:
         self.validate_mutation(self.note)
 
+    def test_supplement_table_letter_prefix_is_a_numeric_identifier(self) -> None:
+        identifiers = rebuild.TABLE_ID_RE.findall(
+            "Li et al., Supplement Table A2, Supplement PDF p. 5."
+        )
+        self.assertEqual(identifiers, ["Table A2"])
+
     def test_figures_hidden_in_fence_fail(self) -> None:
         self.assert_mutation_fails(self.hide_method_section("```\n", "```\n\n"))
 

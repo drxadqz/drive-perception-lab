@@ -1,0 +1,33 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% All blocks are transcribed from BEVFormer, ECCV 2022, Eq. (2), (4), and (5).
+% The main note carries the exact paper page and fixed-source provenance.
+
+% BEGIN eq-02-spatial-cross-attention
+\begin{aligned}
+\operatorname{SCA}(Q_p,F_t)
+&=\frac{1}{|\mathcal V_{\mathrm{hit}}|}
+\sum_{i\in\mathcal V_{\mathrm{hit}}}
+\sum_{j=1}^{N_{\mathrm{ref}}}\\
+&\quad \operatorname{DeformAttn}
+\bigl(Q_p,\mathcal P(p,i,j),F_t^i\bigr)
+\end{aligned}
+\qquad\text{(2)}
+% END eq-02-spatial-cross-attention
+
+% BEGIN eq-04-camera-projection
+\begin{aligned}
+\mathcal P(p,i,j)&=(x_{ij},y_{ij}),\\
+z_{ij}\!\begin{bmatrix}x_{ij}&y_{ij}&1\end{bmatrix}^{\mathsf T}
+&=T_i\!\begin{bmatrix}x'&y'&z'_j&1\end{bmatrix}^{\mathsf T}
+\end{aligned}
+\qquad\text{(4)}
+% END eq-04-camera-projection
+
+% BEGIN eq-05-temporal-self-attention
+\begin{aligned}
+\operatorname{TSA}\bigl(Q_p,\{Q,B'_{t-1}\}\bigr)
+&=\sum_{V\in\{Q,B'_{t-1}\}}\\
+&\quad \operatorname{DeformAttn}(Q_p,p,V)
+\end{aligned}
+\qquad\text{(5)}
+% END eq-05-temporal-self-attention

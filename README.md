@@ -12,19 +12,19 @@
 > 纯文字读法与可复制 TeX 源；兼容 GitHub 网页和 iPad/iPhone App。
 
 <!-- AUTO:STATS:START -->
-**3 篇精读** · **3 篇正式录用** · **3 篇关键源码已审** · **覆盖 3/13 个感知主方向** · 最近更新：**2026-07-26**
+**4 篇精读** · **4 篇正式录用** · **4 篇关键源码已审** · **覆盖 4/13 个感知主方向** · 最近更新：**2026-07-27**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
-## ▶ [开始今天的精读：VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking（CVPR 2023）](notes/2026/2026-07-26-voxelnext.md)
+## ▶ [开始今天的精读：BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers（ECCV 2022）](notes/2026/2026-07-27-bevformer.md)
 
-> VoxelNeXt 证明非中心稀疏体素也能直接回归三维框并改善速度—精度折中；但官方默认配置仍使用 NMS、未启用剪枝，跟踪关联代码也未发布。
+> BEVFormer 用标定约束的空间交叉注意力和递归历史 BEV 把六路相机变成统一时空 BEV；但固定公开提交只闭环检测、未发布地图分割，且时序状态与标定误差的长序列耦合未验证。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/CVPR2023/html/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.html) · **目标与交通参与者感知** · LiDAR · 3D Object Detection · 3D Multi-Object Tracking · Sparse Convolution · Voxel Representation · Efficient Inference · Post-processing · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/694_ECCV_2022_paper.php) · **BEV 与统一场景表示** · Surround Camera + Vehicle State · Bird's-Eye View · 3D Object Detection · Map Segmentation · Spatial Cross-Attention · Temporal Memory · Deformable Attention · Multi-Task Perception · Camera Calibration · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [官方代码 @ b5b7d393](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
+[论文原文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [官方代码 @ 66b65f3a](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 <!-- AUTO:LATEST:END -->
 
 ## 想读其他内容
@@ -37,9 +37,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-07-27 · ECCV 2022** — [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](notes/2026/2026-07-27-bevformer.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-26 · CVPR 2023** — [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](notes/2026/2026-07-26-voxelnext.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-25 · CVPR 2025** — [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](notes/2026/2026-07-25-omnidrive.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-07-24 · ICCV 2025** — [Occupancy Learning with Spatiotemporal Memory](notes/2026/2026-07-24-st-occ.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 <details>
