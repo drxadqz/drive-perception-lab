@@ -49,7 +49,7 @@
 | 编号 | 自动驾驶感知主方向 | 已精读 | 最近更新 | 覆盖状态 |
 |---|---|---:|---|---|
 | P01 | [目标与交通参与者感知](#p01-object-actor-perception) | 1 | 2026-07-26 | 已有锚点 |
-| P02 | [稠密场景语义与几何](#p02-dense-scene-geometry) | 0 | — | 待覆盖 |
+| P02 | [稠密场景语义与几何](#p02-dense-scene-geometry) | 1 | 2026-07-28 | 已有锚点 |
 | P03 | [BEV 与统一场景表示](#p03-bev-unified-representation) | 1 | 2026-07-27 | 已有锚点 |
 | P04 | [Occupancy 与 4D 场景理解](#p04-occupancy-4d) | 1 | 2026-07-24 | 已有锚点 |
 | P05 | [时序与预测性感知](#p05-temporal-predictive-perception) | 0 | — | 待覆盖 |
@@ -76,13 +76,13 @@
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 <a id="p02-dense-scene-geometry"></a>
-### P02 · 稠密场景语义与几何（0）
+### P02 · 稠密场景语义与几何（1）
 
 **范围：** 语义、实例与全景分割，深度、立体、光流、场景流、自由空间、路面、路缘和静态三维重建。
 
 **阅读时追问：** 像素、点、表面和流场是否足够准确地描述可通行空间与细粒度几何？
 
-- 尚无完成精读；每日选文会优先检查这一覆盖缺口。
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
 <a id="p03-bev-unified-representation"></a>
 ### P03 · BEV 与统一场景表示（1）
@@ -197,8 +197,9 @@
 
 - 尚无完成精读。
 
-### Surround Camera（3）
+### Surround Camera（4）
 
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
@@ -268,13 +269,18 @@
 
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
-### Camera Calibration（1）
+### Camera Calibration（2）
 
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
 ### Counterfactual Reasoning（1）
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+
+### Cross-View Transformer（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
 ### Data Generation（1）
 
@@ -288,6 +294,10 @@
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
+### Ego-Motion（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
 ### LLM（1）
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
@@ -296,9 +306,17 @@
 
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
+### Multi-Camera Depth Estimation（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
 ### Multi-Task Perception（1）
 
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
+
+### Multi-View Consistency（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
 ### Occupancy Flow（1）
 
@@ -316,6 +334,14 @@
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
+### Scale-Aware Depth（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
+### Self-Supervised Learning（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
 ### Sparse Convolution（1）
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
@@ -327,6 +353,10 @@
 ### Streaming Perception（1）
 
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
+
+### Structure-from-Motion（1）
+
+- 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
 ### Temporal Memory（2）
 

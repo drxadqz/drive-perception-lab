@@ -20,8 +20,8 @@
 
 % BEGIN eq-07-class-activation-update
 \begin{aligned}
-\chi[\mathbf M_{t+1}\langle\mathbf c\rangle,T_t]
-&=
+&\chi[\mathbf M_{t+1}\langle\mathbf c\rangle,T_t]\\[-2pt]
+&\quad=
 \mathrm{softmax}\!\Bigl(\\[-2pt]
 &\qquad
 \alpha\mathbf c_t
@@ -83,8 +83,9 @@ u\,
 % END eq-13-prediction-gt-memory-write
 
 % BEGIN eq-14-stcv
+\begin{aligned}
 \mathrm{STCV}_t
-=
+&=
 \frac{
 \sum \mathbf 1\!\left[
 \begin{aligned}
@@ -95,8 +96,9 @@ u\,
 \right]
 }{
 \sum \mathbf 1[\mathbf P_t\ne\mathrm{Free}]
-}
-\qquad\text{(14)}
+}\\[-2pt]
+&\qquad\text{(14)}
+\end{aligned}
 % END eq-14-stcv
 
 % BEGIN eq-15-mstcv
@@ -145,13 +147,19 @@ v_{i,y_i}=\exp\!\left(\mathrm{softplus}(r_{i,y_i})\right)
 % END source-code-variance-transform
 
 % BEGIN source-code-uncertainty-loss
+\begin{aligned}
 \mathcal L_{\mathrm{code}}
-=
+&=
 \mathrm{mean}_i\left[
+\begin{aligned}
 \frac{-\log p_{i,y_i}}{2v_{i,y_i}}
-+\frac{1}{2}\log v_{i,y_i}
+\\[-2pt]
+{}+\frac{1}{2}\log v_{i,y_i}
+\end{aligned}
 \right]
-\qquad\text{(code)}
+\\[-2pt]
+&\qquad\text{(code)}
+\end{aligned}
 % END source-code-uncertainty-loss
 
 % BEGIN calculation-local-feature-memory

@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **4** 篇，其中 **4** 篇已由权威来源核验为正式录用。
+共 **5** 篇，其中 **5** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md)
+
+`CoRL 2022` · `正式录用` · **稠密场景语义与几何** · Surround Camera · Multi-Camera Depth Estimation · Self-Supervised Learning · Cross-View Transformer · Structure-from-Motion · Scale-Aware Depth · Camera Calibration · Ego-Motion · Multi-View Consistency
+
+> SurroundDepth 用跨视图注意力、SfM 尺度预训练和统一位姿把六路图像变成米制深度；但固定源码缺论文所述视角编码，多视图一致性无理论保证，结果也未覆盖标定漂移。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-07-28-surrounddepth.md) · [论文原文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [固定版本源码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
 ## 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md)
 
