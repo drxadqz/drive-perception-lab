@@ -1,0 +1,25 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% All blocks are transcribed from SurroundDepth, CoRL 2022, Eq. (3), (5), and (8).
+% The main note carries the exact paper page and fixed-source provenance.
+
+% BEGIN eq-03-cross-view-attention
+\begin{aligned}
+O_i^{\mathrm{out}}
+&=\operatorname{Softmax}\!\left(K_i^{\mathsf T}Q_i/\sqrt{d_k}\right)V_i,\\
+X^{\mathrm{out}}
+&=\operatorname{Concat}\!\left(O_1^{\mathrm{out}},\ldots,O_M^{\mathrm{out}}\right)
+\end{aligned}
+\qquad\text{(3)}
+% END eq-03-cross-view-attention
+
+% BEGIN eq-05-spatial-reprojection
+p_t^{i\rightarrow j}
+=K^j\left(T^j\right)^{-1}T^iD_t^i\left(K^i\right)^{-1}p_t^i
+\qquad\text{(5)}
+% END eq-05-spatial-reprojection
+
+% BEGIN eq-08-joint-pose-transform
+P_{t\rightarrow s}^{i}
+=\left(T^i\right)^{-1}P_{t\rightarrow s}T^i
+\qquad\text{(8)}
+% END eq-08-joint-pose-transform

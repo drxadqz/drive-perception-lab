@@ -12,19 +12,19 @@
 > 纯文字读法与可复制 TeX 源；兼容 GitHub 网页和 iPad/iPhone App。
 
 <!-- AUTO:STATS:START -->
-**4 篇精读** · **4 篇正式录用** · **4 篇关键源码已审** · **覆盖 4/13 个感知主方向** · 最近更新：**2026-07-27**
+**5 篇精读** · **5 篇正式录用** · **5 篇关键源码已审** · **覆盖 5/13 个感知主方向** · 最近更新：**2026-07-28**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
-## ▶ [开始今天的精读：BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers（ECCV 2022）](notes/2026/2026-07-27-bevformer.md)
+## ▶ [开始今天的精读：SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation（CoRL 2022）](notes/2026/2026-07-28-surrounddepth.md)
 
-> BEVFormer 用标定约束的空间交叉注意力和递归历史 BEV 把六路相机变成统一时空 BEV；但固定公开提交只闭环检测、未发布地图分割，且时序状态与标定误差的长序列耦合未验证。
+> SurroundDepth 用跨视图注意力、SfM 尺度预训练和统一位姿把六路图像变成米制深度；但固定源码缺论文所述视角编码，多视图一致性无理论保证，结果也未覆盖标定漂移。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/694_ECCV_2022_paper.php) · **BEV 与统一场景表示** · Surround Camera + Vehicle State · Bird's-Eye View · 3D Object Detection · Map Segmentation · Spatial Cross-Attention · Temporal Memory · Deformable Attention · Multi-Task Perception · Camera Calibration · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://proceedings.mlr.press/v205/wei23a.html) · **稠密场景语义与几何** · Surround Camera · Multi-Camera Depth Estimation · Self-Supervised Learning · Cross-View Transformer · Structure-from-Motion · Scale-Aware Depth · Camera Calibration · Ego-Motion · Multi-View Consistency · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [官方代码 @ 66b65f3a](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
+[论文原文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [官方代码 @ 22dfecfe](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 <!-- AUTO:LATEST:END -->
 
 ## 想读其他内容
@@ -37,9 +37,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-07-28 · CoRL 2022** — [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](notes/2026/2026-07-28-surrounddepth.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-27 · ECCV 2022** — [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](notes/2026/2026-07-27-bevformer.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-26 · CVPR 2023** — [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](notes/2026/2026-07-26-voxelnext.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-07-25 · CVPR 2025** — [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](notes/2026/2026-07-25-omnidrive.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 <details>
