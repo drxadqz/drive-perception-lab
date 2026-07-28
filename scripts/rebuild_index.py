@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Build the human-readable reading hub from index/papers.csv.
+"""Build the human-readable reading hub from paper and Taste indexes.
 
 The CSV is the single machine-readable source of truth. This script:
 
 1. validates paper metadata and note structure;
-2. refreshes generated blocks in README.md and index/topics.md;
-3. generates index/papers.md;
-4. supports a read-only --check mode for CI and daily automation.
+2. validates the daily transferable-design Taste cards;
+3. refreshes generated blocks in README.md and index/topics.md;
+4. generates index/papers.md and taste/README.md;
+5. supports a read-only --check mode for CI and daily automation.
 
 Only the Python standard library is required.
 """
@@ -29,10 +30,12 @@ from urllib.parse import SplitResult, unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "index" / "papers.csv"
+TASTE_CSV_PATH = ROOT / "index" / "taste.csv"
 TAXONOMY_PATH = ROOT / "index" / "taxonomy.json"
 README_PATH = ROOT / "README.md"
 PAPERS_MD_PATH = ROOT / "index" / "papers.md"
 TOPICS_MD_PATH = ROOT / "index" / "topics.md"
+TASTE_MD_PATH = ROOT / "taste" / "README.md"
 
 REQUIRED_FIELDS = (
     "paper_key",
@@ -57,6 +60,34 @@ REQUIRED_FIELDS = (
     "reproduction_status",
     "note_path",
     "takeaway",
+)
+
+TASTE_REQUIRED_FIELDS = (
+    "taste_key",
+    "date",
+    "module_name",
+    "source_paper",
+    "year",
+    "venue",
+    "publication_status",
+    "proceedings_url",
+    "paper_url",
+    "repo_url",
+    "repo_commit",
+    "mechanism_family",
+    "transfer_targets",
+    "note_path",
+    "takeaway",
+    "main_boundary",
+)
+
+TASTE_REQUIRED_HEADINGS = (
+    "## 1. 先看瓶颈：为什么需要它",
+    "## 2. 原理图：它怎样执行",
+    "## 3. 架构位置与接口合同",
+    "## 4. 设计 Taste：为什么值得迁移",
+    "## 5. 证据、边界与反证实验",
+    "## 6. 适用场景与最小接入方案",
 )
 
 REQUIRED_NOTE_HEADINGS = (
@@ -236,12 +267,7 @@ PRIVATE_MARKERS = (
     "Process-Sidecar",
 )
 
-# The legacy public repository slug contains the old project name. Linking to
-# the repository itself is unavoidable and does not reveal any additional
-# unpublished content.
-ALLOWED_PUBLIC_LITERALS = (
-    "https://github.com/drxadqz/sensorledger3d-reading-log",
-)
+ALLOWED_PUBLIC_LITERALS: tuple[str, ...] = ()
 
 NOTE_TEMPLATE_MARKERS = (
     "NOTE_KEY",
@@ -437,6 +463,35 @@ def load_rows() -> list[dict[str, str]]:
 
     if not rows:
         raise ValidationFailure("index/papers.csv contains no paper rows")
+    return rows
+
+
+def load_taste_rows() -> list[dict[str, str]]:
+    if not TASTE_CSV_PATH.is_file():
+        raise ValidationFailure(
+            f"Missing index: {TASTE_CSV_PATH.relative_to(ROOT)}"
+        )
+
+    with TASTE_CSV_PATH.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        fields = tuple(reader.fieldnames or ())
+        if fields != TASTE_REQUIRED_FIELDS:
+            raise ValidationFailure(
+                "Invalid Taste CSV schema or column order. Expected: "
+                + ",".join(TASTE_REQUIRED_FIELDS)
+            )
+        rows = []
+        for line_number, raw_row in enumerate(reader, start=2):
+            if None in raw_row:
+                raise ValidationFailure(
+                    f"Taste CSV line {line_number}: unquoted extra value(s)"
+                )
+            row = {key: (value or "").strip() for key, value in raw_row.items()}
+            row["_line"] = str(line_number)
+            rows.append(row)
+
+    if not rows:
+        raise ValidationFailure("index/taste.csv contains no Taste rows")
     return rows
 
 
@@ -2816,9 +2871,258 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
             unique_fields[field].add(value)
 
 
+def validate_taste_rows(rows: list[dict[str, str]]) -> None:
+    """Validate one portable-design card per indexed Beijing calendar day."""
+
+    unique_dates: set[str] = set()
+    unique_keys: set[str] = set()
+    unique_modules: set[str] = set()
+    unique_paths: set[str] = set()
+    repository_root = ROOT.resolve()
+
+    for row in rows:
+        line = row["_line"]
+        required = (
+            "taste_key",
+            "date",
+            "module_name",
+            "source_paper",
+            "year",
+            "venue",
+            "publication_status",
+            "paper_url",
+            "mechanism_family",
+            "transfer_targets",
+            "note_path",
+            "takeaway",
+            "main_boundary",
+        )
+        missing = [field for field in required if not row[field]]
+        if missing:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: missing " + ", ".join(missing)
+            )
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", row["taste_key"]):
+            raise ValidationFailure(
+                f"Taste CSV line {line}: taste_key must be a lowercase slug"
+            )
+        try:
+            parsed_date = date.fromisoformat(row["date"])
+        except ValueError as exc:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: invalid ISO date"
+            ) from exc
+        if str(parsed_date.year) != row["date"][:4]:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: invalid calendar year"
+            )
+        if not re.fullmatch(r"(?:19|20)\d{2}", row["year"]):
+            raise ValidationFailure(
+                f"Taste CSV line {line}: source-paper year must use YYYY"
+            )
+        if row["publication_status"] not in STATUS_LABELS:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: publication_status must be Accepted or Preprint"
+            )
+        if row["publication_status"] == "Accepted" and not row["proceedings_url"]:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: Accepted requires proceedings_url"
+            )
+        validate_url(row["paper_url"], "paper_url", line)
+        validate_url(
+            row["proceedings_url"],
+            "proceedings_url",
+            line,
+            optional=True,
+        )
+        validate_url(row["repo_url"], "repo_url", line, optional=True)
+        if bool(row["repo_url"]) != bool(row["repo_commit"]):
+            raise ValidationFailure(
+                f"Taste CSV line {line}: repo_url and repo_commit must appear together"
+            )
+        if row["repo_commit"] and not re.fullmatch(
+            r"[0-9a-fA-F]{40}", row["repo_commit"]
+        ):
+            raise ValidationFailure(
+                f"Taste CSV line {line}: repo_commit must be a full 40-character SHA"
+            )
+        if not 1 <= len(
+            [item for item in row["transfer_targets"].split(";") if item.strip()]
+        ) <= 8:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: transfer_targets requires 1-8 semicolon-separated values"
+            )
+        if len(row["takeaway"]) > 160 or len(row["main_boundary"]) > 160:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: takeaway/main_boundary must each be at most 160 characters"
+            )
+
+        note_posix = PurePosixPath(row["note_path"])
+        expected_prefix = ("taste", row["date"][:4])
+        if (
+            note_posix.is_absolute()
+            or ".." in note_posix.parts
+            or note_posix.parts[:2] != expected_prefix
+            or not DATED_NOTE_FILENAME_RE.fullmatch(note_posix.name)
+        ):
+            raise ValidationFailure(
+                f"Taste CSV line {line}: note_path must be taste/YYYY/YYYY-MM-DD-slug.md"
+            )
+        note_path = (ROOT / note_posix).resolve()
+        try:
+            note_path.relative_to(repository_root)
+        except ValueError as exc:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: note_path escapes repository root"
+            ) from exc
+        if not note_path.is_file():
+            raise ValidationFailure(
+                f"Taste CSV line {line}: missing note {row['note_path']}"
+            )
+        note = read_text(note_path)
+        if len(note) < 1200:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: Taste card is too short for a design audit"
+            )
+        heading_positions = []
+        for heading in TASTE_REQUIRED_HEADINGS:
+            if note.count(heading) != 1:
+                raise ValidationFailure(
+                    f"Taste CSV line {line}: note requires exactly one {heading!r}"
+                )
+            heading_positions.append(note.index(heading))
+        if heading_positions != sorted(heading_positions):
+            raise ValidationFailure(
+                f"Taste CSV line {line}: required headings are out of order"
+            )
+        for evidence_label in ("[论文]", "[源码]", "[判断]", "[未核验]"):
+            if evidence_label not in note:
+                raise ValidationFailure(
+                    f"Taste CSV line {line}: note is missing {evidence_label}"
+                )
+        for identity in (
+            row["module_name"],
+            row["paper_url"],
+            row["proceedings_url"],
+            row["repo_commit"],
+        ):
+            if identity and identity not in note:
+                raise ValidationFailure(
+                    f"Taste CSV line {line}: note does not contain indexed identity {identity!r}"
+                )
+
+        expected_asset_root = (
+            "assets",
+            "taste",
+            note_path.stem,
+        )
+        image_count = 0
+        note_lines = note.splitlines()
+        for line_index, note_line in enumerate(note_lines):
+            matches = list(MARKDOWN_IMAGE_RE.finditer(note_line))
+            if len(matches) > 1:
+                raise ValidationFailure(
+                    f"Taste CSV line {line}: put each image on its own Markdown line"
+                )
+            for match in matches:
+                image_count += 1
+                if not match.group("alt").strip():
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: every image requires descriptive alt text"
+                    )
+                raw_target = match.group("target").strip("<>")
+                parsed = urlsplit(raw_target)
+                if parsed.scheme or parsed.netloc:
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: Taste images must be local assets"
+                    )
+                resolved = (note_path.parent / unquote(parsed.path)).resolve()
+                try:
+                    relative = resolved.relative_to(repository_root)
+                except ValueError as exc:
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: image escapes repository root"
+                    ) from exc
+                if not resolved.is_file() or relative.parts[:3] != expected_asset_root:
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: image must live under "
+                        f"{'/'.join(expected_asset_root)}/"
+                    )
+                if resolved.suffix.casefold() != ".png":
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: explanatory images must be PNG"
+                    )
+                image_size = resolved.stat().st_size
+                if not 1024 <= image_size <= 3 * 1024 * 1024:
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: image must be 1 KiB–3 MiB"
+                    )
+                next_index = line_index + 1
+                while next_index < len(note_lines) and not note_lines[next_index].strip():
+                    next_index += 1
+                if next_index >= len(note_lines) or not note_lines[next_index].startswith(
+                    "> **原图出处：**"
+                ):
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: each image needs an immediately adjacent 原图出处 block"
+                    )
+                source_lines = []
+                while next_index < len(note_lines) and note_lines[next_index].startswith(">"):
+                    source_lines.append(note_lines[next_index])
+                    next_index += 1
+                source = "\n".join(source_lines)
+                if (
+                    not FIGURE_ID_RE.search(source)
+                    or not PDF_PAGE_RE.search(source)
+                    or row["paper_url"] not in source
+                    or IMAGE_RIGHTS_NOTICE not in source
+                ):
+                    raise ValidationFailure(
+                        f"Taste CSV line {line}: image source needs Figure number, PDF page, "
+                        "indexed PDF link, and rights notice"
+                    )
+        if image_count < 1:
+            raise ValidationFailure(
+                f"Taste CSV line {line}: every card requires at least one explanatory figure"
+            )
+
+        normalized_values = (
+            (unique_dates, row["date"], "date"),
+            (unique_keys, row["taste_key"].casefold(), "taste_key"),
+            (unique_modules, normalized_title(row["module_name"]), "module_name"),
+            (unique_paths, row["note_path"].casefold(), "note_path"),
+        )
+        for seen, value, field in normalized_values:
+            if value in seen:
+                raise ValidationFailure(
+                    f"Taste CSV line {line}: duplicate {field} {row[field]!r}"
+                )
+            seen.add(value)
+
+
+def validate_taste_inventory(rows: list[dict[str, str]]) -> None:
+    indexed = {row["note_path"] for row in rows}
+    actual = {
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "taste").rglob("*.md")
+        if DATED_NOTE_FILENAME_RE.fullmatch(path.name)
+    }
+    if indexed != actual:
+        missing = sorted(indexed - actual)
+        unindexed = sorted(actual - indexed)
+        raise ValidationFailure(
+            "Taste inventory mismatch; missing="
+            f"{missing or 'none'}, unindexed={unindexed or 'none'}"
+        )
+
+
 def validate_public_markdown() -> None:
-    paths = [README_PATH, ROOT / "SELECTION_POLICY.md"]
-    for directory in ("notes", "index", "templates", "docs"):
+    paths = [
+        README_PATH,
+        ROOT / "SELECTION_POLICY.md",
+        ROOT / "CONTRIBUTING.md",
+    ]
+    for directory in ("notes", "taste", "index", "templates", "docs"):
         paths.extend((ROOT / directory).rglob("*.md"))
 
     seen: set[Path] = set()
@@ -2887,16 +3191,18 @@ def code_link(row: dict[str, str], label: str | None = None) -> str:
 
 def render_stats(
     rows: list[dict[str, str]],
+    taste_rows: list[dict[str, str]],
     taxonomy: dict[str, object],
 ) -> str:
     accepted = sum(row["publication_status"] == "Accepted" for row in rows)
     audited = sum(row["code_audit_status"] == "Audited" for row in rows)
     covered = len({row["primary_track"] for row in rows})
     track_total = len(taxonomy["tracks"])
-    latest_date = rows[0]["date"]
+    latest_date = max(rows[0]["date"], taste_rows[0]["date"])
     return (
         f"**{len(rows)} 篇精读** · **{accepted} 篇正式录用** · "
         f"**{audited} 篇关键源码已审** · "
+        f"**{len(taste_rows)} 张算法 Taste 卡** · "
         f"**覆盖 {covered}/{track_total} 个感知主方向** · "
         f"最近更新：**{latest_date}**"
     )
@@ -2915,8 +3221,11 @@ def render_latest(
         identity = f"[{identity}]({row['proceedings_url']})"
     return "\n".join(
         (
-            f"## ▶ [开始今天的精读：{md_escape(row['title'])}"
-            f"（{md_escape(row['venue'])} {row['year']}）]({note})",
+            "## ▶ 今日论文精读",
+            "",
+            f"### [{md_escape(row['title'])}]({note})",
+            "",
+            f"**{md_escape(row['venue'])} {row['year']}**",
             "",
             f"> {md_escape(row['takeaway'])}",
             "",
@@ -2930,6 +3239,102 @@ def render_latest(
             f"[论文原文]({row['paper_url']}) · {code_link(row)}",
         )
     )
+
+
+def taste_targets(row: dict[str, str]) -> list[str]:
+    return [
+        item.strip()
+        for item in row["transfer_targets"].split(";")
+        if item.strip()
+    ]
+
+
+def render_taste_latest(row: dict[str, str]) -> str:
+    note = root_link(row["note_path"])
+    targets = " · ".join(md_escape(item) for item in taste_targets(row))
+    identity = status_label(row)
+    if row["publication_status"] == "Accepted":
+        identity = f"[{identity}]({row['proceedings_url']})"
+    code = "无官方源码"
+    if row["repo_url"]:
+        code = (
+            f"[固定实现 @ {row['repo_commit'][:8]}]"
+            f"({row['repo_url']}/tree/{row['repo_commit']})"
+        )
+    return "\n".join(
+        (
+            "## 🧩 今日算法 Taste",
+            "",
+            f"### [{md_escape(row['module_name'])}]({note})",
+            "",
+            f"> {md_escape(row['takeaway'])}",
+            "",
+            f"**来自：** [{md_escape(row['source_paper'])}]({row['paper_url']})"
+            f" · {identity} · **{md_escape(row['mechanism_family'])}**",
+            "",
+            f"**可迁移到：** {targets}",
+            "",
+            f"**先记边界：** {md_escape(row['main_boundary'])}",
+            "",
+            f"[看原理图、接口合同、适用场景与反证实验 →]({note}) · {code}",
+        )
+    )
+
+
+def render_taste_index(rows: list[dict[str, str]]) -> str:
+    latest = rows[0]
+    lines = [
+        "# 算法 Taste：可迁移设计卡",
+        "",
+        "[返回首页](../README.md) · [全部论文精读](../index/papers.md) · "
+        "[13 类主题路线](../index/topics.md)",
+        "",
+        "> 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、"
+        "表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据"
+        "和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。",
+        "",
+        f"共 **{len(rows)}** 张设计卡；最近更新：**{latest['date']}**。",
+        "",
+        "## 怎么读一张卡",
+        "",
+        "1. 先判断它解决的瓶颈是否也存在于你的任务；",
+        "2. 再检查输入、输出、shape、坐标系、梯度和算力接口；",
+        "3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。",
+        "",
+        "## 全部设计卡",
+    ]
+    for row in rows:
+        note = PurePosixPath(row["note_path"]).relative_to("taste").as_posix()
+        targets = " · ".join(md_escape(item) for item in taste_targets(row))
+        lines.extend(
+            (
+                "",
+                f"### {row['date']} · [{md_escape(row['module_name'])}]({note})",
+                "",
+                f"**{md_escape(row['mechanism_family'])}** · 来自 "
+                f"[{md_escape(row['source_paper'])}]({row['paper_url']}) "
+                f"· {md_escape(row['venue'])} {row['year']}",
+                "",
+                f"> {md_escape(row['takeaway'])}",
+                "",
+                f"**可迁移到：** {targets}",
+                "",
+                f"**主要边界：** {md_escape(row['main_boundary'])}",
+            )
+        )
+    lines.extend(
+        (
+            "",
+            "## 收录边界",
+            "",
+            "- 优先正式录用论文、作者官方代码和可定位的受控比较；",
+            "- 预印本必须显式标注，不用整模型主结果冒充单模块证据；",
+            "- “可迁移”表示接口和设计逻辑值得测试，不表示零改动即可提升；",
+            "- 未投稿方案、私有结果和可直接抢先实现的核心配方不进入公开卡片。",
+            "",
+        )
+    )
+    return "\n".join(lines)
 
 
 def render_recent(rows: list[dict[str, str]], limit: int = 3) -> str:
@@ -3183,11 +3588,19 @@ def replace_block(text: str, name: str, body: str) -> str:
     return updated
 
 
-def expected_files(rows: list[dict[str, str]]) -> dict[Path, str]:
+def expected_files(
+    rows: list[dict[str, str]],
+    taste_rows: list[dict[str, str]],
+) -> dict[Path, str]:
     taxonomy = load_taxonomy()
     readme = read_text(README_PATH)
-    readme = replace_block(readme, "STATS", render_stats(rows, taxonomy))
+    readme = replace_block(
+        readme,
+        "STATS",
+        render_stats(rows, taste_rows, taxonomy),
+    )
     readme = replace_block(readme, "LATEST", render_latest(rows[0], taxonomy))
+    readme = replace_block(readme, "TASTE", render_taste_latest(taste_rows[0]))
     readme = replace_block(readme, "RECENT", render_recent(rows))
 
     topics = read_text(TOPICS_MD_PATH)
@@ -3197,6 +3610,7 @@ def expected_files(rows: list[dict[str, str]]) -> dict[Path, str]:
         README_PATH: readme.rstrip() + "\n",
         PAPERS_MD_PATH: render_papers_md(rows, taxonomy).rstrip() + "\n",
         TOPICS_MD_PATH: topics.rstrip() + "\n",
+        TASTE_MD_PATH: render_taste_index(taste_rows).rstrip() + "\n",
     }
 
 
@@ -3244,10 +3658,17 @@ def main() -> int:
     try:
         rows = load_rows()
         rows.sort(key=lambda row: (row["date"], row["paper_key"]), reverse=True)
+        taste_rows = load_taste_rows()
+        taste_rows.sort(
+            key=lambda row: (row["date"], row["taste_key"]),
+            reverse=True,
+        )
         validate_rows(rows)
+        validate_taste_rows(taste_rows)
         validate_dated_note_inventory(rows)
+        validate_taste_inventory(taste_rows)
         validate_public_markdown()
-        targets = expected_files(rows)
+        targets = expected_files(rows, taste_rows)
 
         stale = []
         for path, expected in targets.items():
@@ -3272,6 +3693,7 @@ def main() -> int:
         else:
             print("OK: generated pages are current")
         print(f"OK: validated {len(rows)} indexed paper(s)")
+        print(f"OK: validated {len(taste_rows)} indexed Taste card(s)")
         return 0
     except ValidationFailure as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
