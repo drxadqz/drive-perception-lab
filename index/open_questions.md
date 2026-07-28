@@ -54,6 +54,22 @@
 - **检索边界**：streaming state、stateful inference、snapshot/restore、
   sequence isolation、deterministic evaluation。
 
+## Q005 — 相机标定误差应当怎样进入感知模型的置信与恢复评测？
+
+- **状态**：Active；已有三种相机几何路径作为锚点，但缺少统一受控协议。
+- **证据来源**：[BEVFormer 精读](../notes/2026/2026-07-27-bevformer.md)、
+  [SurroundDepth 精读](../notes/2026/2026-07-28-surrounddepth.md)与
+  [MapTR 精读](../notes/2026/2026-07-29-maptr.md)。
+- **已知事实**：三篇工作分别在空间交叉注意力、跨视图深度与在线矢量地图中
+  使用相机几何。MapTR Appendix Table 11–12 还显示，平移或旋转噪声增大时地图
+  mAP 会下降；这证明敏感性存在，但没有给出误差检测、置信校准或恢复过程。
+- **仍不知道**：不同几何表示的失效曲线能否直接比较；模型能否从输出置信度
+  识别标定漂移；标定恢复后，带时序状态的模型是否仍会残留错误。
+- **下一次更新条件**：读到或运行同时控制外参扰动幅度、输出校准、时序恢复和
+  下游指标的公开实验，并至少包含一个不依赖显式投影的对照。
+- **检索边界**：camera calibration drift、extrinsic perturbation、uncertainty
+  calibration、fault detection、post-calibration recovery、BEV robustness。
+
 ## 已关闭问题
 
 被既有工作充分覆盖、被实验否定或不再值得投入的问题移到这里，并保留终止证据

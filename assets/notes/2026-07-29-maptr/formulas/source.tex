@@ -1,0 +1,39 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% All blocks are transcribed from MapTR, ICLR 2023, Eq. (3), (5), (6), and (10).
+% The main note records exact PDF pages and fixed-source provenance.
+
+% BEGIN eq-03-instance-matching
+\begin{aligned}
+\widehat{\pi}
+&=\operatorname*{arg\,min}_{\pi\in\Pi_N}
+\sum_{i=0}^{N-1}
+\mathcal L_{\mathrm{ins\text{-}match}}
+\bigl(\widehat y_{\pi(i)},y_i\bigr)
+\end{aligned}
+\qquad\text{(3)}
+% END eq-03-instance-matching
+
+% BEGIN eq-05-point-matching
+\begin{aligned}
+\widehat{\gamma}
+&=\operatorname*{arg\,min}_{\gamma\in\Gamma}
+\sum_{j=0}^{N_v-1}
+D_{\mathrm{Manhattan}}
+\bigl(\widehat v_j,v_{\gamma(j)}\bigr)
+\end{aligned}
+\qquad\text{(5)}
+% END eq-05-point-matching
+
+% BEGIN eq-06-training-objective
+\mathcal L
+=\lambda\mathcal L_{\mathrm{cls}}
++\alpha\mathcal L_{\mathrm{p2p}}
++\beta\mathcal L_{\mathrm{dir}}
+\qquad\text{(6)}
+% END eq-06-training-objective
+
+% BEGIN eq-10-hierarchical-query
+q^{\mathrm{hie}}_{ij}
+=q^{\mathrm{ins}}_{i}+q^{\mathrm{pt}}_{j}
+\qquad\text{(10)}
+% END eq-10-hierarchical-query

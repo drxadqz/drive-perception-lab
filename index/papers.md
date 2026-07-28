@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **5** 篇，其中 **5** 篇已由权威来源核验为正式录用。
+共 **6** 篇，其中 **6** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md)
+
+`ICLR 2023` · `正式录用` · **道路结构、HD Map 与定位** · Surround Camera + Vehicle State · Online HD Map · Vectorized Map · Bird's-Eye View · Transformer · Hierarchical Matching · Permutation Equivariance · Camera Calibration · Efficient Inference
+
+> MapTR 以排列等价目标和两级匹配并行输出矢量地图，固定顺序消融提升 5.9 mAP；但默认源码未枚举论文定义的反向多边形顺序，且评测不覆盖拓扑。
+
+论文、附录与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-07-29-maptr.md) · [论文原文](https://openreview.net/pdf?id=k7p_YAO7yE) · [固定版本源码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 
 ## 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md)
 
