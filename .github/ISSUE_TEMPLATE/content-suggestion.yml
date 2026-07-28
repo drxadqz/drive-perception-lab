@@ -1,0 +1,70 @@
+name: 公开论文 / 算法 Taste 建议
+description: 推荐已公开论文、官方源码或一个可迁移设计
+title: "[Suggestion] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这里只接收已经公开的材料。请勿披露未投稿想法、私有结果、私有链接、密钥或尚未公开的项目细节。
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 建议类型
+      options:
+        - 自动驾驶感知论文精读
+        - 算法 Taste 设计卡
+        - 已有内容纠错
+    validations:
+      required: true
+  - type: input
+    id: official-source
+    attributes:
+      label: 官方录用或出版页面
+      description: Proceedings、OpenReview decision 或出版社页面；预印本请明确说明。
+      placeholder: https://...
+    validations:
+      required: true
+  - type: input
+    id: paper
+    attributes:
+      label: 官方 PDF
+      placeholder: https://...
+    validations:
+      required: true
+  - type: input
+    id: code
+    attributes:
+      label: 作者官方源码
+      description: 若无官方代码，请写“无”。
+      placeholder: https://github.com/owner/repo
+    validations:
+      required: true
+  - type: textarea
+    id: bottleneck
+    attributes:
+      label: 它解决的具体瓶颈
+      description: 请说明任务、失败模式和为什么现有方法不够。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 最有判别力的证据
+      description: 给出 Figure / Table / Section，以及干预条件和关键数值。
+    validations:
+      required: true
+  - type: textarea
+    id: transfer
+    attributes:
+      label: 迁移价值与可能失效条件
+      description: 写明适用任务、接口假设，以及什么实验结果会推翻你的判断。
+    validations:
+      required: true
+  - type: checkboxes
+    id: public-only
+    attributes:
+      label: 公开安全确认
+      options:
+        - label: 我确认以上内容均已公开，不包含未投稿想法、私有结果或受限链接。
+          required: true

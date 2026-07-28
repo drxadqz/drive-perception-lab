@@ -1313,6 +1313,7 @@ class PerceptionTaxonomyTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.taxonomy = rebuild.load_taxonomy()
         cls.rows = rebuild.load_rows()
+        cls.taste_rows = rebuild.load_taste_rows()
 
     def test_taxonomy_has_thirteen_ordered_tracks(self) -> None:
         tracks = self.taxonomy["tracks"]
@@ -1351,7 +1352,11 @@ class PerceptionTaxonomyTests(unittest.TestCase):
 
     def test_coverage_count_is_derived_from_primary_tracks(self) -> None:
         expected = len({row["primary_track"] for row in self.rows})
-        stats = rebuild.render_stats(self.rows, self.taxonomy)
+        stats = rebuild.render_stats(
+            self.rows,
+            self.taste_rows,
+            self.taxonomy,
+        )
         self.assertIn(
             f"覆盖 {expected}/{len(self.taxonomy['tracks'])} 个感知主方向",
             stats,
@@ -1368,6 +1373,25 @@ class PerceptionTaxonomyTests(unittest.TestCase):
             rows[0]["modalities"] = "Imaginary Sensor"
             with self.assertRaises(rebuild.ValidationFailure):
                 rebuild.validate_rows(rows)
+
+    def test_taste_index_is_unique_and_rendered(self) -> None:
+        rebuild.validate_taste_rows(self.taste_rows)
+        self.assertEqual(
+            len({row["date"] for row in self.taste_rows}),
+            len(self.taste_rows),
+        )
+        rendered = rebuild.render_taste_index(self.taste_rows)
+        for row in self.taste_rows:
+            self.assertIn(row["module_name"], rendered)
+            self.assertIn(row["main_boundary"], rendered)
+
+    def test_taste_duplicate_day_is_rejected(self) -> None:
+        duplicate = dict(self.taste_rows[0])
+        duplicate["taste_key"] += "-duplicate"
+        duplicate["module_name"] += " Duplicate"
+        duplicate["note_path"] = self.taste_rows[0]["note_path"]
+        with self.assertRaises(rebuild.ValidationFailure):
+            rebuild.validate_taste_rows([*self.taste_rows, duplicate])
 
 
 if __name__ == "__main__":

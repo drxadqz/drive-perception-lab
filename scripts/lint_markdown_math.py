@@ -258,8 +258,12 @@ class LintError:
 
 
 def markdown_paths() -> list[Path]:
-    paths = [ROOT / "README.md", ROOT / "SELECTION_POLICY.md"]
-    for directory in ("notes", "index", "templates", "docs"):
+    paths = [
+        ROOT / "README.md",
+        ROOT / "SELECTION_POLICY.md",
+        ROOT / "CONTRIBUTING.md",
+    ]
+    for directory in ("notes", "taste", "index", "templates", "docs"):
         paths.extend((ROOT / directory).rglob("*.md"))
     return sorted({path for path in paths if path.is_file()})
 
@@ -268,7 +272,7 @@ def requires_static_formula_assets(path: Path) -> bool:
     """Return whether this Markdown must remain independent of MathJax."""
 
     resolved = path.resolve()
-    for directory in (ROOT / "notes", ROOT / "templates"):
+    for directory in (ROOT / "notes", ROOT / "taste", ROOT / "templates"):
         try:
             resolved.relative_to(directory.resolve())
             return True
