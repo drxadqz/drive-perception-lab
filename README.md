@@ -10,23 +10,23 @@
 [💡 全部设计卡](taste/README.md)
 
 <!-- AUTO:STATS:START -->
-**5 篇精读** · **5 篇正式录用** · **5 篇关键源码已审** · **1 张算法 Taste 卡** · **覆盖 5/13 个感知主方向** · 最近更新：**2026-07-29**
+**6 篇精读** · **6 篇正式录用** · **6 篇关键源码已审** · **1 张算法 Taste 卡** · **覆盖 6/13 个感知主方向** · 最近更新：**2026-07-29**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](notes/2026/2026-07-28-surrounddepth.md)
+### [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](notes/2026/2026-07-29-maptr.md)
 
-**CoRL 2022**
+**ICLR 2023**
 
-> SurroundDepth 用跨视图注意力、SfM 尺度预训练和统一位姿把六路图像变成米制深度；但固定源码缺论文所述视角编码，多视图一致性无理论保证，结果也未覆盖标定漂移。
+> MapTR 以排列等价目标和两级匹配并行输出矢量地图，固定顺序消融提升 5.9 mAP；但默认源码未枚举论文定义的反向多边形顺序，且评测不覆盖拓扑。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://proceedings.mlr.press/v205/wei23a.html) · **稠密场景语义与几何** · Surround Camera · Multi-Camera Depth Estimation · Self-Supervised Learning · Cross-View Transformer · Structure-from-Motion · Scale-Aware Depth · Camera Calibration · Ego-Motion · Multi-View Consistency · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openreview.net/forum?id=k7p_YAO7yE) · **道路结构、HD Map 与定位** · Surround Camera + Vehicle State · Online HD Map · Vectorized Map · Bird's-Eye View · Transformer · Hierarchical Matching · Permutation Equivariance · Camera Calibration · Efficient Inference · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [官方代码 @ 22dfecfe](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+[论文原文](https://openreview.net/pdf?id=k7p_YAO7yE) · [官方代码 @ a6872d8d](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
@@ -57,9 +57,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-07-29 · ICLR 2023** — [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](notes/2026/2026-07-29-maptr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-28 · CoRL 2022** — [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](notes/2026/2026-07-28-surrounddepth.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-27 · ECCV 2022** — [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](notes/2026/2026-07-27-bevformer.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-07-26 · CVPR 2023** — [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](notes/2026/2026-07-26-voxelnext.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡
