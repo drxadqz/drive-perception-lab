@@ -10,39 +10,39 @@
 [💡 全部设计卡](taste/README.md)
 
 <!-- AUTO:STATS:START -->
-**6 篇精读** · **6 篇正式录用** · **6 篇关键源码已审** · **1 张算法 Taste 卡** · **覆盖 6/13 个感知主方向** · 最近更新：**2026-07-29**
+**7 篇精读** · **7 篇正式录用** · **7 篇关键源码已审** · **2 张算法 Taste 卡** · **覆盖 7/13 个感知主方向** · 最近更新：**2026-08-02**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](notes/2026/2026-07-29-maptr.md)
+### [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](notes/2026/2026-08-02-v2x-vit.md)
 
-**ICLR 2023**
+**ECCV 2022**
 
-> MapTR 以排列等价目标和两级匹配并行输出矢量地图，固定顺序消融提升 5.9 mAP；但默认源码未枚举论文定义的反向多边形顺序，且评测不覆盖拓扑。
+> V2X-ViT 用时空校正、类型化跨节点注意力和多尺度空间注意力融合车路特征；但主证据仅来自仿真，固定源码的 ego、噪声与压缩行为和论文并不完全一致。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openreview.net/forum?id=k7p_YAO7yE) · **道路结构、HD Map 与定位** · Surround Camera + Vehicle State · Online HD Map · Vectorized Map · Bird's-Eye View · Transformer · Hierarchical Matching · Permutation Equivariance · Camera Calibration · Efficient Inference · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/4589_ECCV_2022_paper.php) · **协同感知** · LiDAR + V2X + Vehicle State · Cooperative Perception · Feature-level Fusion · Heterogeneous Attention · Pose Error · Communication Latency · Transformer · Simulation · 3D Object Detection · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openreview.net/pdf?id=k7p_YAO7yE) · [官方代码 @ a6872d8d](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
+[论文原文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [官方代码 @ f0e6c13f](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Multi-Scale Deformable Attention](taste/2026/2026-07-29-multi-scale-deformable-attention.md)
+### [Heterogeneous Multi-Agent Self-Attention (HMSA)](taste/2026/2026-08-02-hmsa.md)
 
-> 把每个 query 的算力集中到参考点附近少量可学习采样位置，在多尺度特征上以稀疏取证替代全图扫描。
+> 让节点类型决定 Q/K/V、让有向边类型决定注意力与消息变换，在同坐标格内显式建模异构来源关系。
 
-**来自：** [Deformable DETR: Deformable Transformers for End-to-End Object Detection](https://arxiv.org/pdf/2010.04159) · [正式录用](https://openreview.net/forum?id=gZ9hCDWe6ke) · **Sparse Attention**
+**来自：** [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/4589_ECCV_2022_paper.php) · **Type-Conditioned Relational Attention**
 
-**可迁移到：** BEV Query · Temporal Memory · Multi-Modal Fusion · Sparse 3D Query
+**可迁移到：** Multi-Sensor BEV · Cooperative Occupancy · Temporal Memory · Multi-Robot Fusion
 
-**先记边界：** 它依赖有意义的参考点、坐标归一化和定制采样算子；训练更快不等于推理更快，也不能保证不漏掉参考点之外的证据。
+**先记边界：** 它依赖可靠坐标对齐与正确类型，节点对计算随 M² 增长；二值角色无法表示同类传感器质量差异，也没有真实 V2X 证据。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-07-29-multi-scale-deformable-attention.md) · [固定实现 @ 11169a60](https://github.com/fundamentalvision/Deformable-DETR/tree/11169a60c33333af00a4849f1808023eba96a931)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-02-hmsa.md) · [固定实现 @ f0e6c13f](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 <!-- AUTO:TASTE:END -->
 
 ## 怎么开始
@@ -57,9 +57,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-02 · ECCV 2022** — [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](notes/2026/2026-08-02-v2x-vit.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-29 · ICLR 2023** — [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](notes/2026/2026-07-29-maptr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-28 · CoRL 2022** — [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](notes/2026/2026-07-28-surrounddepth.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-07-27 · ECCV 2022** — [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](notes/2026/2026-07-27-bevformer.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡
