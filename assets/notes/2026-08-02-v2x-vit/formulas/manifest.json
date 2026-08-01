@@ -1,0 +1,55 @@
+{
+  "formulas": {
+    "eq-01-hmsa-aggregation": {
+      "dark_png_sha256": "31dc23dfd7f84ba92c825b546464de40e79959eac6265ef71a3bca688d50db7c",
+      "display_height": 114,
+      "display_width": 598,
+      "light_png_sha256": "05cfa89c6286fc5719ec5401dd2666b54e3362ed25b610a6716379c6c230f14c",
+      "pixel_height": 228,
+      "pixel_width": 1195,
+      "source_sha256": "0f80b1d237a966865606558edc0b9d7f1a92f49b4f23c5b0bf36b06e44286b94"
+    },
+    "eq-03-relation-aware-attention": {
+      "dark_png_sha256": "fb8e30bb324d3b69a3cf5e5ec17300342d222be9c75db980edea85c375329be6",
+      "display_height": 112,
+      "display_width": 534,
+      "light_png_sha256": "88be151fbe57f05778b5cc2629b4439e76a28b66ef680a3eed1f0f6b68136b3e",
+      "pixel_height": 224,
+      "pixel_width": 1067,
+      "source_sha256": "fb8d0328c57f1726a7397f276294a1cc502b4b5b88411578df102cd6b9804409"
+    },
+    "eq-08-delay-sinusoid": {
+      "dark_png_sha256": "2655f0f90b584a952f766c95d49c5df1d392fd4468efcbc7869346ab30656766",
+      "display_height": 131,
+      "display_width": 525,
+      "light_png_sha256": "44b5b809c57686a7d50fdd30b8942b8512747abad7a73abbd94ee439ba74922c",
+      "pixel_height": 262,
+      "pixel_width": 1050,
+      "source_sha256": "a9fda7d59d47ba6020cb5a04baea1714e0b9df22c2033af24e29dc7dffa7e080"
+    },
+    "eq-09-10-delay-update": {
+      "dark_png_sha256": "291d0b9510b1fad8c2180768e3d636f4f46425b110ac9292679de2816b24d608",
+      "display_height": 84,
+      "display_width": 412,
+      "light_png_sha256": "b3b2f4864ac10f7599ecf84bf05e5aedab13ad7228c830683c051241d58c655f",
+      "pixel_height": 168,
+      "pixel_width": 825,
+      "source_sha256": "df381a627ba1729517bc85317a3ac652d08d2d72e0ed2852a51ca4573d0b093c"
+    }
+  },
+  "profile": {
+    "dark_background": "#0d1117",
+    "dark_foreground": "#f0f6fc",
+    "horizontal_padding": 28,
+    "layout": "content-sized-2x",
+    "light_background": "#ffffff",
+    "light_foreground": "#1f2328",
+    "maximum_display_height": 180,
+    "maximum_display_width": 720,
+    "minimum_display_height": 36,
+    "minimum_display_width": 96,
+    "output_scale": 2,
+    "vertical_padding": 20
+  },
+  "version": 2
+}

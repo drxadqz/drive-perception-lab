@@ -55,7 +55,7 @@
 | P05 | [时序与预测性感知](#p05-temporal-predictive-perception) | 0 | — | 待覆盖 |
 | P06 | [传感器与多模态融合](#p06-sensors-multimodal-fusion) | 0 | — | 待覆盖 |
 | P07 | [道路结构、HD Map 与定位](#p07-road-map-localization) | 1 | 2026-07-29 | 已有锚点 |
-| P08 | [协同感知](#p08-cooperative-perception) | 0 | — | 待覆盖 |
+| P08 | [协同感知](#p08-cooperative-perception) | 1 | 2026-08-02 | 已有锚点 |
 | P09 | [鲁棒、开放世界与可信感知](#p09-robust-open-trustworthy) | 0 | — | 待覆盖 |
 | P10 | [数据中心学习与基础预训练](#p10-data-learning-foundation) | 0 | — | 待覆盖 |
 | P11 | [大视觉模型、VLM、LLM 与 VLA](#p11-vfm-vlm-llm-vla) | 1 | 2026-07-25 | 已有锚点 |
@@ -130,13 +130,13 @@
 - 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md) — ICLR 2023 · 正式录用 · Surround Camera + Vehicle State · [论文](https://openreview.net/pdf?id=k7p_YAO7yE) · [代码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 
 <a id="p08-cooperative-perception"></a>
-### P08 · 协同感知（0）
+### P08 · 协同感知（1）
 
 **范围：** V2V、V2I、V2X 的原始、特征或目标级共享，协同 BEV、Occupancy 与地图，以及时延、带宽和异构性。
 
 **阅读时追问：** 额外视角在通信受限、不同步甚至不可信时，是否仍带来可验证的感知增益？
 
-- 尚无完成精读；每日选文会优先检查这一覆盖缺口。
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 
 <a id="p09-robust-open-trustworthy"></a>
 ### P09 · 鲁棒、开放世界与可信感知（0）
@@ -205,8 +205,9 @@
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
 
-### LiDAR（1）
+### LiDAR（2）
 
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
 ### Radar（0）
@@ -225,9 +226,9 @@
 
 - 尚无完成精读。
 
-### V2X（0）
+### V2X（1）
 
-- 尚无完成精读。
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 
 ### Language（1）
 
@@ -241,8 +242,9 @@
 
 - 尚无完成精读。
 
-### Vehicle State（3）
+### Vehicle State（4）
 
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 - 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md) — ICLR 2023 · 正式录用 · 道路结构、HD Map 与定位 · Surround Camera + Vehicle State · [论文](https://openreview.net/pdf?id=k7p_YAO7yE) · [代码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
@@ -258,8 +260,9 @@
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
-### 3D Object Detection（2）
+### 3D Object Detection（3）
 
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
@@ -277,6 +280,14 @@
 - 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md) — ICLR 2023 · 正式录用 · 道路结构、HD Map 与定位 · Surround Camera + Vehicle State · [论文](https://openreview.net/pdf?id=k7p_YAO7yE) · [代码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
+
+### Communication Latency（1）
+
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
+
+### Cooperative Perception（1）
+
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 
 ### Counterfactual Reasoning（1）
 
@@ -302,6 +313,14 @@
 ### Ego-Motion（1）
 
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
+### Feature-level Fusion（1）
+
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
+
+### Heterogeneous Attention（1）
+
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 
 ### Hierarchical Matching（1）
 
@@ -347,6 +366,10 @@
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 
+### Pose Error（1）
+
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
+
 ### Post-processing（1）
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
@@ -358,6 +381,10 @@
 ### Self-Supervised Learning（1）
 
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
+### Simulation（1）
+
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 
 ### Sparse Convolution（1）
 
@@ -380,8 +407,9 @@
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
 
-### Transformer（1）
+### Transformer（2）
 
+- 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 - 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md) — ICLR 2023 · 正式录用 · 道路结构、HD Map 与定位 · Surround Camera + Vehicle State · [论文](https://openreview.net/pdf?id=k7p_YAO7yE) · [代码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 
 ### Uncertainty（1）

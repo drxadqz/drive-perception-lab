@@ -1,0 +1,45 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% All blocks are transcribed from V2X-ViT, ECCV 2022, Eq. (1), (3), and (8)-(10).
+% The main note records exact PDF pages and fixed-source provenance.
+
+% BEGIN eq-01-hmsa-aggregation
+\mathbf H_i
+=\operatorname{Dense}_{c_i}\!\left(
+\sum_{j\in\mathcal N(i)}
+\operatorname{ATT}(i,j)\cdot\operatorname{MSG}(i,j)
+\right)
+\qquad\text{(1)}
+% END eq-01-hmsa-aggregation
+
+% BEGIN eq-03-relation-aware-attention
+\begin{aligned}
+\operatorname{head}^{m}_{\mathrm{ATT}}(i,j)
+&=\left(
+\mathbf K^{m}(j)\,
+\mathbf W_{\phi(e_{ij})}^{m,\mathrm{ATT}}\,
+\mathbf Q^{m}(i)^{\mathsf T}
+\right)\frac{1}{\sqrt C}\\[-2pt]
+&\hspace{10em}\text{(3)}
+\end{aligned}
+% END eq-03-relation-aware-attention
+
+% BEGIN eq-08-delay-sinusoid
+\begin{aligned}
+p_c(\Delta t_i)
+&=
+\begin{cases}
+\sin\!\left(\Delta t_i/10000^{2c/C}\right), & c=2k,\\
+\cos\!\left(\Delta t_i/10000^{2c/C}\right), & c=2k+1
+\end{cases}\\[-2pt]
+&\hspace{8em}\text{(8)}
+\end{aligned}
+% END eq-08-delay-sinusoid
+
+% BEGIN eq-09-10-delay-update
+\begin{aligned}
+\operatorname{DPE}(\Delta t_i)
+&=f\!\left(\mathbf p(\Delta t_i)\right), &&\text{(9)}\\
+\mathbf H_i
+&=\mathbf H_i+\operatorname{DPE}(\Delta t_i). &&\text{(10)}
+\end{aligned}
+% END eq-09-10-delay-update
