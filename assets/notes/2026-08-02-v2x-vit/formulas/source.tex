@@ -12,23 +12,27 @@
 % END eq-01-hmsa-aggregation
 
 % BEGIN eq-03-relation-aware-attention
+\begin{aligned}
 \operatorname{head}^{m}_{\mathrm{ATT}}(i,j)
-=\left(
+&=\left(
 \mathbf K^{m}(j)\,
 \mathbf W_{\phi(e_{ij})}^{m,\mathrm{ATT}}\,
 \mathbf Q^{m}(i)^{\mathsf T}
-\right)\frac{1}{\sqrt C}
-\qquad\text{(3)}
+\right)\frac{1}{\sqrt C}\\[-2pt]
+&\hspace{10em}\text{(3)}
+\end{aligned}
 % END eq-03-relation-aware-attention
 
 % BEGIN eq-08-delay-sinusoid
+\begin{aligned}
 p_c(\Delta t_i)
-=
+&=
 \begin{cases}
 \sin\!\left(\Delta t_i/10000^{2c/C}\right), & c=2k,\\
 \cos\!\left(\Delta t_i/10000^{2c/C}\right), & c=2k+1
-\end{cases}
-\qquad\text{(8)}
+\end{cases}\\[-2pt]
+&\hspace{8em}\text{(8)}
+\end{aligned}
 % END eq-08-delay-sinusoid
 
 % BEGIN eq-09-10-delay-update

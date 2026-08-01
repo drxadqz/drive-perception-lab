@@ -10,22 +10,22 @@
       "source_sha256": "0f80b1d237a966865606558edc0b9d7f1a92f49b4f23c5b0bf36b06e44286b94"
     },
     "eq-03-relation-aware-attention": {
-      "dark_png_sha256": "41f4810e3e1006d4224287fc227081a300e2d9382d9e27b1adca9cfb03e0fe04",
-      "display_height": 80,
-      "display_width": 616,
-      "light_png_sha256": "ac1fefe8415b43e36c8ce69e29fb78aafc0187c8f6b0f2dec9b19806b71c01d7",
-      "pixel_height": 159,
-      "pixel_width": 1233,
-      "source_sha256": "94b74314528f207833e015731493933a2b41fc4fc0b0d4512ae5aa8749e5673e"
+      "dark_png_sha256": "fb8e30bb324d3b69a3cf5e5ec17300342d222be9c75db980edea85c375329be6",
+      "display_height": 112,
+      "display_width": 534,
+      "light_png_sha256": "88be151fbe57f05778b5cc2629b4439e76a28b66ef680a3eed1f0f6b68136b3e",
+      "pixel_height": 224,
+      "pixel_width": 1067,
+      "source_sha256": "fb8d0328c57f1726a7397f276294a1cc502b4b5b88411578df102cd6b9804409"
     },
     "eq-08-delay-sinusoid": {
-      "dark_png_sha256": "5638fcab9996565255ffa2953a7ecd854dfa24e704b59c0556d236c832a5f054",
-      "display_height": 98,
-      "display_width": 614,
-      "light_png_sha256": "8bd5de805fb94ce66aebae0530271909fcce66a657a21760747eb3b65812bb99",
-      "pixel_height": 197,
-      "pixel_width": 1228,
-      "source_sha256": "66dc88be58a10f1ff674c7a6be4e735a236893deee0f83545861a4bc9de87d20"
+      "dark_png_sha256": "2655f0f90b584a952f766c95d49c5df1d392fd4468efcbc7869346ab30656766",
+      "display_height": 131,
+      "display_width": 525,
+      "light_png_sha256": "44b5b809c57686a7d50fdd30b8942b8512747abad7a73abbd94ee439ba74922c",
+      "pixel_height": 262,
+      "pixel_width": 1050,
+      "source_sha256": "a9fda7d59d47ba6020cb5a04baea1714e0b9df22c2033af24e29dc7dffa7e080"
     },
     "eq-09-10-delay-update": {
       "dark_png_sha256": "291d0b9510b1fad8c2180768e3d636f4f46425b110ac9292679de2816b24d608",
