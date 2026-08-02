@@ -10,39 +10,39 @@
 [💡 全部设计卡](taste/README.md)
 
 <!-- AUTO:STATS:START -->
-**7 篇精读** · **7 篇正式录用** · **7 篇关键源码已审** · **2 张算法 Taste 卡** · **覆盖 7/13 个感知主方向** · 最近更新：**2026-08-02**
+**8 篇精读** · **8 篇正式录用** · **8 篇关键源码已审** · **3 张算法 Taste 卡** · **覆盖 8/13 个感知主方向** · 最近更新：**2026-08-03**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](notes/2026/2026-08-02-v2x-vit.md)
+### [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](notes/2026/2026-08-03-streampetr.md)
 
-**ECCV 2022**
+**ICCV 2023**
 
-> V2X-ViT 用时空校正、类型化跨节点注意力和多尺度空间注意力融合车路特征；但主证据仅来自仿真，固定源码的 ego、噪声与压缩行为和论文并不完全一致。
+> StreamPETR 把 top-K 对象查询作为跨帧隐状态并用运动条件归一化后进入混合注意力；但记忆写回完全 detach，论文主结果配置与默认流式训练配方不同，远距假阳性仍明显。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/4589_ECCV_2022_paper.php) · **协同感知** · LiDAR + V2X + Vehicle State · Cooperative Perception · Feature-level Fusion · Heterogeneous Attention · Pose Error · Communication Latency · Transformer · Simulation · 3D Object Detection · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/ICCV2023/html/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.html) · **时序与预测性感知** · Surround Camera + Vehicle State · Temporal Modeling · Streaming Perception · 3D Object Detection · Object Query · Memory Queue · Motion-Aware Normalization · Transformer · 3D Tracking · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [官方代码 @ f0e6c13f](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
+[论文原文](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [官方代码 @ 95f64702](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Heterogeneous Multi-Agent Self-Attention (HMSA)](taste/2026/2026-08-02-hmsa.md)
+### [Motion-Aware Layer Normalization (MLN)](taste/2026/2026-08-03-motion-aware-layer-normalization.md)
 
-> 让节点类型决定 Q/K/V、让有向边类型决定注意力与消息变换，在同坐标格内显式建模异构来源关系。
+> 先做无仿射层归一化，再由姿态、时间和速度生成恒等初始化的逐通道缩放与偏移，以软条件化代替脆弱的显式运动补偿。
 
-**来自：** [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/4589_ECCV_2022_paper.php) · **Type-Conditioned Relational Attention**
+**来自：** [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/ICCV2023/html/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.html) · **Motion-Conditioned Normalization**
 
-**可迁移到：** Multi-Sensor BEV · Cooperative Occupancy · Temporal Memory · Multi-Robot Fusion
+**可迁移到：** Temporal BEV · Object Query Memory · Multi-Modal Tracking · Cooperative Perception
 
-**先记边界：** 它依赖可靠坐标对齐与正确类型，节点对计算随 M² 增长；二值角色无法表示同类传感器质量差异，也没有真实 V2X 证据。
+**先记边界：** 证据主要来自 ego pose；时间和速度仅额外贡献约 0.4 点，运动元数据噪声、陈旧记忆或非仿射变化都会让条件化失效。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-02-hmsa.md) · [固定实现 @ f0e6c13f](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-03-motion-aware-layer-normalization.md) · [固定实现 @ 95f64702](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
 <!-- AUTO:TASTE:END -->
 
 ## 怎么开始
@@ -57,9 +57,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-03 · ICCV 2023** — [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](notes/2026/2026-08-03-streampetr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-02 · ECCV 2022** — [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](notes/2026/2026-08-02-v2x-vit.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-07-29 · ICLR 2023** — [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](notes/2026/2026-07-29-maptr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-07-28 · CoRL 2022** — [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](notes/2026/2026-07-28-surrounddepth.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡

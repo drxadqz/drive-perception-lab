@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **2** 张设计卡；最近更新：**2026-08-02**。
+共 **3** 张设计卡；最近更新：**2026-08-03**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-03 · [Motion-Aware Layer Normalization (MLN)](2026/2026-08-03-motion-aware-layer-normalization.md)
+
+**Motion-Conditioned Normalization** · 来自 [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · ICCV 2023
+
+> 先做无仿射层归一化，再由姿态、时间和速度生成恒等初始化的逐通道缩放与偏移，以软条件化代替脆弱的显式运动补偿。
+
+**可迁移到：** Temporal BEV · Object Query Memory · Multi-Modal Tracking · Cooperative Perception
+
+**主要边界：** 证据主要来自 ego pose；时间和速度仅额外贡献约 0.4 点，运动元数据噪声、陈旧记忆或非仿射变化都会让条件化失效。
 
 ### 2026-08-02 · [Heterogeneous Multi-Agent Self-Attention (HMSA)](2026/2026-08-02-hmsa.md)
 
