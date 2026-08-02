@@ -1,0 +1,47 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% All blocks are transcribed from StreamPETR, ICCV 2023, Eq. (7)-(11).
+% The main note records exact PDF pages and fixed-source provenance.
+
+% BEGIN eq-07-object-recurrence
+\widetilde{\mathbf F}_{\mathrm{obj}}^{\,t}
+=\varphi\!\left(
+\widetilde{\mathbf F}_{\mathrm{obj}}^{\,t-1},
+\mathbf F_{\mathrm{obj}}^{\,t}
+\right)
+\qquad\text{(7)}
+% END eq-07-object-recurrence
+
+% BEGIN eq-08-09-ego-alignment
+\begin{aligned}
+\mathbf E^{t}_{t-1}
+&=\mathbf E_{t}^{\mathrm{inv}}\cdot\mathbf E_{t-1},
+&&\text{(8)}\\
+\widetilde{\mathbf Q}_{p}^{\,t}
+&=\mathbf E^{t}_{t-1}\cdot\mathbf Q_{p}^{\,t-1}.
+&&\text{(9)}
+\end{aligned}
+% END eq-08-09-ego-alignment
+
+% BEGIN eq-10-motion-affine
+\begin{aligned}
+\boldsymbol{\gamma}
+&=\xi_1\!\left(\mathbf E^{t}_{t-1},\mathbf v,\Delta t\right),\\
+\boldsymbol{\beta}
+&=\xi_2\!\left(\mathbf E^{t}_{t-1},\mathbf v,\Delta t\right).
+\qquad\text{(10)}
+\end{aligned}
+% END eq-10-motion-affine
+
+% BEGIN eq-11-motion-aware-features
+\begin{aligned}
+\widetilde{\mathbf Q}_{pe}^{\,t}
+&=\boldsymbol{\gamma}\cdot
+\operatorname{LN}\!\left(\psi(\widetilde{\mathbf Q}_{p}^{\,t})\right)
++\boldsymbol{\beta},\\
+\widetilde{\mathbf Q}_{c}^{\,t}
+&=\boldsymbol{\gamma}\cdot
+\operatorname{LN}\!\left(\mathbf Q_{c}^{\,t}\right)
++\boldsymbol{\beta}.
+\qquad\text{(11)}
+\end{aligned}
+% END eq-11-motion-aware-features

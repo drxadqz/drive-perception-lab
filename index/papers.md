@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **7** 篇，其中 **7** 篇已由权威来源核验为正式录用。
+共 **8** 篇，其中 **8** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-03 · [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](../notes/2026/2026-08-03-streampetr.md)
+
+`ICCV 2023` · `正式录用` · **时序与预测性感知** · Surround Camera + Vehicle State · Temporal Modeling · Streaming Perception · 3D Object Detection · Object Query · Memory Queue · Motion-Aware Normalization · Transformer · 3D Tracking
+
+> StreamPETR 把 top-K 对象查询作为跨帧隐状态并用运动条件归一化后进入混合注意力；但记忆写回完全 detach，论文主结果配置与默认流式训练配方不同，远距假阳性仍明显。
+
+论文与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-03-streampetr.md) · [论文原文](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [固定版本源码](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
 
 ## 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md)
 
