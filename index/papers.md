@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **8** 篇，其中 **8** 篇已由权威来源核验为正式录用。
+共 **9** 篇，其中 **9** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md)
+
+`CVPR 2024` · `正式录用` · **数据中心学习与基础预训练** · Surround Camera + LiDAR · Self-Supervised Learning · Pre-training · Differentiable Rendering · Volumetric Representation · Depth-Aware Sampling · 3D Object Detection · 3D Semantic Segmentation · Multi-Modal Learning
+
+> UniPAD 用掩码体积渲染把相机与 LiDAR 编码器预训练到统一三维空间；低数据增益显著，但相机预训练仍依赖 LiDAR 深度，固定源码采样含 RGB-only 回退且证据只覆盖 nuScenes。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-04-unipad.md) · [论文原文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [固定版本源码](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 
 ## 2026-08-03 · [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](../notes/2026/2026-08-03-streampetr.md)
 

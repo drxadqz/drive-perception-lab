@@ -1,0 +1,49 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% All blocks are transcribed from UniPAD, CVPR 2024, Eq. (1)-(4).
+% The main note records exact PDF pages and fixed-source provenance.
+
+% BEGIN eq-01-view-transform
+\begin{aligned}
+\mathbf X'_p
+&=\mathbf T_{\mathrm{c2i}}\mathbf T_{\mathrm{l2c}}\mathbf X_p,\\
+\mathcal V
+&=\mathcal B\!\left(\mathbf X'_p,\mathbf F_c\right)
+\mathcal T\!\left(\mathbf X'_p,\phi(\mathbf F_c)\right).
+\qquad\text{(1)}
+\end{aligned}
+% END eq-01-view-transform
+
+% BEGIN eq-02-volume-rendering
+\hat{Y}^{\mathrm{RGB}}_i
+={\textstyle\sum}_{j=1}^{D}w_jc_j,
+\qquad
+\hat{Y}^{\mathrm{depth}}_i
+={\textstyle\sum}_{j=1}^{D}w_jt_j.
+\qquad\text{(2)}
+% END eq-02-volume-rendering
+
+% BEGIN eq-03-opacity
+\begin{aligned}
+\alpha_j
+&=\max\!\left(
+\frac{\sigma_s(s_j)-\sigma_s(s_{j+1})}{\sigma_s(s_j)},\,0
+\right),\\
+\sigma_s(x)
+&=\left(1+e^{-sx}\right)^{-1}.
+\qquad\text{(3)}
+\end{aligned}
+% END eq-03-opacity
+
+% BEGIN eq-04-pretraining-loss
+\begin{aligned}
+\mathcal L
+&=\frac{\lambda_{\mathrm{RGB}}}{K}
+{\textstyle\sum}_{i=1}^{K}
+\left|\hat{Y}^{\mathrm{RGB}}_i-Y_i^{\mathrm{RGB}}\right|\\
+&\quad+
+\frac{\lambda_{\mathrm{depth}}}{K^+}
+{\textstyle\sum}_{i=1}^{K^+}
+\left|\hat{Y}^{\mathrm{depth}}_i-Y_i^{\mathrm{depth}}\right|.
+\qquad\text{(4)}
+\end{aligned}
+% END eq-04-pretraining-loss
