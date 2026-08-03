@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **3** 张设计卡；最近更新：**2026-08-03**。
+共 **4** 张设计卡；最近更新：**2026-08-04**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-04 · [Depth-Aware Ray Sampling](2026/2026-08-04-depth-aware-ray-sampling.md)
+
+**Geometry-Guided Supervision Sampling** · 来自 [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · CVPR 2024
+
+> 在固定昂贵预算下优先采样可同时获得观测与稀缺几何真值的位置，并保留探索配额约束辅助传感器选择偏差。
+
+**可迁移到：** Camera Self-Supervised Pre-training · BEV Feature Learning · Multi-Modal Representation Learning · Neural Rendering
+
+**主要边界：** LiDAR 稀疏、失配或存在系统性盲区时会欠采样关键语义；模块证据只有 nuScenes 单次小幅消融。
 
 ### 2026-08-03 · [Motion-Aware Layer Normalization (MLN)](2026/2026-08-03-motion-aware-layer-normalization.md)
 

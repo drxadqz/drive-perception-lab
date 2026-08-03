@@ -10,39 +10,39 @@
 [💡 全部设计卡](taste/README.md)
 
 <!-- AUTO:STATS:START -->
-**8 篇精读** · **8 篇正式录用** · **8 篇关键源码已审** · **3 张算法 Taste 卡** · **覆盖 8/13 个感知主方向** · 最近更新：**2026-08-03**
+**9 篇精读** · **9 篇正式录用** · **9 篇关键源码已审** · **4 张算法 Taste 卡** · **覆盖 9/13 个感知主方向** · 最近更新：**2026-08-04**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](notes/2026/2026-08-03-streampetr.md)
+### [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](notes/2026/2026-08-04-unipad.md)
 
-**ICCV 2023**
+**CVPR 2024**
 
-> StreamPETR 把 top-K 对象查询作为跨帧隐状态并用运动条件归一化后进入混合注意力；但记忆写回完全 detach，论文主结果配置与默认流式训练配方不同，远距假阳性仍明显。
+> UniPAD 用掩码体积渲染把相机与 LiDAR 编码器预训练到统一三维空间；低数据增益显著，但相机预训练仍依赖 LiDAR 深度，固定源码采样含 RGB-only 回退且证据只覆盖 nuScenes。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/ICCV2023/html/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.html) · **时序与预测性感知** · Surround Camera + Vehicle State · Temporal Modeling · Streaming Perception · 3D Object Detection · Object Query · Memory Queue · Motion-Aware Normalization · Transformer · 3D Tracking · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/CVPR2024/html/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.html) · **数据中心学习与基础预训练** · Surround Camera + LiDAR · Self-Supervised Learning · Pre-training · Differentiable Rendering · Volumetric Representation · Depth-Aware Sampling · 3D Object Detection · 3D Semantic Segmentation · Multi-Modal Learning · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [官方代码 @ 95f64702](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
+[论文原文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [官方代码 @ 3d24add1](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Motion-Aware Layer Normalization (MLN)](taste/2026/2026-08-03-motion-aware-layer-normalization.md)
+### [Depth-Aware Ray Sampling](taste/2026/2026-08-04-depth-aware-ray-sampling.md)
 
-> 先做无仿射层归一化，再由姿态、时间和速度生成恒等初始化的逐通道缩放与偏移，以软条件化代替脆弱的显式运动补偿。
+> 在固定昂贵预算下优先采样可同时获得观测与稀缺几何真值的位置，并保留探索配额约束辅助传感器选择偏差。
 
-**来自：** [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/ICCV2023/html/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.html) · **Motion-Conditioned Normalization**
+**来自：** [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2024/html/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.html) · **Geometry-Guided Supervision Sampling**
 
-**可迁移到：** Temporal BEV · Object Query Memory · Multi-Modal Tracking · Cooperative Perception
+**可迁移到：** Camera Self-Supervised Pre-training · BEV Feature Learning · Multi-Modal Representation Learning · Neural Rendering
 
-**先记边界：** 证据主要来自 ego pose；时间和速度仅额外贡献约 0.4 点，运动元数据噪声、陈旧记忆或非仿射变化都会让条件化失效。
+**先记边界：** LiDAR 稀疏、失配或存在系统性盲区时会欠采样关键语义；模块证据只有 nuScenes 单次小幅消融。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-03-motion-aware-layer-normalization.md) · [固定实现 @ 95f64702](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-04-depth-aware-ray-sampling.md) · [固定实现 @ 3d24add1](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 <!-- AUTO:TASTE:END -->
 
 ## 怎么开始
@@ -57,9 +57,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-04 · CVPR 2024** — [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](notes/2026/2026-08-04-unipad.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-03 · ICCV 2023** — [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](notes/2026/2026-08-03-streampetr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-02 · ECCV 2022** — [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](notes/2026/2026-08-02-v2x-vit.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-07-29 · ICLR 2023** — [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](notes/2026/2026-07-29-maptr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡
