@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **9** 篇，其中 **9** 篇已由权威来源核验为正式录用。
+共 **10** 篇，其中 **10** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md)
+
+`CVPR 2022` · `正式录用` · **传感器与多模态融合** · Surround Camera + LiDAR · LiDAR-Camera Fusion · 3D Object Detection · Soft Association · Transformer Decoder · Object Query · Sensor Misalignment · Missing Camera · Multi-Modal Robustness
+
+> TransFusion 先保留 LiDAR 初始检测，再用局部软注意力增量融合图像；合成丢图与平移下退化较慢，但固定源码冻结两端骨干、checkpoint 不公开且分数合成不同于论文文字。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-05-transfusion.md) · [论文原文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [固定版本源码](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 
 ## 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md)
 

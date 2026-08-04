@@ -10,39 +10,39 @@
 [💡 全部设计卡](taste/README.md)
 
 <!-- AUTO:STATS:START -->
-**9 篇精读** · **9 篇正式录用** · **9 篇关键源码已审** · **4 张算法 Taste 卡** · **覆盖 9/13 个感知主方向** · 最近更新：**2026-08-04**
+**10 篇精读** · **10 篇正式录用** · **10 篇关键源码已审** · **5 张算法 Taste 卡** · **覆盖 10/13 个感知主方向** · 最近更新：**2026-08-05**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](notes/2026/2026-08-04-unipad.md)
+### [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](notes/2026/2026-08-05-transfusion.md)
 
-**CVPR 2024**
+**CVPR 2022**
 
-> UniPAD 用掩码体积渲染把相机与 LiDAR 编码器预训练到统一三维空间；低数据增益显著，但相机预训练仍依赖 LiDAR 深度，固定源码采样含 RGB-only 回退且证据只覆盖 nuScenes。
+> TransFusion 先保留 LiDAR 初始检测，再用局部软注意力增量融合图像；合成丢图与平移下退化较慢，但固定源码冻结两端骨干、checkpoint 不公开且分数合成不同于论文文字。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/CVPR2024/html/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.html) · **数据中心学习与基础预训练** · Surround Camera + LiDAR · Self-Supervised Learning · Pre-training · Differentiable Rendering · Volumetric Representation · Depth-Aware Sampling · 3D Object Detection · 3D Semantic Segmentation · Multi-Modal Learning · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/CVPR2022/html/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.html) · **传感器与多模态融合** · Surround Camera + LiDAR · LiDAR-Camera Fusion · 3D Object Detection · Soft Association · Transformer Decoder · Object Query · Sensor Misalignment · Missing Camera · Multi-Modal Robustness · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [官方代码 @ 3d24add1](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
+[论文原文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [官方代码 @ 73c596f7](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Depth-Aware Ray Sampling](taste/2026/2026-08-04-depth-aware-ray-sampling.md)
+### [Image-Guided Query Initialization](taste/2026/2026-08-05-image-guided-query-initialization.md)
 
-> 在固定昂贵预算下优先采样可同时获得观测与稀缺几何真值的位置，并保留探索配额约束辅助传感器选择偏差。
+> 让辅助模态只预测同坐标候选热力图并以 stop-gradient 参与 top-K，主 query 内容仍来自可靠模态，便于隔离错误与回滚。
 
-**来自：** [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2024/html/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.html) · **Geometry-Guided Supervision Sampling**
+**来自：** [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2022/html/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.html) · **Cross-Modal Proposal Prior**
 
-**可迁移到：** Camera Self-Supervised Pre-training · BEV Feature Learning · Multi-Modal Representation Learning · Neural Rendering
+**可迁移到：** Sparse-BEV Query Detection · Radar-Camera Fusion · Cooperative BEV · Open-World Proposal Recall
 
-**先记边界：** LiDAR 稀疏、失配或存在系统性盲区时会欠采样关键语义；模块证据只有 nuScenes 单次小幅消融。
+**先记边界：** 等权 prior 依赖固定视图和分数标度；Table 7 只有 0.8-1.6 mAP 边际且时延明显增加，未验证真实缺模态或跨 rig。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-04-depth-aware-ray-sampling.md) · [固定实现 @ 3d24add1](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-05-image-guided-query-initialization.md) · [固定实现 @ 73c596f7](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 <!-- AUTO:TASTE:END -->
 
 ## 怎么开始
@@ -57,9 +57,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-05 · CVPR 2022** — [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](notes/2026/2026-08-05-transfusion.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-04 · CVPR 2024** — [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](notes/2026/2026-08-04-unipad.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-03 · ICCV 2023** — [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](notes/2026/2026-08-03-streampetr.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-08-02 · ECCV 2022** — [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](notes/2026/2026-08-02-v2x-vit.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡

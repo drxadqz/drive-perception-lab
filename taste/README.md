@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **4** 张设计卡；最近更新：**2026-08-04**。
+共 **5** 张设计卡；最近更新：**2026-08-05**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-05 · [Image-Guided Query Initialization](2026/2026-08-05-image-guided-query-initialization.md)
+
+**Cross-Modal Proposal Prior** · 来自 [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · CVPR 2022
+
+> 让辅助模态只预测同坐标候选热力图并以 stop-gradient 参与 top-K，主 query 内容仍来自可靠模态，便于隔离错误与回滚。
+
+**可迁移到：** Sparse-BEV Query Detection · Radar-Camera Fusion · Cooperative BEV · Open-World Proposal Recall
+
+**主要边界：** 等权 prior 依赖固定视图和分数标度；Table 7 只有 0.8-1.6 mAP 边际且时延明显增加，未验证真实缺模态或跨 rig。
 
 ### 2026-08-04 · [Depth-Aware Ray Sampling](2026/2026-08-04-depth-aware-ray-sampling.md)
 
