@@ -177,9 +177,9 @@
 
 **原文公式：** 论文 Eq. (1)，PDF p. 5 / proceedings p. 1094。
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/2026-08-05-transfusion/formulas/eq-01-matching-cost-dark.png"><img src="../../assets/notes/2026-08-05-transfusion/formulas/eq-01-matching-cost-light.png" alt="公式：分类、BEV 中心回归和三维交并比三项加权形成匈牙利匹配代价" width="636" height="53"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/2026-08-05-transfusion/formulas/eq-01-matching-cost-dark.png"><img src="../../assets/notes/2026-08-05-transfusion/formulas/eq-01-matching-cost-light.png" alt="公式：分类、BEV 中心回归和三维交并比三项加权形成匈牙利匹配代价" width="394" height="94"></picture></p>
 
-> **公式来源：** Bai et al., CVPR 2022, Eq. (1)，PDF p. 5 / proceedings p. 1094；本图按原符号重排。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L5-L11)。
+> **公式来源：** Bai et al., CVPR 2022, Eq. (1)，PDF p. 5 / proceedings p. 1094；本图按原符号重排。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L5-L13)。
 
 **符号说明：** ***C***<sub>match</sub> 是预测与真值配对代价；*p* 与 *p̂* 是类别真值和预测；*b* 与 *b̂* 是真值框与预测框；***L***<sub>cls</sub> 是分类代价，***L***<sub>reg</sub> 是归一化 BEV 中心 L1 代价，***L***<sub>iou</sub> 是三维 IoU 代价；*λ*<sub>1</sub>、*λ*<sub>2</sub>、*λ*<sub>3</sub> 是权重。
 
@@ -201,7 +201,7 @@
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/2026-08-05-transfusion/formulas/eq-unnum-smca-mask-dark.png"><img src="../../assets/notes/2026-08-05-transfusion/formulas/eq-unnum-smca-mask-light.png" alt="公式：图像位置到投影框中心的平方距离经尺度归一后指数衰减成 SMCA 权重" width="415" height="84"></picture></p>
 
-> **公式来源：** Bai et al., CVPR 2022, §3.4 未编号公式，PDF p. 4 / proceedings p. 1093；本图按原符号重排。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L13-L18)。
+> **公式来源：** Bai et al., CVPR 2022, §3.4 未编号公式，PDF p. 4 / proceedings p. 1093；本图按原符号重排。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L15-L20)。
 
 **符号说明：** *M*<sub>ij</sub> 是图像特征格 (*i*, *j*) 的空间权重；(*c*<sub>x</sub>, *c*<sub>y</sub>) 是初始三维框中心投影到图像的位置；*r* 是投影八角点最小外接圆半径；*σ* 是论文中的带宽超参数。
 
@@ -223,7 +223,7 @@
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/2026-08-05-transfusion/formulas/src-query-heatmap-dark.png"><img src="../../assets/notes/2026-08-05-transfusion/formulas/src-query-heatmap-light.png" alt="公式：源码等价式对 detached 的 LiDAR 与图像热力图概率取平均，再做局部峰值与 top-K 查询选择" width="516" height="87"></picture></p>
 
-> **公式来源：** **[源码]** 本图是固定 commit 对查询选择的等价重排，不是论文原式。[forward_single @ 73c596f7bd3460c17cbcc58dd9bcc5a0896774a8](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/mmdet3d/models/dense_heads/transfusion_head.py#L838-L873) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L20-L30)。
+> **公式来源：** **[源码]** 本图是固定 commit 对查询选择的等价重排，不是论文原式。[forward_single @ 73c596f7bd3460c17cbcc58dd9bcc5a0896774a8](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/mmdet3d/models/dense_heads/transfusion_head.py#L838-L873) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L22-L32)。
 
 **符号说明：** ***H***<sub>L</sub> 与 ***H***<sub>I</sub> 是 LiDAR 和图像引导 logits；sigmoid 把它们变成概率；sg 表示停止梯度；LocalMax 是类别内局部峰值筛选；TopK 跨类别和空间取 200 个索引；***Q*** 是查询索引集合。
 
@@ -245,7 +245,7 @@
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/2026-08-05-transfusion/formulas/src-score-composition-dark.png"><img src="../../assets/notes/2026-08-05-transfusion/formulas/src-score-composition-light.png" alt="公式：对照式中论文文字写热力图与分类分数的几何平均，固定源码直接相乘并限制为查询初始类别" width="470" height="83"></picture></p>
 
-> **公式来源：** **[判断]** **[源码]** 第一行是论文 §4 Testing 文字的数学重述，第二行是固定源码等价重排；二者都不是论文排版原式。[官方 PDF p. 6](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [get_bboxes](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/mmdet3d/models/dense_heads/transfusion_head.py#L1294-L1311) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L32-L41)。
+> **公式来源：** **[判断]** **[源码]** 第一行是论文 §4 Testing 文字的数学重述，第二行是固定源码等价重排；二者都不是论文排版原式。[官方 PDF p. 6](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [get_bboxes](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/mmdet3d/models/dense_heads/transfusion_head.py#L1294-L1311) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L34-L43)。
 
 **符号说明：** *s*<sub>heatmap</sub> 是查询初始化热力图分数；*s*<sub>cls</sub> 是最终分类 logit 或概率；*s*<sub>query</sub> 是固定源码保存的查询热力图分数；指示函数只保留查询初始化时所属类别 *k*<sub>query</sub>。
 

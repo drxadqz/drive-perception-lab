@@ -1,13 +1,13 @@
 {
   "formulas": {
     "eq-01-matching-cost": {
-      "dark_png_sha256": "7867c3634fe29a1022f6117090994a8864c94537278f1bfe1ea338704c716822",
-      "display_height": 53,
-      "display_width": 636,
-      "light_png_sha256": "f96584760573365245d62e1eb30aab4598a5da97a79d2998e3beede475b564cf",
-      "pixel_height": 106,
-      "pixel_width": 1272,
-      "source_sha256": "615870175df000c71e8ed41974444b7821248b19312945ff9eb4a9e4d77e92c5"
+      "dark_png_sha256": "2930425e9e9c0689e54579183f8754bf56915be70bee85198732c438fc23955f",
+      "display_height": 94,
+      "display_width": 394,
+      "light_png_sha256": "050ad218e4dd4533c1aef7bb90edb6c830e78463869c0f3d3c37737665acad42",
+      "pixel_height": 187,
+      "pixel_width": 789,
+      "source_sha256": "32e6243085caba9e4fdd6208b128f4f8db4d4776715cee255059523f218a2f73"
     },
     "eq-unnum-smca-mask": {
       "dark_png_sha256": "7820e49c28ef7f7ca0b7db8d440cfc8709bc3e1e181b785e1cedd82cc44acccb",

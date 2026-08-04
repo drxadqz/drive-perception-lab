@@ -3,11 +3,13 @@
 % Blocks prefixed with src- are implementation summaries, not paper equations.
 
 % BEGIN eq-01-matching-cost
+\begin{aligned}
 \mathcal C_{\mathrm{match}}
-=\lambda_1\mathcal L_{\mathrm{cls}}(p,\hat p)
-+\lambda_2\mathcal L_{\mathrm{reg}}(b,\hat b)
-+\lambda_3\mathcal L_{\mathrm{iou}}(b,\hat b).
+&=\lambda_1\mathcal L_{\mathrm{cls}}(p,\hat p)
++\lambda_2\mathcal L_{\mathrm{reg}}(b,\hat b)\\
+&\quad+\lambda_3\mathcal L_{\mathrm{iou}}(b,\hat b).
 \qquad\text{(1)}
+\end{aligned}
 % END eq-01-matching-cost
 
 % BEGIN eq-unnum-smca-mask
