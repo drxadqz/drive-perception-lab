@@ -1,0 +1,43 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Paper formulas are transcribed from TransFusion, CVPR 2022.
+% Blocks prefixed with src- are implementation summaries, not paper equations.
+
+% BEGIN eq-01-matching-cost
+\begin{aligned}
+\mathcal C_{\mathrm{match}}
+&=\lambda_1\mathcal L_{\mathrm{cls}}(p,\hat p)
++\lambda_2\mathcal L_{\mathrm{reg}}(b,\hat b)\\
+&\quad+\lambda_3\mathcal L_{\mathrm{iou}}(b,\hat b).
+\qquad\text{(1)}
+\end{aligned}
+% END eq-01-matching-cost
+
+% BEGIN eq-unnum-smca-mask
+M_{ij}
+=\exp\!\left(
+-\frac{(i-c_x)^2+(j-c_y)^2}{\sigma r^2}
+\right)
+% END eq-unnum-smca-mask
+
+% BEGIN src-query-heatmap
+\begin{aligned}
+\mathbf H
+&=\tfrac12\!\left[
+\operatorname{sg}\!\left(\operatorname{sigmoid}(\mathbf H_L)\right)
++\operatorname{sg}\!\left(\operatorname{sigmoid}(\mathbf H_I)\right)
+\right],\\
+\mathcal Q
+&=\operatorname{TopK}\!\left(\operatorname{LocalMax}(\mathbf H)\right).
+\end{aligned}
+% END src-query-heatmap
+
+% BEGIN src-score-composition
+\begin{aligned}
+s_{\mathrm{paper}}
+&=\sqrt{s_{\mathrm{heatmap}}\,s_{\mathrm{cls}}},\\
+s_{\mathrm{source}}
+&=s_{\mathrm{query}}\,
+\operatorname{sigmoid}(s_{\mathrm{cls}})\,
+\mathbf 1[k=k_{\mathrm{query}}].
+\end{aligned}
+% END src-score-composition
