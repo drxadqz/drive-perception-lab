@@ -293,6 +293,8 @@ App、深色模式和读屏场景得到同一内容，精读正文不依赖 live
 
 ```bash
 python scripts/render_formula_assets.py --check
+python scripts/rebuild_research_radar.py
+python scripts/rebuild_research_radar.py --check
 python scripts/rebuild_index.py
 python scripts/rebuild_index.py --check
 python scripts/lint_markdown_math.py

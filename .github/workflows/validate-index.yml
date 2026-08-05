@@ -23,6 +23,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verify SOTA and transfer-opportunity radars
+        run: python scripts/rebuild_research_radar.py --check
+
       - name: Verify generated pages and metadata
         run: python scripts/rebuild_index.py --check
 
