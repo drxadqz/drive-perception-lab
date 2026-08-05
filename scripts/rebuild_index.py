@@ -208,6 +208,18 @@ PDF_PAGE_RE = re.compile(r"\bPDF p\.\s*\d+\b")
 IMAGE_RIGHTS_NOTICE = "原图版权归原作者及其他权利人"
 FORMULA_ALT_PREFIX = "公式："
 FORMULA_SOURCE_LABEL = "**公式来源：**"
+FORMULA_IDENTITY_LEGEND = (
+    "**变量身份图例：** **[领域惯用]** 表示语义角色在本领域常见，但不表示所有论文都使用同一个字母；"
+    "**[本文定义]** 表示论文给该符号赋予了本文特定含义；**[源码/笔记重排]** 表示固定源码等价式或本笔记计算新增的符号。"
+)
+FORMULA_TEACHING_LABELS = (
+    "**先建立画面：**",
+    "**变量逐项解释与身份：**",
+    "**变量变化会怎样：**",
+    "**纯文字读法：**",
+    "**教学小例子：**",
+)
+FORMULA_IDENTITY_TAGS = ("[领域惯用]", "[本文定义]", "[源码/笔记重排]")
 FORMULA_SOURCE_FILE = "source.tex"
 FORMULA_MANIFEST_FILE = "manifest.json"
 FORMULA_MIN_DISPLAY_WIDTH = 96
@@ -3169,6 +3181,91 @@ def validate_note_assets(
                     f"CSV line {line}: original formula label on Markdown line "
                     f"{label_line} must be followed by exactly one visible formula "
                     "PNG pair"
+                )
+
+    if formula_images:
+        if top_text.count(FORMULA_IDENTITY_LEGEND) != 1:
+            raise ValidationFailure(
+                f"CSV line {line}: note with formulas requires exactly one variable "
+                "identity legend that distinguishes field conventions, paper-defined "
+                "symbols, and source/note rearrangements"
+            )
+        heading_lines = sorted(
+            source_line
+            for source_line, content in top_lines
+            if content.lstrip().startswith("#")
+        )
+        for picture in formula_images:
+            next_heading = next(
+                (
+                    heading_line
+                    for heading_line in heading_lines
+                    if heading_line > picture.source_line
+                ),
+                10**9,
+            )
+            teaching_block = "\n".join(
+                content
+                for source_line, content in top_lines
+                if picture.source_line < source_line < next_heading
+            )
+            label_positions = [
+                teaching_block.find(label) for label in FORMULA_TEACHING_LABELS
+            ]
+            if any(position < 0 for position in label_positions):
+                missing = [
+                    label
+                    for label, position in zip(
+                        FORMULA_TEACHING_LABELS, label_positions, strict=True
+                    )
+                    if position < 0
+                ]
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} on Markdown line "
+                    f"{picture.source_line} is missing beginner teaching fields: "
+                    f"{', '.join(missing)}"
+                )
+            if label_positions != sorted(label_positions):
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} teaching fields must "
+                    "follow mental picture, variable identity, change direction, plain "
+                    "reading, and numeric example order"
+                )
+            mental_start, identity_start, change_start, plain_start, example_start = (
+                label_positions
+            )
+            mental_text = teaching_block[mental_start:identity_start]
+            identity_text = teaching_block[identity_start:change_start]
+            change_text = teaching_block[change_start:plain_start]
+            example_text = teaching_block[example_start:]
+            if "[笔记解释]" not in mental_text or len(mental_text.strip()) < 45:
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} needs a substantive "
+                    "[笔记解释] beginner mental picture"
+                )
+            if not any(tag in identity_text for tag in FORMULA_IDENTITY_TAGS):
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} must classify every "
+                    "variable using the formula identity tags"
+                )
+            if len(identity_text.strip()) < 90:
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} variable identity "
+                    "explanation is too short to audit"
+                )
+            if len(change_text.strip()) < 45:
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} needs a substantive "
+                    "variable-change explanation"
+                )
+            if (
+                "[笔记解释]" not in example_text
+                or "不是论文实验" not in example_text
+                or len(example_text.strip()) < 55
+            ):
+                raise ValidationFailure(
+                    f"CSV line {line}: formula {picture.name!r} needs a numeric "
+                    "[笔记解释] teaching example explicitly marked as not a paper experiment"
                 )
 
 

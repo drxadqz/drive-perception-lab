@@ -187,6 +187,8 @@
 
 ## 2. 读公式：核心机制怎样表达
 
+**变量身份图例：** **[领域惯用]** 表示语义角色在本领域常见，但不表示所有论文都使用同一个字母；**[本文定义]** 表示论文给该符号赋予了本文特定含义；**[源码/笔记重排]** 表示固定源码等价式或本笔记计算新增的符号。
+
 ### Eq. (1)：一对一匹配代价
 
 **原文公式：** 论文 Eq. (1)，PDF p. 5 / proceedings p. 1094。
@@ -194,6 +196,12 @@
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../../assets/notes/2026-08-05-transfusion/formulas/eq-01-matching-cost-dark.png"><img src="../../assets/notes/2026-08-05-transfusion/formulas/eq-01-matching-cost-light.png" alt="公式：分类、BEV 中心回归和三维交并比三项加权形成匈牙利匹配代价" width="394" height="94"></picture></p>
 
 > **公式来源：** Bai et al., CVPR 2022, Eq. (1)，PDF p. 5 / proceedings p. 1094；本图按原符号重排。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L5-L13)。
+
+**先建立画面：** **[笔记解释]** 把匈牙利匹配想成给“预测车位牌”和真实车辆配对：不仅要车型说对，还要车位中心靠近、车框重叠，三张罚单加起来最小的全局安排才中选。
+
+**变量逐项解释与身份：** **[领域惯用]** *p*、*p̂* 常用来记真值与预测类别，*b*、*b̂* 常用来记真值框与预测框，但字母并非领域强制；**[本文定义]** ***C***<sub>match</sub> 是本文的一对一配对总成本，***L***<sub>cls</sub>、***L***<sub>reg</sub>、***L***<sub>iou</sub> 分别是分类、归一化 BEV 中心 L1 与三维 IoU 代价；**[本文定义]** *λ*<sub>1</sub>、*λ*<sub>2</sub>、*λ*<sub>3</sub> 是三项权重，无物理单位，控制匹配时三种错误的相对话语权。
+
+**变量变化会怎样：** 在其余项不变时，任一代价或对应 *λ* 增大都会抬高该配对的总成本，使它更不容易被选；但最终归属是全局一对一优化，不能只看某一对的局部最小值。
 
 **符号说明：** ***C***<sub>match</sub> 是预测与真值配对代价；*p* 与 *p̂* 是类别真值和预测；*b* 与 *b̂* 是真值框与预测框；***L***<sub>cls</sub> 是分类代价，***L***<sub>reg</sub> 是归一化 BEV 中心 L1 代价，***L***<sub>iou</sub> 是三维 IoU 代价；*λ*<sub>1</sub>、*λ*<sub>2</sub>、*λ*<sub>3</sub> 是权重。
 
@@ -217,11 +225,17 @@
 
 > **公式来源：** Bai et al., CVPR 2022, §3.4 未编号公式，PDF p. 4 / proceedings p. 1093；本图按原符号重排。[官方 PDF](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L15-L20)。
 
+**先建立画面：** **[笔记解释]** 想象在图像上拿一支以投影框中心为圆心的荧光笔：中心最亮，离中心越远越淡；车在图像中越大，荧光圈也随外接圆半径一起变宽。
+
+**变量逐项解释与身份：** **[领域惯用]** *i*、*j* 是二维特征格的行列索引，*exp* 是指数函数，这些角色常见但记号可换；**[本文定义]** *M*<sub>ij</sub> 是位置 (*i*, *j*) 的 SMCA 空间权重，范围为 0 到 1；**[本文定义]** (*c*<sub>x</sub>, *c*<sub>y</sub>) 是初始三维框中心投影位置，*r* 是八角点投影最小外接圆半径，*σ* 是带宽超参数。所有距离都在图像特征坐标中，不能直接当作米。
+
+**变量变化会怎样：** 距离中心越远，负指数绝对值越大，*M*<sub>ij</sub> 越接近 0；*r* 或 *σ* 增大时衰减更慢、搜索更宽。中心处距离为 0，因此权重恒为 1。
+
 **符号说明：** *M*<sub>ij</sub> 是图像特征格 (*i*, *j*) 的空间权重；(*c*<sub>x</sub>, *c*<sub>y</sub>) 是初始三维框中心投影到图像的位置；*r* 是投影八角点最小外接圆半径；*σ* 是论文中的带宽超参数。
 
 **纯文字读法：** 离投影框中心越近的图像位置权重越接近 1；距离按框尺度归一后增大，权重指数下降。
 
-**教学小例子：** [笔记解释] 若某位置归一化后的平方距离为 0、1、4，权重分别约为 1、0.37、0.018；大框允许更宽搜索，小框让注意力更集中。这里只演示指数衰减。
+**教学小例子：** [笔记解释] 若某位置归一化后的平方距离为 0、1、4，权重分别约为 1、0.37、0.018；大框允许更宽搜索，小框让注意力更集中。这是教学示例，不是论文实验，只演示指数衰减。
 
 **专业解释：** 高斯 mask 是软先验，不是把框外位置绝对裁掉。固定源码先得到普通多头注意力 logits，再把高斯权重取对数作为加性 mask；很小的权重接近负无穷。
 
@@ -239,11 +253,17 @@
 
 > **公式来源：** **[源码]** 本图是固定 commit 对查询选择的等价重排，不是论文原式。[forward_single @ 73c596f7bd3460c17cbcc58dd9bcc5a0896774a8](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/mmdet3d/models/dense_heads/transfusion_head.py#L838-L873) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L22-L32)。
 
+**先建立画面：** **[笔记解释]** 把 LiDAR 与图像看成两名观察员，各自给路面格打分；先把两张评分单平均，再只圈出局部山峰，最后挑最高的 200 个位置发“候选查询卡”。
+
+**变量逐项解释与身份：** **[本文定义]** ***H***<sub>L</sub> 与 ***H***<sub>I</sub> 是固定源码中 LiDAR 和图像分支的类别热力图 logits，sigmoid 后才是 0 到 1 的概率；**[领域惯用]** sg 表示 stop-gradient、TopK 表示取最高 *K* 项，这些算子语义常见但拼写不统一；**[源码/笔记重排]** ***H*** 是本笔记对源码等权平均概率图的记号，LocalMax 是局部峰值筛选，***Q*** 是 200 个类别—位置查询索引集合，这些不是论文编号原式中的变量。
+
+**变量变化会怎样：** 某分支概率提高会把平均分最多提高一半；但候选能否进入 ***Q*** 还取决于邻域是否有更高峰和全局第 200 名阈值。sg 使最终检测损失不能沿这条选择路径回传。
+
 **符号说明：** ***H***<sub>L</sub> 与 ***H***<sub>I</sub> 是 LiDAR 和图像引导 logits；sigmoid 把它们变成概率；sg 表示停止梯度；LocalMax 是类别内局部峰值筛选；TopK 跨类别和空间取 200 个索引；***Q*** 是查询索引集合。
 
 **纯文字读法：** 两张概率图各自停止梯度后等权平均，只保留局部峰值，再从全部类别与位置里挑最高的 200 个查询。
 
-**教学小例子：** [笔记解释] 某格 LiDAR 概率 0.2、图像概率 0.8，平均为 0.5；邻格若为 0.6，则前者被局部峰值规则淘汰。即使最终检测损失很大，它也不能穿过 top-K 直接调整这两个概率。
+**教学小例子：** [笔记解释] 某格 LiDAR 概率 0.2、图像概率 0.8，平均为 0.5；邻格若为 0.6，则前者被局部峰值规则淘汰。即使最终检测损失很大，它也不能穿过 top-K 直接调整这两个概率。这是教学示例，不是论文实验。
 
 **专业解释：** 图像引导 heatmap 仍有自己的 dense focal loss，因此不是“没有梯度”；准确说法是查询选择路径不可微，最终 query loss 不直接监督哪些位置被选。
 
@@ -261,11 +281,17 @@
 
 > **公式来源：** **[判断]** **[源码]** 第一行是论文 §4 Testing 文字的数学重述，第二行是固定源码等价重排；二者都不是论文排版原式。[官方 PDF p. 6](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [get_bboxes](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/mmdet3d/models/dense_heads/transfusion_head.py#L1294-L1311) · [可复制 TeX](../../assets/notes/2026-08-05-transfusion/formulas/source.tex#L34-L43)。
 
+**先建立画面：** **[笔记解释]** 一张候选卡有两次评分：最初热力图说“这里像车”，decoder 最后说“这个查询确实是车”。论文文字与源码都把两票合并，但采用的计分规则不同。
+
+**变量逐项解释与身份：** **[领域惯用]** *s* 常作 score，*k* 常作类别索引，指示函数为条件成立时取 1、否则取 0；这些字母不强制；**[本文定义]** *s*<sub>heatmap</sub> 与 *s*<sub>cls</sub> 是论文文字中的热力图和分类分数，*s*<sub>paper</sub> 是其几何平均；**[源码/笔记重排]** *s*<sub>query</sub> 是固定源码保存的查询热力图分数，*s*<sub>source</sub> 是源码乘积，*k*<sub>query</sub> 是查询初始化类别，比较式由本笔记为揭示差异并列重排。
+
+**变量变化会怎样：** 两个输入分数任一趋近 0，两种规则都会压低输出；同为 0 到 1 时直接乘积不大于几何平均。类别不等于 *k*<sub>query</sub> 时，源码指示项直接把该类分数置零。
+
 **符号说明：** *s*<sub>heatmap</sub> 是查询初始化热力图分数；*s*<sub>cls</sub> 是最终分类 logit 或概率；*s*<sub>query</sub> 是固定源码保存的查询热力图分数；指示函数只保留查询初始化时所属类别 *k*<sub>query</sub>。
 
 **纯文字读法：** 论文文字称两分数取几何平均；固定源码则把最终 sigmoid 分类概率、查询热力图分数和类别 one-hot 直接相乘，没有平方根。
 
-**教学小例子：** [笔记解释] 两个分数都是 0.5 时，几何平均为 0.5，直接乘积为 0.25；排序未必改变，但阈值与校准会改变。若两个候选分数比例不同，排序也可能变化。
+**教学小例子：** [笔记解释] 两个分数都是 0.5 时，几何平均为 0.5，直接乘积为 0.25；排序未必改变，但阈值与校准会改变。若两个候选分数比例不同，排序也可能变化。这是教学示例，不是论文实验。
 
 **专业解释：** 这是可定位的静态论文-源码差异，不足以在未运行前宣称 benchmark 数值受损。固定配置 score threshold 为 0，因此主要风险是分数标度、排序与下游校准，而不是立即删框。
 

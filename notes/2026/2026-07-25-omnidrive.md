@@ -426,6 +426,8 @@ Table 5，PDF p. 7。
 
 ## 2. 读公式：核心机制怎样表达
 
+**变量身份图例：** **[领域惯用]** 表示语义角色在本领域常见，但不表示所有论文都使用同一个字母；**[本文定义]** 表示论文给该符号赋予了本文特定含义；**[源码/笔记重排]** 表示固定源码等价式或本笔记计算新增的符号。
+
 论文真正不可替代的原式只有两条，恰好描述 Omni-Q 的两次 attention。
 为兼容 GitHub iPad App，本节使用按内容紧裁的 2× 深浅色 PNG；正文变量用
 标准数学符号，且每张公式图都链接到
@@ -442,6 +444,12 @@ Table 5，PDF p. 7。
 > [官方 PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) ·
 > [可复制 TeX](../../assets/notes/2026-07-25-omnidrive/formulas/source.tex#L5-L17)。
 
+**先建立画面：** **[笔记解释]** carrier query 像准备把视觉线索带给语言模型的记者，perception query 像已经在做三维检测的测量员；第一次注意力把双方叫到同一张会议桌，让记者能读取测量员的结构化线索。
+
+**变量逐项解释与身份：** **[领域惯用]** ***Q***、***K***、***V*** 是 attention 的 query/key/value，MHA 是多头注意力，[·,·] 表示沿 token 维拼接；语义常见但字母和拼接记号不强制；**[本文定义]** ***Q***<sub>*c*</sub> 是 carrier queries，***Q***<sub>*d*</sub> 是受三维任务监督的 detection/perception queries，拼接后的 ***Q***、***K***、***V*** 是同一 token 序列，***Q̃*** 是交流后的表示。固定配置的实际 token 数与通道 shape 以源码为准。
+
+**变量变化会怎样：** 增加 carrier 或 perception token 会扩大注意力矩阵的行列数和可交流对象；某 key 的相似度提高会提升其 value 贡献，但源码 mask 可把部分方向直接禁止，因此论文的对称写法不保证实现中双向等价。
+
 **符号说明**
 
 - ***Q***<sub>*c*</sub>：carrier queries，最终要把视觉信息携带给 LLM；
@@ -456,10 +464,10 @@ Table 5，PDF p. 7。
 因此 carrier 能读取 detector 学到的三维结构，perception token 也处在同一个
 交互空间中。
 
-**玩具例子（教学示例，不是论文实验）：** 假设只有 2 个 carrier token 和
+**教学小例子：** **[笔记解释]** 假设只有 2 个 carrier token 和
 3 个 detection token，拼接后得到 5 个 token 的“会议桌”。其中一个 carrier
 原本只看见“前方有视觉纹理”，attention 后可以从 detection token 得到
-“该纹理对应 12 米外车辆”的结构化线索。
+“该纹理对应 12 米外车辆”的结构化线索。这是教学示例，不是论文实验。
 
 **专业解释：** 这一步的目标不是直接生成文本，而是建立语言载体与传统
 3D query 之间的信息通道。论文为简洁省略了 position encoding；实现还需要
@@ -491,6 +499,12 @@ attention mask 加入了方向性约束；此外源码还把时序 memory 送进
 > [官方 PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) ·
 > [可复制 TeX](../../assets/notes/2026-07-25-omnidrive/formulas/source.tex#L19-L31)。
 
+**先建立画面：** **[笔记解释]** 会议结束后，两类 query 一起去查六路相机档案；每张图像 patch 除了“长什么样”，还贴着“它来自三维空间哪里”的地址标签，减少只凭纹理认错证据的机会。
+
+**变量逐项解释与身份：** **[领域惯用]** MHA、***Q***、***K***、***V*** 延续多头交叉注意力语义，*m* 常作视图/模态索引，但具体字母不统一；**[本文定义]** ***F***<sub>*m*</sub> 是多视角图像特征，***P***<sub>*m*</sub> 是与之对齐的三维位置编码，***P***<sub>*m*</sub>+***F***<sub>*m*</sub> 作为 key，***F***<sub>*m*</sub> 作为 value，拼接的 carrier/perception queries 作为 query，***Q̃*** 是跨图像读取后的表示。
+
+**变量变化会怎样：** 位置编码幅度或方向改变会改变 query 与 key 的匹配，但不会直接改写被汇聚的 value；某 patch 的注意力权重提高会增加其视觉内容贡献。外参错误会让地址标签偏移，公式本身没有自动校准保障。
+
 **符号说明**
 
 - ***F***<sub>*m*</sub>：多视角图像特征；
@@ -502,9 +516,9 @@ attention mask 加入了方向性约束；此外源码还把时序 memory 送进
 视觉特征加上三维位置后作为 key，原视觉特征作为 value。attention 权重因而
 同时受“外观像什么”和“它处于什么三维位置”影响。
 
-**玩具例子（教学示例，不是论文实验）：** 前视相机和左前相机都拍到同一辆车。
+**教学小例子：** **[笔记解释]** 前视相机和左前相机都拍到同一辆车。
 如果只按纹理匹配，两个 patch 可能被当成两个对象；加入由相机内外参得到的
-三维位置后，query 更有机会把它们理解为同一空间邻域中的证据。
+三维位置后，query 更有机会把它们理解为同一空间邻域中的证据。这是教学示例，不是论文实验。
 
 **专业解释：** 这里的 3D encoding 不是最终检测框，而是把多视角 patch
 映射到可供 cross-attention 区分的几何坐标。它提供几何先验，但不会自动解决

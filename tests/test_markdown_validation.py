@@ -147,6 +147,38 @@ class IndexedNoteValidationTests(unittest.TestCase):
     def test_current_note_passes(self) -> None:
         self.validate_mutation(self.note)
 
+    def test_formula_identity_legend_is_required(self) -> None:
+        mutated = self.note.replace(rebuild.FORMULA_IDENTITY_LEGEND, "", 1)
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_beginner_mental_picture_is_required(self) -> None:
+        mutated = self.note.replace("**先建立画面：**", "**直觉：**", 1)
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_variable_identity_classification_is_required(self) -> None:
+        marker = "**变量逐项解释与身份：**"
+        start = self.note.index(marker)
+        end = self.note.index("**变量变化会怎样：**", start)
+        block = self.note[start:end]
+        for tag in rebuild.FORMULA_IDENTITY_TAGS:
+            block = block.replace(tag, "[身份缺失]")
+        mutated = self.note[:start] + block + self.note[end:]
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_variable_change_explanation_is_required(self) -> None:
+        mutated = self.note.replace("**变量变化会怎样：**", "**变化：**", 1)
+        self.assert_mutation_fails(mutated)
+
+    def test_formula_teaching_example_must_disclaim_paper_experiment(self) -> None:
+        marker = "**教学小例子：**"
+        start = self.note.index(marker)
+        end_match = re.search(r"\n\n", self.note[start:])
+        assert end_match is not None
+        end = start + end_match.start()
+        block = self.note[start:end].replace("不是论文实验", "用于说明")
+        mutated = self.note[:start] + block + self.note[end:]
+        self.assert_mutation_fails(mutated)
+
     def test_supplement_table_letter_prefix_is_a_numeric_identifier(self) -> None:
         identifiers = rebuild.TABLE_ID_RE.findall(
             "Li et al., Supplement Table A2, Supplement PDF p. 5."
