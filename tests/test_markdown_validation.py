@@ -764,6 +764,130 @@ class TranslationFirstReadingValidationTests(unittest.TestCase):
         )
 
 
+class SelectionAndPriorArtContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.valid_note = """# 2026-08-06 — Contract Paper
+
+## 0. 阅读起点：术语先导与摘要完整翻译
+
+### 0.2 摘要完整专业中文翻译
+
+> **[原文翻译] Abstract · PDF p. 1 · A01**
+>
+> 摘要译文。
+
+### 0.3 为什么今天值得读
+
+**新近性与录用：** **[论文]** 2026 年正式录用（Accepted），见[官方 proceedings](https://example.org/proceedings)。
+
+**影响与社区信号：** **[判断]** 截至 2026-08-06，官方 benchmark 已收录该配置；这是采用信号而非正确性证明。[查询来源](https://example.org/benchmark)。
+
+**作者与团队脉络：** **[判断]** 官方作者页显示该团队连续研究多模态感知；团队声誉不是论文质量证明。[官方团队来源](https://example.org/lab)。
+
+**覆盖与研究价值：** **[判断]** 属于 P06，补足多模态失效恢复的长期未读问题，并改变对状态污染风险的判断。
+
+**候选对照：** **[判断]** 同轮还核对了另一篇正式录用工作，但本篇受控故障实验更完整。[候选论文](https://example.org/candidate)。
+
+## 1. 看图：论文到底做了什么
+
+## 2. 读公式：核心机制怎样表达
+
+## 3. 看结果：证据是否支持主张
+
+## 4. 对源码：公式如何落地
+
+## 5. 记结论：贡献、边界与开放问题
+
+### 5.3 笔记分析与研究启发
+
+#### 5.3.2 仍未解决的问题
+
+- 一个可证伪问题。
+
+#### 5.3.3 开放问题的相邻工作检索
+
+**待核查主张：** **[判断]** 传感器恢复后，预测相关状态可能继续保存故障期误差，并在输入恢复正常后造成可测的持续退化。
+
+**检索日期与范围：** 2026-08-06；覆盖 CVF proceedings、OpenReview、arXiv 与 OpenAlex，检索至 2026 年。
+
+**三路检索式：** 机制词：`stateful sensor recovery`；问题词：`post-fault perception error`；同义词/邻域词：`memory contamination autonomous driving`。
+
+**最接近已有工作：** [相邻论文](https://example.org/closest-paper)验证了输入故障期间的鲁棒性，问题轴与场景轴相同；它没有跟踪恢复后的状态读写，机制轴与洞见轴只部分重合，因此不能直接回答持续误差多久消失。
+
+**覆盖判断：** **[部分覆盖]**。
+
+**可保留的差异：** 在相同故障强度下控制有状态与无状态模型，并测量恢复后逐帧误差半衰期，才能区分瞬时输入退化与记忆污染。
+
+**公开表述边界：** 截至 2026-08-06，在上述来源、检索式和全文核对范围内，本次检索只发现部分覆盖；这不等于“学界无人做过”，投稿前还需重新核查。
+"""
+
+    def validate(self, note: str) -> None:
+        rebuild.validate_selection_and_prior_art_contract(
+            structure=rebuild.scan_markdown(note),
+            published_date=rebuild.date(2026, 8, 6),
+            line="2",
+            note_text=note,
+        )
+
+    def assert_invalid(self, note: str) -> None:
+        with self.assertRaises(rebuild.ValidationFailure):
+            self.validate(note)
+
+    def test_complete_contract_passes(self) -> None:
+        self.validate(self.valid_note)
+
+    def test_pre_contract_note_is_exempt(self) -> None:
+        rebuild.validate_selection_and_prior_art_contract(
+            structure=rebuild.scan_markdown("# Legacy note\n"),
+            published_date=rebuild.date(2026, 8, 5),
+            line="2",
+        )
+
+    def test_selection_requires_prestige_boundary(self) -> None:
+        self.assert_invalid(
+            self.valid_note.replace("团队声誉不是论文质量证明。", "该团队最顶尖。")
+        )
+
+    def test_closest_work_requires_official_link(self) -> None:
+        self.assert_invalid(
+            self.valid_note.replace(
+                "[相邻论文](https://example.org/closest-paper)", "相邻论文"
+            )
+        )
+
+    def test_blocked_search_cannot_merge(self) -> None:
+        self.assert_invalid(self.valid_note.replace("[部分覆盖]", "[检索受阻]"))
+
+    def test_all_three_query_families_are_required(self) -> None:
+        self.assert_invalid(self.valid_note.replace("同义词/邻域词", "补充检索"))
+
+    def test_scoped_search_cannot_be_written_as_nobody_did_it(self) -> None:
+        self.assert_invalid(
+            self.valid_note.replace(
+                "本次检索只发现部分覆盖；这不等于“学界无人做过”",
+                "因此可以确定这是全新空白",
+            )
+        )
+
+    def test_open_question_contract_separates_legacy_and_audited_states(self) -> None:
+        valid = """# 公开研究缺口雷达
+
+## Q001 — 一个问题
+
+- **相邻工作核查状态**：NeedsPriorArtAudit；尚未完成。
+- **公开表述边界**：目前只称“待验证问题”，不得称“学界无人做过”。
+
+## 已关闭问题
+"""
+        with mock.patch.object(rebuild, "read_text", return_value=valid):
+            rebuild.validate_open_questions_contract()
+        invalid = valid.replace("待验证问题", "确定空白")
+        with mock.patch.object(rebuild, "read_text", return_value=invalid):
+            with self.assertRaises(rebuild.ValidationFailure):
+                rebuild.validate_open_questions_contract()
+
+
 class ArchitectureReadingValidationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

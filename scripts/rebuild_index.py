@@ -36,6 +36,7 @@ README_PATH = ROOT / "README.md"
 PAPERS_MD_PATH = ROOT / "index" / "papers.md"
 TOPICS_MD_PATH = ROOT / "index" / "topics.md"
 TASTE_MD_PATH = ROOT / "taste" / "README.md"
+OPEN_QUESTIONS_PATH = ROOT / "index" / "open_questions.md"
 
 REQUIRED_FIELDS = (
     "paper_key",
@@ -107,6 +108,31 @@ REQUIRED_READING_SUBSECTIONS = (
     "原文结论完整翻译",
     "原文局限与展望完整翻译",
     "笔记分析与研究启发",
+)
+DAILY_SELECTION_TITLE = "为什么今天值得读"
+PRIOR_ART_AUDIT_TITLE = "开放问题的相邻工作检索"
+SELECTION_AND_PRIOR_ART_CONTRACT_DATE = date(2026, 8, 6)
+DAILY_SELECTION_FIELDS = (
+    "新近性与录用",
+    "影响与社区信号",
+    "作者与团队脉络",
+    "覆盖与研究价值",
+    "候选对照",
+)
+PRIOR_ART_AUDIT_FIELDS = (
+    "待核查主张",
+    "检索日期与范围",
+    "三路检索式",
+    "最接近已有工作",
+    "覆盖判断",
+    "可保留的差异",
+    "公开表述边界",
+)
+PRIOR_ART_VERDICTS = (
+    "[已覆盖]",
+    "[部分覆盖]",
+    "[本次检索未找到直接覆盖]",
+    "[检索受阻]",
 )
 ARCHITECTURE_SUBSECTION_TITLE = "整体算法架构与创新设计"
 ARCHITECTURE_OVERVIEW_LABELS = (
@@ -665,6 +691,8 @@ def visible_reading_sections(
         TRANSLATION_OVERVIEW_HEADING,
         *REQUIRED_READING_SUBSECTIONS,
         ARCHITECTURE_SUBSECTION_TITLE,
+        DAILY_SELECTION_TITLE,
+        PRIOR_ART_AUDIT_TITLE,
     }
     for index, (source_line, content) in enumerate(structure.top_level_lines):
         parsed = normalized_heading(content)
@@ -718,6 +746,276 @@ def meaningful_character_count(lines: list[tuple[int, str]]) -> int:
 
 def section_text(lines: list[tuple[int, str]]) -> str:
     return "\n".join(content for _, content in lines)
+
+
+def contract_field_blocks(
+    lines: list[tuple[int, str]],
+    fields: tuple[str, ...],
+    *,
+    line: str,
+    section_title: str,
+) -> dict[str, tuple[int, str]]:
+    """Return uniquely anchored field blocks from a reader-facing contract."""
+
+    anchors: list[tuple[int, int, str]] = []
+    for index, (source_line, content) in enumerate(lines):
+        stripped = content.strip()
+        for field in fields:
+            if stripped.startswith(f"**{field}：**"):
+                anchors.append((index, source_line, field))
+                break
+
+    found_names = [field for _, _, field in anchors]
+    missing = [field for field in fields if field not in found_names]
+    duplicates = sorted(
+        {field for field in found_names if found_names.count(field) > 1}
+    )
+    out_of_order = not missing and not duplicates and found_names != list(fields)
+    if missing or duplicates or out_of_order:
+        details = []
+        if missing:
+            details.append("missing " + ", ".join(missing))
+        if duplicates:
+            details.append("duplicated " + ", ".join(duplicates))
+        if out_of_order:
+            details.append("fields must keep the documented order")
+        raise ValidationFailure(
+            f"CSV line {line}: {section_title!r} contract fields are invalid: "
+            + "; ".join(details)
+        )
+
+    blocks: dict[str, tuple[int, str]] = {}
+    for position, (start_index, source_line, field) in enumerate(anchors):
+        end_index = (
+            anchors[position + 1][0]
+            if position + 1 < len(anchors)
+            else len(lines)
+        )
+        blocks[field] = (
+            source_line,
+            "\n".join(content for _, content in lines[start_index:end_index]),
+        )
+    return blocks
+
+
+def validate_selection_and_prior_art_contract(
+    *,
+    structure: MarkdownStructure,
+    published_date: date,
+    line: str,
+    note_text: str | None = None,
+) -> None:
+    """Validate transparent daily selection and scoped prior-art claims."""
+
+    if published_date < SELECTION_AND_PRIOR_ART_CONTRACT_DATE:
+        return
+
+    sections = visible_reading_sections(structure)
+    missing = [
+        title
+        for title in (DAILY_SELECTION_TITLE, PRIOR_ART_AUDIT_TITLE)
+        if title not in sections
+    ]
+    if missing:
+        raise ValidationFailure(
+            f"CSV line {line}: notes dated {published_date.isoformat()} or later "
+            "must include reader-facing selection/prior-art section(s): "
+            + ", ".join(missing)
+        )
+
+    selection_level, selection_line, selection_lines = sections[
+        DAILY_SELECTION_TITLE
+    ]
+    prior_level, prior_line, prior_lines = sections[PRIOR_ART_AUDIT_TITLE]
+    if selection_level != 3:
+        raise ValidationFailure(
+            f"CSV line {line}: {DAILY_SELECTION_TITLE!r} on Markdown line "
+            f"{selection_line} must be an H3"
+        )
+    if prior_level != 4:
+        raise ValidationFailure(
+            f"CSV line {line}: {PRIOR_ART_AUDIT_TITLE!r} on Markdown line "
+            f"{prior_line} must be an H4"
+        )
+
+    major_lines = {
+        content.strip(): source_line
+        for source_line, content in structure.top_level_lines
+        if content.strip() in REQUIRED_NOTE_HEADINGS
+    }
+    abstract_line = sections["摘要完整专业中文翻译"][1]
+    analysis_line = sections["笔记分析与研究启发"][1]
+    if not (
+        abstract_line
+        < selection_line
+        < major_lines[REQUIRED_NOTE_HEADINGS[0]]
+        and analysis_line < prior_line
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: daily selection must follow the complete abstract "
+            "and precede Section 1; prior-art audit must remain inside the "
+            "Section 5 analysis region"
+        )
+
+    selection = contract_field_blocks(
+        selection_lines,
+        DAILY_SELECTION_FIELDS,
+        line=line,
+        section_title=DAILY_SELECTION_TITLE,
+    )
+    newness = selection["新近性与录用"][1]
+    if (
+        re.search(r"20\d{2}", newness) is None
+        or re.search(r"https?://", newness) is None
+        or re.search(r"Accepted|正式录用|Preprint|预印本", newness) is None
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '新近性与录用' requires year, publication "
+            "status, and an authoritative URL"
+        )
+    impact = selection["影响与社区信号"][1]
+    if (
+        re.search(r"20\d{2}-\d{2}-\d{2}", impact) is None
+        or re.search(r"https?://", impact) is None
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '影响与社区信号' requires a query date and "
+            "a checkable source URL"
+        )
+    team = selection["作者与团队脉络"][1]
+    if re.search(r"https?://", team) is None or not any(
+        phrase in team for phrase in ("不是论文质量", "不等于论文质量", "不能替代")
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '作者与团队脉络' requires an official URL "
+            "and an explicit prestige-is-not-quality boundary"
+        )
+    coverage = selection["覆盖与研究价值"][1]
+    if re.search(r"\bP(?:0[1-9]|1[0-3])\b", coverage) is None:
+        raise ValidationFailure(
+            f"CSV line {line}: '覆盖与研究价值' must name one P01-P13 track"
+        )
+    candidate = selection["候选对照"][1]
+    if re.search(r"https?://", candidate) is None:
+        raise ValidationFailure(
+            f"CSV line {line}: '候选对照' requires at least one official "
+            "candidate URL"
+        )
+
+    prior = contract_field_blocks(
+        prior_lines,
+        PRIOR_ART_AUDIT_FIELDS,
+        line=line,
+        section_title=PRIOR_ART_AUDIT_TITLE,
+    )
+    search_scope = prior["检索日期与范围"][1]
+    if (
+        re.search(r"20\d{2}-\d{2}-\d{2}", search_scope) is None
+        or len(re.findall(r"(?:proceedings|OpenReview|PMLR|IEEE|ACM|"
+                          r"Springer|arXiv|OpenAlex|Semantic Scholar|Crossref)",
+                          search_scope, flags=re.IGNORECASE)) < 2
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: prior-art search scope requires a date and at "
+            "least two named scholarly source families"
+        )
+    queries = prior["三路检索式"][1]
+    if not all(term in queries for term in ("机制词", "问题词", "同义词")):
+        raise ValidationFailure(
+            f"CSV line {line}: prior-art audit requires three query "
+            "families: mechanism, problem, and synonym/neighbouring terms"
+        )
+    if note_text is not None:
+        raw_queries_match = re.search(
+            r"(?ms)^\*\*三路检索式：\*\*(?P<body>.*?)"
+            r"(?=^\*\*最接近已有工作：\*\*)",
+            note_text,
+        )
+        raw_queries = raw_queries_match.group("body") if raw_queries_match else ""
+        for query_family in ("机制词", "问题词", "同义词/邻域词"):
+            if re.search(
+                rf"{re.escape(query_family)}：`[^`\r\n]{{3,}}`", raw_queries
+            ) is None:
+                raise ValidationFailure(
+                    f"CSV line {line}: {query_family!r} must contain a "
+                    "non-empty literal query string in a code span"
+                )
+    closest = prior["最接近已有工作"][1]
+    if re.search(r"https?://", closest) is None or meaningful_character_count(
+        [(prior["最接近已有工作"][0], closest)]
+    ) < 40:
+        raise ValidationFailure(
+            f"CSV line {line}: closest-work audit requires an official URL and "
+            "a substantive four-axis overlap/delta comparison"
+        )
+    verdict_text = prior["覆盖判断"][1]
+    verdicts = [verdict for verdict in PRIOR_ART_VERDICTS if verdict in verdict_text]
+    if len(verdicts) != 1:
+        raise ValidationFailure(
+            f"CSV line {line}: '覆盖判断' must contain exactly one allowed verdict"
+        )
+    if verdicts[0] == "[检索受阻]":
+        raise ValidationFailure(
+            f"CSV line {line}: blocked prior-art search cannot be merged; keep "
+            "the reviewable branch or PR until sources are available"
+        )
+    delta = prior["可保留的差异"][1]
+    if meaningful_character_count([(prior["可保留的差异"][0], delta)]) < 30:
+        raise ValidationFailure(
+            f"CSV line {line}: '可保留的差异' is too vague to be falsifiable"
+        )
+    boundary = prior["公开表述边界"][1]
+    if not all(phrase in boundary for phrase in ("本次检索", "不等于", "学界无人做过")):
+        raise ValidationFailure(
+            f"CSV line {line}: prior-art boundary must state that a scoped "
+            "search is not proof that nobody in the field has done it"
+        )
+
+
+def validate_open_questions_contract() -> None:
+    """Keep legacy/open questions from silently becoming novelty claims."""
+
+    text = read_text(OPEN_QUESTIONS_PATH)
+    active_text = text.split("## 已关闭问题", maxsplit=1)[0]
+    blocks = re.findall(
+        r"(?ms)^## Q\d{3}\b.*?(?=^## Q\d{3}\b|\Z)", active_text
+    )
+    if not blocks:
+        raise ValidationFailure("index/open_questions.md has no active QNNN entries")
+    for block in blocks:
+        heading = block.splitlines()[0]
+        status_matches = re.findall(
+            r"(?m)^- \*\*相邻工作核查状态\*\*：(?P<value>.+)$", block
+        )
+        boundary_matches = re.findall(
+            r"(?m)^- \*\*公开表述边界\*\*：(?P<value>.+)$", block
+        )
+        if len(status_matches) != 1 or len(boundary_matches) != 1:
+            raise ValidationFailure(
+                f"{heading}: requires exactly one adjacent-work audit status "
+                "and one public-claim boundary"
+            )
+        status = status_matches[0]
+        if not any(value in status for value in ("NeedsPriorArtAudit", "Audited")):
+            raise ValidationFailure(
+                f"{heading}: adjacent-work status must be NeedsPriorArtAudit or Audited"
+            )
+        boundary = boundary_matches[0]
+        if "待验证问题" not in boundary or "无人做过" not in boundary:
+            raise ValidationFailure(
+                f"{heading}: public boundary must keep the item as a testable "
+                "question and forbid nobody-has-done-it wording"
+            )
+        if "Audited" in status:
+            for label in ("检索日期与范围", "最接近已有工作", "覆盖判断"):
+                if f"- **{label}**：" not in block:
+                    raise ValidationFailure(
+                        f"{heading}: Audited status requires {label!r}"
+                    )
+            if re.search(r"https?://", block) is None:
+                raise ValidationFailure(
+                    f"{heading}: Audited status requires an official closest-work URL"
+                )
 
 
 def labeled_paragraphs(
@@ -2815,6 +3113,12 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
             line,
             structure=structure,
         )
+        validate_selection_and_prior_art_contract(
+            structure=structure,
+            published_date=parsed_date,
+            line=line,
+            note_text=note,
+        )
         validate_architecture_reading(
             note_path,
             line,
@@ -3667,6 +3971,7 @@ def main() -> int:
         validate_taste_rows(taste_rows)
         validate_dated_note_inventory(rows)
         validate_taste_inventory(taste_rows)
+        validate_open_questions_contract()
         validate_public_markdown()
         targets = expected_files(rows, taste_rows)
 
