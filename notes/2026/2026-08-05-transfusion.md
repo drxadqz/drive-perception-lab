@@ -57,6 +57,24 @@
 > [!TIP]
 > **[笔记解释] 读完摘要再看这一句：** TransFusion 先让 LiDAR 独立给出可回退的三维框，再让每个框在图像局部软取证；它在合成丢图和错位实验中退化较慢，但固定源码依赖冻结的旧栈与未公开 checkpoint，且鲁棒证据不覆盖真实失同步、旋转标定漂移或闭环安全。
 
+### 0.3 问题背景与前置工作
+
+**30 秒问题背景：** [笔记解释] 夜里经过路口时，LiDAR 在远处骑行者身上可能只打到两三个点，相机却还能看见轮廓；但若把这几个点硬投影到图像，几十厘米的标定偏差就可能让它们落到背景。TransFusion 先用 LiDAR 独立提出 200 个候选，因此相机失效时仍保留初始框；随后让每个候选在投影框周围的一片区域内按内容寻找图像证据，而不是锁死到一个像素。这个故事解释的是结构直觉，不证明真实道路故障下已经安全。
+
+**任务与评价对象：** [论文] 输入标定的 LiDAR 点云与环视相机图像 → 输出车辆、行人、骑行者等交通参与者的类别、三维框和速度 → 在 nuScenes 用中心距离 mAP 与 NDS、在 Waymo 用 IoU mAP/mAPH 评价。这里“检测正确”指满足 benchmark 匹配协议，不是逐点分割正确、总体 accuracy 或闭环无碰撞。来源：论文 §1、§5，PDF pp. 1、6–8；[官方 CVPR 论文页](https://openaccess.thecvf.com/content/CVPR2022/html/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.html)。
+
+**关键前置算法：** [论文/笔记解释] CenterPoint 是中心点式三维检测器：它把物体看成 BEV 中心点，用热力图找候选并回归框属性，给 TransFusion 提供 LiDAR 基线、查询位置和后续 tracking-by-detection 路线。PointPainting 是顺序融合方法：它先用图像语义分割分数“涂”到投影 LiDAR 点上，再交给三维检测器，代表点—像素硬关联。SMCA 是空间调制交叉注意力：它给 DETR 查询的交叉注意力加入以预测中心和尺度控制的高斯空间先验，TransFusion 把这一思想迁到三维框投影后的局部图像取证。三者分别解释“候选从哪里来”“旧融合为何怕错位”和“软取证怎样限制搜索范围”。
+
+**相关论文路线：**
+
+- **PointPainting → TransFusion：** [PointPainting，CVPR 2020 官方论文](https://openaccess.thecvf.com/content_CVPR_2020/html/Vora_PointPainting_Sequential_Fusion_for_3D_Object_Detection_CVPR_2020_paper.html)把图像语义附到投影点后交给 LiDAR 检测器；TransFusion 继承“图像补语义”的目标，但把点到单像素的固定取值换成对象查询在局部区域内软聚合。前者不能直接回答投影错位后错误像素特征怎样被抑制。
+- **CenterPoint → TransFusion-L → TransFusion：** [CenterPoint，CVPR 2021 官方论文](https://openaccess.thecvf.com/content/CVPR2021/html/Yin_Center-Based_3D_Object_Detection_and_Tracking_CVPR_2021_paper.html)用中心热力图表示与跟踪三维物体；TransFusion 从同类 BEV 热力图产生输入相关查询，先完成 LiDAR-only 解码，再接图像融合。检测与跟踪主干的能力是继承基础，不是本文原创。
+- **SMCA → TransFusion：** [SMCA，ICCV 2021 官方论文](https://openaccess.thecvf.com/content/ICCV2021/html/Gao_Fast_Convergence_of_DETR_With_Spatially_Modulated_Co-Attention_ICCV_2021_paper.html)用空间调制先验加速二维 DETR 的注意力聚焦；TransFusion 用初始三维框投影出的中心与尺度构造图像 mask。它仍依赖标定选择相机和投影位置，所以“软关联”不等于无标定融合。
+
+**本文接在哪里：** [判断] 既有路线已经能从 LiDAR BEV 找中心、也能把图像语义附到点上；真正瓶颈是硬投影把相机错误直接写进点特征。TransFusion 只改造检测 head 的候选初始化、模态顺序与局部图像取证，并保留 LiDAR 回退；它没有重新发明 VoxelNet、CenterPoint、DETR 或 SMCA，也没有解决真实时间不同步、相机选择错误和故障恢复后的置信度校准。
+
+**资料使用边界：** [判断] Distill、labml annotated implementations 与 Papers with Code 一类站点只帮助本仓库借鉴“先直觉、再机制”和“论文—代码—数据集—结果相邻”的讲解顺序；本节的方法关系、录用身份、数据和数字均回到上述官方论文页、TransFusion 主文/补充材料与固定 40 位 commit，不把解析帖子当成最终证据。
+
 **学习顺序：**
 [0 摘要与术语](#0-阅读起点术语先导与摘要完整翻译) →
 [1 看原图](#1-看图论文到底做了什么) →
@@ -66,10 +84,6 @@
 [5 记结论](#5-记结论贡献边界与开放问题)
 
 ## 1. 看图：论文到底做了什么
-
-### 30 秒故事
-
-夜里经过一个路口时，LiDAR 在远处骑行者身上可能只打到两三个点，相机却还能看见轮廓；但若把这几个点硬投影到图像，几十厘米的标定偏差就可能让它们落到背景。TransFusion 先用 LiDAR 独立提出 200 个候选：即使相机坏了，仍有一个能工作的初始框。随后每个候选被投影到某路相机，注意力在框周围的一片区域内按内容找图像证据，而不是只取一个像素。相机能提供语义时就修正类别和框；候选不在任何相机视野内时，固定源码直接保留 LiDAR 初始预测。
 
 ![TransFusion 总体架构：LiDAR 先生成初始对象查询与三维框，图像引导查询初始化并由 SMCA 解码器完成最终融合](../../assets/notes/2026-08-05-transfusion/fig-overall-architecture.png)
 
@@ -262,6 +276,26 @@
 **公式省略的实现细节：** query score 来自 LiDAR 与图像热力图 detached 平均后的所选位置；固定源码再乘类别 one-hot，因此最终 head 不能把查询改判成另一初始类别。
 
 ## 3. 看结果：证据是否支持主张
+
+### 3.0 数据集与实验设计总览
+
+**数据集与任务：** [论文] nuScenes detection 用 700/150/150 个 scene 的 train/val/test、十个检测类别；验证集承担主要消融与合成退化实验，测试集承担最终检测与 tracking-by-detection 排行榜提交。Waymo Open Dataset 用 798 个训练 scene 和 202 个验证 scene、车辆/行人/骑行者三类，只报告验证集检测，用于检查更密点云与更粗类别下的迁移。论文没有给 nuScenes 版本字符串，也没有公开测试集标签。来源：论文 §5–§5.3，PDF pp. 6–8；Supplement §H，PDF p. 3。
+
+**传感器与输入：** [论文/源码] nuScenes 每个样本使用六张覆盖 360° 的相机图像与当前帧加前十个 LiDAR sweep，图像缩放到 448 × 800；固定配置点云范围为横纵 -54 m 到 54 m、高度 -5 m 到 3 m，与补充材料约 -51.2 m 到 51.2 m 的文字不一致。Waymo 使用单 sweep 与五相机约 250° 视野。这里输入帧数、视野和坐标范围会直接改变可见查询与点密度，不能把两个数据集的融合增益当作同一条件下复测。来源：论文 §5，PDF pp. 6–7；Supplement §B、§H，PDF pp. 1–3；[固定 nuScenes 配置](https://github.com/XuyangBai/TransFusion/blob/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8/configs/transfusion_nusc_voxel_LC.py#L1-L89)。
+
+**实验分组：**
+
+- **主 benchmark：** nuScenes test 与 Waymo val 比较 LiDAR-only、硬融合和多模态检测器，回答完整系统在标准协议下是否更强。
+- **模块消融：** Table 6 比查询初始化，Table 7 拆“图像特征融合”和“图像引导”，Supplement Table 10 比有/无 NMS，回答增益落在哪一层；多组件同时改变的行不能支持单算子归因。
+- **鲁棒性：** Table 5 随机丢弃 0/1/3/6 路图像，Figure 5 注入 0–1 m 标定平移，回答作者构造的缺图与错位下谁退化更慢；没有旋转、时延、脏污或真实故障日志。
+- **泛化与任务扩展：** Waymo 检查更密点云条件，nuScenes tracking 把检测框接入 CenterPoint 跟踪器；跟踪器不是本文创新模块。
+- **效率与部署：** Table 7 报参数量和单机时延，但未报告 FLOPs、能耗、吞吐、异步流水或车规硬件，因此只能比较给定环境的运行代价。
+
+**训练—验证—测试路线：** [论文/源码] nuScenes/Waymo 数据与标定准备 → 先训练 LiDAR-only TransFusion-L 20 epochs → 载入该 checkpoint 并冻结 LiDAR 与图像 backbone/neck，再训练融合 head 6 epochs → nuScenes val 做消融、缺图和错位对照但原文未公开选模指标 → 无 NMS 推理、解码并做范围过滤 → nuScenes test 提交检测/跟踪服务器，Waymo 只评 val。本仓库只静态审计上述论文与固定源码，未下载数据和外部权重、未编译旧 CUDA 算子、未训练或提交评测。
+
+**指标与回答的问题：** [论文/笔记解释] nuScenes mAP 越高表示十类在多组中心距离阈值下的精度—召回更好；NDS 越高表示 mAP 与平移、尺度、朝向、速度、属性误差的综合得分更好；Waymo mAP/mAPH 还加入 IoU、朝向和 LEVEL 1/2 难度；tracking 用 AMOTA 等指标。mAP 不是总体 accuracy，NDS 上升不等于每种误差都改善，丢图后的较小 mAP 降幅也不等于真实故障安全或闭环碰撞率更低。
+
+**一眼看懂实验结论：** [判断] 最强模块级证据是 Table 6：在相同层数与训练轮数下，输入相关查询把 mAP 从 24.0 提到 60.0；最直接的鲁棒证据是 Table 5：六路图像全丢时 TransFusion 从 65.6 降到 61.7，而 CC 从 63.3 降到 39.5。最大边界是两者都属于作者控制的离线设置：前者不能单独归因给后续 SMCA，后者只是把图像特征置零，且完整模型相对强 FusionPainting 的 nuScenes test 优势只有 +0.8 mAP / +0.1 NDS。
 
 ### 3.1 原文公开的实验配置
 
