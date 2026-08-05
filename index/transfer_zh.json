@@ -1,0 +1,68 @@
+{
+  "eomt-encoder-only-3d-occupancy": {
+    "summary": "把传统分割系统想成“主干先看图，专用解码器再画区域”。EoMT 发现，足够强的 ViT 主干可以一边理解图像、一边更新区域查询，不一定需要后面那套复杂解码器。迁移问题是：把二维图块换成三维体素后，这种简化还能否保住行人、路杆等细小结构。",
+    "target": "相机三维语义 Occupancy",
+    "source_evidence": "官方 CVF 论文报告：纯 ViT 编码器达到相近的前沿分割精度，ViT-L 预测速度最高为对照的四倍。",
+    "transfer_interface": "保留图像到三维表示的投影与最终 Occupancy head，只把专用三维解码器替换为共享编码器；体素或三平面 token 与 mask query 在编码器层内交替更新。",
+    "adaptation_hypothesis": "检验“移除专用 decoder + 联合更新 token/query”能否在降时延的同时保住细杆、行人和远处边界；这不是泛泛地把 mask query 搬到 3D。",
+    "minimum_test": "在同一个 Occ3D validation 配置中只替换 decoder，严格匹配 backbone、预训练、分辨率、训练步数和监督；三次随机种子同时报告 mIoU、细小类别 IoU、时延和峰值显存。",
+    "rollback_baseline": "使用相同 backbone checkpoint、保留原专用 decoder 的公开 Occupancy 基线。",
+    "falsifier": "恢复原 decoder 后若精度—效率 Pareto 不劣，或新方法的细小类别 IoU 超过预设容差下降，就推翻该迁移假设。",
+    "main_failure": "三维 token 数量可能吃掉二维 EoMT 的速度优势；联合更新还可能过早合并细小或被遮挡结构。"
+  },
+  "dfine-distributional-3d-boxes": {
+    "summary": "普通检测头像一次报出“车中心在 12.4 米”。D-FINE 先保留多个位置区间的概率，再逐层把范围收紧。三维迁移最难的不是照搬 bins，而是让中心、尺寸、速度和首尾相接的偏航角一起细化而不互相矛盾。",
+    "target": "query 驱动的三维目标检测",
+    "source_evidence": "官方 ICLR 论文报告 D-FINE-L/X 在 T4 上分别以 124/78 FPS 达到 54.0/55.8 COCO AP；Objects365 预训练后为 57.1/59.3 AP。",
+    "transfer_interface": "保留 3D detector 的 backbone、matcher 与 query decoder，只把中心、尺寸、偏航角和速度的连续更新改为逐层概率分布细化；偏航角使用循环 bins 或圆周分布。",
+    "adaptation_hypothesis": "检验粗到细分布与跨 decoder 层定位自蒸馏能否改善难例定位，同时不破坏偏航角周期性和不确定性校准。",
+    "minimum_test": "在一个公开 nuScenes validation detector 上只改 box refinement head；分别消融中心、尺寸、偏航角和速度分布，三次种子报告 NDS、mAP、mAOE、mATE、校准、时延和显存。",
+    "rollback_baseline": "相同检测器、相同 loss 权重与训练预算下的原连续回归 head。",
+    "falsifier": "匹配算力和 decoder 深度后增益消失，或 mAOE、校准、细小目标召回超过预设容差变差，即拒绝该适配。",
+    "main_failure": "三维参数彼此耦合，独立 bins 可能生成不一致 box；偏航角首尾相接，普通线性离散会制造假距离，稠密分布还会增大显存。"
+  },
+  "xlstm-streaming-bev-memory": {
+    "summary": "流式感知像值班员把上一帧地图交给下一帧；一张旧 BEV 容易把多个目标和遮挡线索挤在同一份记忆里。xLSTM 的矩阵记忆可能保存更多关系，但必须先把每段场景的读取、写回、重置和梯度截断规则钉死，否则会串场。",
+    "target": "流式 BEV 或 object-query 感知记忆",
+    "source_evidence": "官方 NeurIPS 论文提出指数门控、标量记忆与矩阵记忆；mLSTM 训练时可并行，并在论文长序列协议中与 Transformer、状态空间模型形成有利比较。",
+    "transfer_interface": "在 ego-motion 对齐后的 BEV 或 object queries 之后插入 mLSTM，作为真正影响预测的状态；空间 encoder 与 heads 不变，并明确每个 scene slot 的读、写、reset、detach。",
+    "adaptation_hypothesis": "检验矩阵记忆能否比单张 previous-BEV 同时保存更多运动与遮挡模式，而且不会引入 train/test 状态泄漏。",
+    "minimum_test": "只替换一个流式 nuScenes detector 的时序记忆；按相同状态字节数比较 previous-BEV、ConvGRU 与 mLSTM，三次种子并加入场景乱序、reset 和 corruption 检查。",
+    "rollback_baseline": "空间 encoder 完全相同、使用原 previous-BEV 或门控循环记忆的公开流式模型。",
+    "falsifier": "匹配状态容量后 NDS、跟踪稳定性或遮挡恢复没有改善，或串场污染和时延超预算，就推翻假设。",
+    "main_failure": "矩阵状态可能昂贵或数值不稳；scene slot、reset 或 detach 规则稍有错误，就会把上一段场景悄悄带入下一段预测。"
+  },
+  "featup-driving-bev-collision": {
+    "summary": "它想把基础模型的低分辨率特征放大得更细，但 JAFAR 已经在驾驶 BEV 分割里直接比较了 FeatUp。因此这不是未使用机会，只能作为已有对照。",
+    "target": "高分辨率 BEV 特征提升",
+    "source_evidence": "FeatUp 学习把低分辨率基础模型特征提升到更密的网格，并在其公开 dense-task 协议中报告收益。",
+    "transfer_interface": "在视角提升或 BEV 融合之前细化基础视觉特征，同时保持基础 encoder 不变。",
+    "adaptation_hypothesis": "这个接口看似合适，但 JAFAR 已在自动驾驶 BEV 分割中直接评估 FeatUp，并提出更强的任务适配方案。",
+    "minimum_test": "提出任何新版本前，先复现 JAFAR 中低分辨率、FeatUp 与 JAFAR 的匹配 BEV 分割对照。",
+    "rollback_baseline": "不做学习式特征上采样的低分辨率公开 BEV backbone。",
+    "falsifier": "若精确剩余差异不能在相同分辨率和算力下超过已发表的 FeatUp/JAFAR 对照，就不存在可保留机会。",
+    "main_failure": "特征看起来更锐利不等于公制几何更准，而且稠密高分辨率特征会显著增加显存。"
+  },
+  "pitome-3d-token-collision": {
+    "summary": "它把相似 token 合并来省算力，同时尽量保护孤立小区域；但点云 PiToMe 与驾驶多视图 token 压缩都已出现，剩余空间必须缩到几何、标定或运动约束，不能再泛称“把 PiToMe 迁到 3D”。",
+    "target": "高效点云与多视图三维感知",
+    "source_evidence": "官方论文在选定分类与视觉语言协议中节省 40–60% FLOPs，平均性能下降约 0.3–0.5 点，并给出谱保持分析。",
+    "transfer_interface": "合并冗余空间 token，同时尽量保护孤立小区域和原 token 图的谱结构。",
+    "adaptation_hypothesis": "宽泛迁移已经被点云 PiToMe 与驾驶 token 压缩覆盖；只可能保留带几何、标定或运动约束的窄变体，而且要重新查碰撞。",
+    "minimum_test": "先在同一公开 backbone 上复现 GitMerge3D 与 ToC3D 的 token 数—精度—真实时延曲线，再定义更窄差异。",
+    "rollback_baseline": "不压缩 backbone，以及已发表的 ToC3D 和通用 PiToMe 对照。",
+    "falsifier": "几何感知差异若不能在相同 token 数、墙钟时延和小目标指标下超过已有 merging controls，就撤回剩余机会。",
+    "main_failure": "合并可能删掉稀有小目标或破坏跨视图几何；源码仓库还是非商业许可，使用前需单独做法律审查。"
+  },
+  "diffusion-forcing-driving-collision": {
+    "summary": "它让序列中每个时间位置带不同噪声，连接逐步预测与整段去噪；Orbis 2 已把这一训练方式用于驾驶世界模型，所以该迁移已发生。",
+    "target": "动作条件驾驶世界模型",
+    "source_evidence": "官方 NeurIPS 论文让序列各 token 使用独立噪声等级，并在灵活时域生成、规划和决策协议中评估。",
+    "transfer_interface": "对长时驾驶 rollout 的不同时间位置使用独立噪声计划，连接因果逐步预测与整段去噪。",
+    "adaptation_hypothesis": "公开驾驶世界模型 Orbis 2 已明确使用 Diffusion Forcing 预训练，所以该迁移不再是开放机会。",
+    "minimum_test": "把 Orbis 2 当作直接 prior，先复现它对 Diffusion Forcing 的受控贡献，再讨论不同机制。",
+    "rollback_baseline": "相同数据和算力下的自回归或标准视频扩散驾驶世界模型。",
+    "falsifier": "新主张必须隔离出 Orbis 2 尚未包含的机制；只换 backbone 或数据集不能通过。",
+    "main_failure": "长 rollout 可以变得更好看，却仍在几何、动作一致性和稀有事件校准上错误。"
+  }
+}

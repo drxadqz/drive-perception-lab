@@ -27,6 +27,8 @@ from datetime import date
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from urllib.parse import SplitResult, unquote, urlsplit
 
+import rebuild_research_radar as research_radar
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "index" / "papers.csv"
@@ -4274,12 +4276,18 @@ def expected_files(
     topics = read_text(TOPICS_MD_PATH)
     topics = replace_block(topics, "TOPICS", render_topics(rows, taxonomy))
 
-    return {
+    targets = {
         README_PATH: readme.rstrip() + "\n",
         PAPERS_MD_PATH: render_papers_md(rows, taxonomy).rstrip() + "\n",
         TOPICS_MD_PATH: topics.rstrip() + "\n",
         TASTE_MD_PATH: render_taste_index(taste_rows).rstrip() + "\n",
     }
+    try:
+        radar_targets, _counts = research_radar.expected_files()
+    except research_radar.ValidationFailure as exc:
+        raise ValidationFailure(f"research radar: {exc}") from exc
+    targets.update(radar_targets)
+    return targets
 
 
 def write_text(path: Path, content: str) -> None:

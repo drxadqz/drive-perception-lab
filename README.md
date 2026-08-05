@@ -6,6 +6,7 @@
 > 有明确瓶颈、接口、受控证据和失败边界的模块、主干网络或训练单元。
 
 [▶ 今天的论文精读](#-今日论文精读) · [🧩 今天的算法 Taste](#-今日算法-taste) ·
+[🏁 SOTA 协议雷达](sota/README.md) · [🔭 跨领域迁移雷达](transfer/README.md) ·
 [🗺 13 类学习路线](index/topics.md) · [📚 全部精读](index/papers.md) ·
 [💡 全部设计卡](taste/README.md) · [🎯 为什么选它](docs/daily-selection-and-gap-audit.md)
 
@@ -57,7 +58,9 @@
 
 想按问题系统学习，从[13 类学习路线](index/topics.md)进入；想寻找可迁移接口，
 打开[算法 Taste](taste/README.md)；想继续追可证伪的问题，查看
-[开放问题雷达](index/open_questions.md)。
+[开放问题雷达](index/open_questions.md)。要核对当前指标量级与严格比较协议，查看
+[SOTA 与指标雷达](sota/README.md)；要寻找其他计算机领域尚值得受控验证的窄迁移
+接口，并同时看到已经发生的检索碰撞，查看[跨领域迁移雷达](transfer/README.md)。
 
 ## 每日怎么选
 
