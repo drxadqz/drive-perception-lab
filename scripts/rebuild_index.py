@@ -110,6 +110,8 @@ REQUIRED_READING_SUBSECTIONS = (
     "笔记分析与研究启发",
 )
 DAILY_SELECTION_TITLE = "为什么今天值得读"
+BACKGROUND_CONTEXT_TITLE = "问题背景与前置工作"
+EXPERIMENT_OVERVIEW_TITLE = "数据集与实验设计总览"
 PRIOR_ART_AUDIT_TITLE = "开放问题的相邻工作检索"
 SELECTION_AND_PRIOR_ART_CONTRACT_DATE = date(2026, 8, 6)
 DAILY_SELECTION_FIELDS = (
@@ -118,6 +120,22 @@ DAILY_SELECTION_FIELDS = (
     "作者与团队脉络",
     "覆盖与研究价值",
     "候选对照",
+)
+BACKGROUND_CONTEXT_FIELDS = (
+    "30 秒问题背景",
+    "任务与评价对象",
+    "关键前置算法",
+    "相关论文路线",
+    "本文接在哪里",
+    "资料使用边界",
+)
+EXPERIMENT_OVERVIEW_FIELDS = (
+    "数据集与任务",
+    "传感器与输入",
+    "实验分组",
+    "训练—验证—测试路线",
+    "指标与回答的问题",
+    "一眼看懂实验结论",
 )
 PRIOR_ART_AUDIT_FIELDS = (
     "待核查主张",
@@ -692,6 +710,8 @@ def visible_reading_sections(
         *REQUIRED_READING_SUBSECTIONS,
         ARCHITECTURE_SUBSECTION_TITLE,
         DAILY_SELECTION_TITLE,
+        BACKGROUND_CONTEXT_TITLE,
+        EXPERIMENT_OVERVIEW_TITLE,
         PRIOR_ART_AUDIT_TITLE,
     }
     for index, (source_line, content) in enumerate(structure.top_level_lines):
@@ -746,6 +766,27 @@ def meaningful_character_count(lines: list[tuple[int, str]]) -> int:
 
 def section_text(lines: list[tuple[int, str]]) -> str:
     return "\n".join(content for _, content in lines)
+
+
+def contract_prose_character_count(text: str) -> int:
+    """Count reader-contract prose without discarding evidence-labelled lines."""
+
+    for label in (
+        ORIGINAL_TRANSLATION_LABEL,
+        READER_ANALYSIS_LABEL,
+        "[论文]",
+        "[论文/源码]",
+        "[论文/笔记解释]",
+        "[源码]",
+        "[判断]",
+        "[未核验]",
+    ):
+        text = text.replace(label, "")
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"[*_~`>#|\-\s]", "", text)
+    return len(text)
 
 
 def contract_field_blocks(
@@ -969,6 +1010,227 @@ def validate_selection_and_prior_art_contract(
         raise ValidationFailure(
             f"CSV line {line}: prior-art boundary must state that a scoped "
             "search is not proof that nobody in the field has done it"
+        )
+
+
+def validate_background_and_experiment_overview(
+    *,
+    structure: MarkdownStructure,
+    published_date: date,
+    line: str,
+) -> None:
+    """Require a front-loaded context map and a reader-first experiment map."""
+
+    if published_date < SELECTION_AND_PRIOR_ART_CONTRACT_DATE:
+        return
+
+    sections = visible_reading_sections(structure)
+    missing = [
+        title
+        for title in (BACKGROUND_CONTEXT_TITLE, EXPERIMENT_OVERVIEW_TITLE)
+        if title not in sections
+    ]
+    if missing:
+        raise ValidationFailure(
+            f"CSV line {line}: notes dated {published_date.isoformat()} or later "
+            "must include reader-facing background/experiment section(s): "
+            + ", ".join(missing)
+        )
+
+    background_level, background_line, background_lines = sections[
+        BACKGROUND_CONTEXT_TITLE
+    ]
+    overview_level, overview_line, overview_lines = sections[
+        EXPERIMENT_OVERVIEW_TITLE
+    ]
+    if background_level != 3:
+        raise ValidationFailure(
+            f"CSV line {line}: {BACKGROUND_CONTEXT_TITLE!r} on Markdown line "
+            f"{background_line} must be an H3"
+        )
+    if overview_level != 3:
+        raise ValidationFailure(
+            f"CSV line {line}: {EXPERIMENT_OVERVIEW_TITLE!r} on Markdown line "
+            f"{overview_line} must be an H3"
+        )
+
+    major_lines = {
+        content.strip(): source_line
+        for source_line, content in structure.top_level_lines
+        if content.strip() in REQUIRED_NOTE_HEADINGS
+    }
+    selection_line = sections[DAILY_SELECTION_TITLE][1]
+    config_line = sections["原文公开的实验配置"][1]
+    flow_line = sections["原文公开的实验流程"][1]
+    if not (
+        selection_line
+        < background_line
+        < major_lines[REQUIRED_NOTE_HEADINGS[0]]
+        and major_lines[REQUIRED_NOTE_HEADINGS[2]]
+        < overview_line
+        < config_line
+        < flow_line
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: background must follow daily selection and "
+            "precede Section 1; experiment overview must be the first H3 in "
+            "Section 3, before detailed configuration and flow"
+        )
+
+    background = contract_field_blocks(
+        background_lines,
+        BACKGROUND_CONTEXT_FIELDS,
+        line=line,
+        section_title=BACKGROUND_CONTEXT_TITLE,
+    )
+    story = background["30 秒问题背景"][1]
+    if (
+        READER_ANALYSIS_LABEL not in story
+        or contract_prose_character_count(story) < 60
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '30 秒问题背景' requires a substantive "
+            f"{READER_ANALYSIS_LABEL} traffic-scenario explanation"
+        )
+
+    task = background["任务与评价对象"][1]
+    if (
+        "[论文]" not in task
+        or "→" not in task
+        or re.search(r"(?:PDF\s*pp?\.|论文\s*§|https?://)", task) is None
+        or contract_prose_character_count(task) < 60
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '任务与评价对象' requires paper evidence, "
+            "an input-to-output arrow, a source anchor, and substantive scope"
+        )
+
+    prerequisites = background["关键前置算法"][1]
+    if (
+        "[论文" not in prerequisites
+        or contract_prose_character_count(prerequisites) < 100
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '关键前置算法' must explain the interfaces and "
+            "limits of the indispensable prior methods"
+        )
+
+    route = background["相关论文路线"][1]
+    if (
+        len(re.findall(r"https?://", route)) < 2
+        or "本文" not in route
+        or contract_prose_character_count(route) < 120
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '相关论文路线' requires at least two official "
+            "paper URLs and substantive inheritance/difference explanations"
+        )
+
+    position = background["本文接在哪里"][1]
+    if (
+        "[判断]" not in position
+        or contract_prose_character_count(position) < 50
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '本文接在哪里' requires a substantive, "
+            "analysis-labelled inherited/changed/unresolved boundary"
+        )
+
+    source_boundary = background["资料使用边界"][1]
+    if not (
+        "[判断]" in source_boundary
+        and "解析" in source_boundary
+        and re.search(r"不(?:作为|能作为)", source_boundary)
+        and "原论文" in source_boundary
+        and "固定" in source_boundary
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '资料使用边界' must state that explainers are "
+            "not final evidence and facts return to papers and fixed source"
+        )
+
+    overview = contract_field_blocks(
+        overview_lines,
+        EXPERIMENT_OVERVIEW_FIELDS,
+        line=line,
+        section_title=EXPERIMENT_OVERVIEW_TITLE,
+    )
+    datasets = overview["数据集与任务"][1]
+    if (
+        "[论文]" not in datasets
+        or not all(split in datasets for split in ("train", "val", "test"))
+        or re.search(r"(?:PDF\s*pp?\.|论文\s*§|Supplement\s*§|https?://)", datasets)
+        is None
+        or contract_prose_character_count(datasets) < 80
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '数据集与任务' requires paper evidence, all "
+            "train/val/test states (including explicit non-disclosure), and a "
+            "source anchor"
+        )
+
+    inputs = overview["传感器与输入"][1]
+    if (
+        not any(label in inputs for label in ("[论文]", "[论文/源码]", "[源码]"))
+        or contract_prose_character_count(inputs) < 50
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '传感器与输入' requires paper/source evidence "
+            "and a substantive per-dataset input description"
+        )
+
+    groups = overview["实验分组"][1]
+    group_terms = (
+        "主 benchmark",
+        "主比较",
+        "消融",
+        "鲁棒",
+        "泛化",
+        "效率",
+        "部署",
+        "迁移",
+        "跟踪",
+    )
+    if sum(term in groups for term in group_terms) < 3:
+        raise ValidationFailure(
+            f"CSV line {line}: '实验分组' must identify at least three "
+            "main/ablation/robustness/generalization/efficiency group roles"
+        )
+
+    route = overview["训练—验证—测试路线"][1]
+    if (
+        not any(label in route for label in ("[论文]", "[论文/源码]", "[源码]"))
+        or route.count("→") < 4
+        or "训练" not in route
+        or not any(term in route for term in ("验证", "选模"))
+        or not any(term in route for term in ("测试", "最终评测"))
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '训练—验证—测试路线' must expose the full "
+            "data-to-final-evaluation arrow flow and evidence boundary"
+        )
+
+    metrics = overview["指标与回答的问题"][1]
+    if (
+        "[论文" not in metrics
+        or "不等于" not in metrics
+        or contract_prose_character_count(metrics) < 70
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '指标与回答的问题' requires paper evidence, "
+            "metric meaning, and an explicit 'does not equal' boundary"
+        )
+
+    conclusion = overview["一眼看懂实验结论"][1]
+    if not (
+        "[判断]" in conclusion
+        and "最强" in conclusion
+        and re.search(r"Table|Figure|表\s*\d|图\s*\d", conclusion)
+        and re.search(r"最大.{0,8}边界", conclusion)
+    ):
+        raise ValidationFailure(
+            f"CSV line {line}: '一眼看懂实验结论' requires the strongest "
+            "numbered evidence and the maximum evidence boundary"
         )
 
 
@@ -3118,6 +3380,11 @@ def validate_rows(rows: list[dict[str, str]]) -> None:
             published_date=parsed_date,
             line=line,
             note_text=note,
+        )
+        validate_background_and_experiment_overview(
+            structure=structure,
+            published_date=parsed_date,
+            line=line,
         )
         validate_architecture_reading(
             note_path,

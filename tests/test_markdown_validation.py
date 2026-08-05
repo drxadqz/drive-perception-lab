@@ -888,6 +888,118 @@ class SelectionAndPriorArtContractTests(unittest.TestCase):
                 rebuild.validate_open_questions_contract()
 
 
+class BackgroundAndExperimentOverviewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.valid_note = """# 2026-08-06 — Reader Contract Paper
+
+## 0. 阅读起点：术语先导与摘要完整翻译
+
+### 0.2 摘要完整专业中文翻译
+
+> **[原文翻译] Abstract · PDF p. 1 · A01**
+>
+> 完整摘要译文。
+
+### 0.3 为什么今天值得读
+
+选择理由。
+
+### 0.4 问题背景与前置工作
+
+**30 秒问题背景：** **[笔记解释]** 夜间远距行人只有少量激光点，相机又可能因标定偏差把对应位置看成背景；读者先要理解几何稀疏与图像错位会怎样共同污染三维候选，而这个交通故事只建立结构直觉，不代表真实道路安全已经得到验证。
+
+**任务与评价对象：** **[论文]** 标定点云与环视图像 → 三维类别、边界框与速度 → benchmark 按中心距离或 IoU 判断匹配；这不等于总体准确率。来源：论文 §1、§5，PDF p. 1、8。
+
+**关键前置算法：** **[论文/笔记解释]** 中心点检测先在鸟瞰热力图找候选并回归框，为本文提供稀疏查询；点级顺序融合把图像语义写到投影点上，暴露硬关联边界；空间调制注意力用中心和尺度限制二维查询的取证区域，为本文局部软融合提供接口。
+
+**相关论文路线：**
+
+- **中心点检测 → 本文：** [官方论文 A](https://example.org/paper-a)提供热力图候选，本文继承候选接口后增加第二模态取证；前置工作本身不回答错位时怎样回退。
+- **空间注意力 ↔ 本文：** [官方论文 B](https://example.org/paper-b)在二维检测中限制查询区域，本文把它迁到三维框投影，但仍依赖标定选择视角，不能推出无标定鲁棒性。
+
+**本文接在哪里：** **[判断]** 已有方法已能从单模态找候选，也能硬投影图像语义；本文只替换候选后的跨模态关联并保留单模态退路，基础主干不是原创，时间不同步与恢复后校准仍未解决。
+
+**资料使用边界：** **[判断]** 解析帖子只用于发现材料和安排讲解顺序，不能作为方法与数字的最终证据；事实回到原论文、官方 proceedings、补充材料和固定 commit 源码。
+
+## 1. 看图：论文到底做了什么
+
+## 2. 读公式：核心机制怎样表达
+
+## 3. 看结果：证据是否支持主张
+
+### 3.0 数据集与实验设计总览
+
+**数据集与任务：** **[论文]** Dataset A 使用 700/150/150 个场景的 train/val/test 完成十类三维检测；Dataset B 使用 train 与 val 做三类迁移，test 标签原文未公开。来源：论文 §5，PDF p. 8。
+
+**传感器与输入：** **[论文/源码]** Dataset A 使用六相机与十帧点云，Dataset B 使用五相机与单帧点云；固定配置的空间范围与论文文字不一致，因此并列记录，不能静默替换。
+
+**实验分组：** 主 benchmark 比完整系统；模块消融控制查询与融合组件；鲁棒实验注入缺图和错位；泛化实验更换数据集；效率实验报告参数与时延但不代表部署能耗。
+
+**训练—验证—测试路线：** **[论文/源码]** 数据准备 → 单模态训练 → 多模态训练 → validation 消融与选模 → test 推理和最终评测；本仓库只读配置，尚未训练、测试或提交服务器。
+
+**指标与回答的问题：** **[论文/笔记解释]** mAP 越高表示匹配协议下的精度—召回更好，综合分数还计入框属性误差；mAP 不等于总体 accuracy，综合分数也不等于闭环安全。
+
+**一眼看懂实验结论：** **[判断]** 最强模块证据来自 Table 6 的受控查询消融，最强鲁棒证据来自 Figure 5 的错位曲线；最大证据边界是两者都为单次离线结果，不能外推真实故障率。
+
+### 3.1 原文公开的实验配置
+
+配置。
+
+### 3.2 原文公开的实验流程
+
+流程。
+
+## 4. 对源码：公式如何落地
+
+## 5. 记结论：贡献、边界与开放问题
+"""
+
+    def validate(self, note: str) -> None:
+        rebuild.validate_background_and_experiment_overview(
+            structure=rebuild.scan_markdown(note),
+            published_date=rebuild.date(2026, 8, 6),
+            line="2",
+        )
+
+    def assert_invalid(self, note: str) -> None:
+        with self.assertRaises(rebuild.ValidationFailure):
+            self.validate(note)
+
+    def test_complete_contract_passes(self) -> None:
+        self.validate(self.valid_note)
+
+    def test_pre_contract_note_is_exempt(self) -> None:
+        rebuild.validate_background_and_experiment_overview(
+            structure=rebuild.scan_markdown("# Legacy note\n"),
+            published_date=rebuild.date(2026, 8, 5),
+            line="2",
+        )
+
+    def test_related_route_requires_two_official_links(self) -> None:
+        self.assert_invalid(
+            self.valid_note.replace(
+                "[官方论文 B](https://example.org/paper-b)", "官方论文 B"
+            )
+        )
+
+    def test_dataset_overview_requires_all_split_states(self) -> None:
+        mutated = self.valid_note.replace("train/val/test", "train/val/hidden")
+        self.assert_invalid(mutated.replace("test 标签", "隐藏集标签"))
+
+    def test_metric_requires_not_equal_boundary(self) -> None:
+        self.assert_invalid(self.valid_note.replace("不等于", "可以代表"))
+
+    def test_experiment_overview_must_precede_configuration(self) -> None:
+        start = self.valid_note.index("### 3.0 数据集与实验设计总览")
+        end = self.valid_note.index("### 3.1 原文公开的实验配置")
+        overview = self.valid_note[start:end]
+        mutated = self.valid_note[:start] + self.valid_note[end:]
+        insertion = mutated.index("### 3.2 原文公开的实验流程")
+        mutated = mutated[:insertion] + overview + mutated[insertion:]
+        self.assert_invalid(mutated)
+
+
 class ArchitectureReadingValidationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
