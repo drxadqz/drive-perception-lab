@@ -1,6 +1,6 @@
 # 跨领域强算法迁移雷达
 
-> **检索快照：2026-08-05。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 3 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
+> **检索快照：2026-08-06。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 4 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
 
 [返回首页](../README.md) · [查看机器索引](../index/transfer.csv) · [查看检索与评分方法](../docs/research-radar-methodology.md)
 
@@ -199,6 +199,45 @@
 **公开边界：** Direct BEV evaluation exists in JAFAR so FeatUp is retained only as a collision record and is not highlighted as an unused transfer.
 
 **源论文与代码：** [论文](https://openreview.net/pdf?id=GkJiNn2QDF) · [正式入口](https://proceedings.iclr.cc/paper_files/paper/2024/hash/c5601d99ed028448f29d1dae2e4a926d-Abstract-Conference.html) · [官方代码 @ 6b5a6c0e](https://github.com/mhamilton723/FeatUp/tree/6b5a6c0e91f75e69194807128dcbc39c3084a30d) · 许可证 MIT。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
+
+### FLYP → BEV 感知中的 CLIP 鲁棒适配
+
+**检索结论：** [已覆盖] · Level 1 - direct target coverage · 优先级 3.8/10 · 下次复核 2026-09-05
+
+**30 秒画面：** FLYP 在下游继续使用图文对比目标，以减少普通分类微调造成的分布外遗忘；但 RoboBEV 已把 CLIP 鲁棒适配直接用于 BEV，两阶段 head alignment 也已有受控结果，所以 FLYP 是源领域对照，不是未被发现的迁移空白。
+
+**源领域与证据：** Vision-language model robust fine-tuning；官方 CVPR 论文在其源协议中报告：七个分布偏移数据集平均比标准微调高 4.2% OOD，三个 few-shot benchmark 最高提高 4.6%；这些数字不证明 BEV 迁移。
+
+**迁移接口：** 保留 CLIP 图文对比训练目标来适配图像 backbone 与 BEV 任务接口，并与直接端到端、先 head alignment 和 WiSE-FT 匹配比较。
+
+**适配假设：** [判断] 宽泛迁移已被 RoboBEV 与通用鲁棒微调工作覆盖；FLYP 只用于检验保持预训练目标是否优于阶段性接口对齐。
+
+**三路检索式：**
+
+- 问题词：CLIP fine-tuning loses OOD robustness in BEV perception
+- 机制词：contrastive fine-tuning frozen backbone head alignment robust adaptation
+- 同义/邻域词：foundation vision encoder staged adaptation autonomous driving corruption
+
+**检索来源：** CVF proceedings checked 2026-08-06 · OpenReview and arXiv checked 2026-08-06 · OpenAlex and Semantic Scholar style indexes checked 2026-08-06 · official RoboBEV FLYP and WiSE-FT repositories checked 2026-08-06
+
+**最接近工作：**
+
+- [RoboBEV](https://ieeexplore.ieee.org/document/10857618)
+- [FLYP](https://openaccess.thecvf.com/content/CVPR2023/html/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.html)
+- [GRACE](https://openaccess.thecvf.com/content/CVPR2026/html/Chopra_The_Geometry_of_Robustness_Optimizing_Loss_Landscape_Curvature_and_Feature_CVPR_2026_paper.html)
+- [WiSE-FT](https://openaccess.thecvf.com/content/CVPR2022/html/Wortsman_Robust_Fine-Tuning_of_Zero-Shot_Models_CVPR_2022_paper.html)
+
+**最小接入实验：** 先复现 RoboBEV 的直接微调和 head-alignment 行，再固定 CLIP、数据、总步数和推理成本加入 FLYP；报告未见腐蚀 NDS、校准、长尾类和三次种子。
+
+**回滚基线：** 同一 BEV detector 的原 backbone、直接 CLIP 端到端、RoboBEV 两阶段 head alignment 与 WiSE-FT。
+
+**什么会推翻它：** 若 FLYP 不能在匹配条件下改善未见腐蚀的绝对 NDS、校准或长尾类，它只保留为负对照，不构成迁移机会。
+
+**最大失效条件：** 类别文本提示未必编码公制三维几何；额外文本分支可能增加训练成本，却不改善 BEV 定位。
+
+**公开边界：** RoboBEV already transfers robust CLIP adaptation to BEV and generic robust fine-tuning is mature; this record is a collision and rollback baseline not a highlighted opportunity.
+
+**源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2023/html/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.html) · [官方代码 @ 215d5bb6](https://github.com/locuslab/FLYP/tree/215d5bb6feeda6675f60e5818abcb4f6465c83af) · 许可证 MIT。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
 
 ### PiToMe → 高效点云与多视图三维感知
 

@@ -64,5 +64,16 @@
     "rollback_baseline": "相同数据和算力下的自回归或标准视频扩散驾驶世界模型。",
     "falsifier": "新主张必须隔离出 Orbis 2 尚未包含的机制；只换 backbone 或数据集不能通过。",
     "main_failure": "长 rollout 可以变得更好看，却仍在几何、动作一致性和稀有事件校准上错误。"
+  },
+  "flyp-bev-robustness-collision": {
+    "summary": "FLYP 在下游继续使用图文对比目标，以减少普通分类微调造成的分布外遗忘；但 RoboBEV 已把 CLIP 鲁棒适配直接用于 BEV，两阶段 head alignment 也已有受控结果，所以 FLYP 是源领域对照，不是未被发现的迁移空白。",
+    "target": "BEV 感知中的 CLIP 鲁棒适配",
+    "source_evidence": "官方 CVPR 论文在其源协议中报告：七个分布偏移数据集平均比标准微调高 4.2% OOD，三个 few-shot benchmark 最高提高 4.6%；这些数字不证明 BEV 迁移。",
+    "transfer_interface": "保留 CLIP 图文对比训练目标来适配图像 backbone 与 BEV 任务接口，并与直接端到端、先 head alignment 和 WiSE-FT 匹配比较。",
+    "adaptation_hypothesis": "宽泛迁移已被 RoboBEV 与通用鲁棒微调工作覆盖；FLYP 只用于检验保持预训练目标是否优于阶段性接口对齐。",
+    "minimum_test": "先复现 RoboBEV 的直接微调和 head-alignment 行，再固定 CLIP、数据、总步数和推理成本加入 FLYP；报告未见腐蚀 NDS、校准、长尾类和三次种子。",
+    "rollback_baseline": "同一 BEV detector 的原 backbone、直接 CLIP 端到端、RoboBEV 两阶段 head alignment 与 WiSE-FT。",
+    "falsifier": "若 FLYP 不能在匹配条件下改善未见腐蚀的绝对 NDS、校准或长尾类，它只保留为负对照，不构成迁移机会。",
+    "main_failure": "类别文本提示未必编码公制三维几何；额外文本分支可能增加训练成本，却不改善 BEV 定位。"
   }
 }

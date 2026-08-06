@@ -56,7 +56,7 @@
 | P06 | [传感器与多模态融合](#p06-sensors-multimodal-fusion) | 1 | 2026-08-05 | 已有锚点 |
 | P07 | [道路结构、HD Map 与定位](#p07-road-map-localization) | 1 | 2026-07-29 | 已有锚点 |
 | P08 | [协同感知](#p08-cooperative-perception) | 1 | 2026-08-02 | 已有锚点 |
-| P09 | [鲁棒、开放世界与可信感知](#p09-robust-open-trustworthy) | 0 | — | 待覆盖 |
+| P09 | [鲁棒、开放世界与可信感知](#p09-robust-open-trustworthy) | 1 | 2026-08-06 | 已有锚点 |
 | P10 | [数据中心学习与基础预训练](#p10-data-learning-foundation) | 1 | 2026-08-04 | 已有锚点 |
 | P11 | [大视觉模型、VLM、LLM 与 VLA](#p11-vfm-vlm-llm-vla) | 1 | 2026-07-25 | 已有锚点 |
 | P12 | [世界模型与生成式 3D/4D 建模](#p12-world-models-generative-4d) | 0 | — | 待覆盖 |
@@ -139,13 +139,13 @@
 - 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
 
 <a id="p09-robust-open-trustworthy"></a>
-### P09 · 鲁棒、开放世界与可信感知（0）
+### P09 · 鲁棒、开放世界与可信感知（1）
 
 **范围：** 恶劣天气、自然扰动、传感器故障、域偏移、OOD、开放集或开放词汇、长尾、不确定性、校准与失效诊断。
 
 **阅读时追问：** 模型能否知道自己何时可能错，并在未知、退化和长尾场景中给出可用风险信号？
 
-- 尚无完成精读；每日选文会优先检查这一覆盖缺口。
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 <a id="p10-data-learning-foundation"></a>
 ### P10 · 数据中心学习与基础预训练（1）
@@ -197,8 +197,9 @@
 
 - 尚无完成精读。
 
-### Surround Camera（8）
+### Surround Camera（9）
 
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 - 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md) — CVPR 2022 · 正式录用 · 传感器与多模态融合 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [代码](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 - 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md) — CVPR 2024 · 正式录用 · 数据中心学习与基础预训练 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [代码](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 - 2026-08-03 · [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](../notes/2026/2026-08-03-streampetr.md) — ICCV 2023 · 正式录用 · 时序与预测性感知 · Surround Camera + Vehicle State · [论文](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [代码](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
@@ -208,8 +209,9 @@
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 - 2026-07-24 · [Occupancy Learning with Spatiotemporal Memory](../notes/2026/2026-07-24-st-occ.md) — ICCV 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera · [论文](https://openaccess.thecvf.com/content/ICCV2025/papers/Leng_Occupancy_Learning_with_Spatiotemporal_Memory_ICCV_2025_paper.pdf) · [代码](https://github.com/matthew-leng/ST-Occ/tree/1633f62e2e6677a5fa474905977acfeca4e7819e)
 
-### LiDAR（4）
+### LiDAR（5）
 
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 - 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md) — CVPR 2022 · 正式录用 · 传感器与多模态融合 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [代码](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 - 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md) — CVPR 2024 · 正式录用 · 数据中心学习与基础预训练 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [代码](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 - 2026-08-02 · [V2X-ViT: Vehicle-to-Everything Cooperative Perception with Vision Transformer](../notes/2026/2026-08-02-v2x-vit.md) — ECCV 2022 · 正式录用 · 协同感知 · LiDAR + V2X + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136990106.pdf) · [代码](https://github.com/DerrickXuNu/v2x-vit/tree/f0e6c13f41e916548b2d8aba61e42a18ce980416)
@@ -266,8 +268,9 @@
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
-### 3D Object Detection（6）
+### 3D Object Detection（7）
 
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 - 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md) — CVPR 2022 · 正式录用 · 传感器与多模态融合 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [代码](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 - 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md) — CVPR 2024 · 正式录用 · 数据中心学习与基础预训练 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [代码](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 - 2026-08-03 · [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](../notes/2026/2026-08-03-streampetr.md) — ICCV 2023 · 正式录用 · 时序与预测性感知 · Surround Camera + Vehicle State · [论文](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [代码](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
@@ -286,6 +289,10 @@
 ### 3D Tracking（1）
 
 - 2026-08-03 · [Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection](../notes/2026/2026-08-03-streampetr.md) — ICCV 2023 · 正式录用 · 时序与预测性感知 · Surround Camera + Vehicle State · [论文](https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_Exploring_Object-Centric_Temporal_Modeling_for_Efficient_Multi-View_3D_Object_Detection_ICCV_2023_paper.pdf) · [代码](https://github.com/exiawsh/StreamPETR/tree/95f64702306ccdb7a78889578b2a55b5deb35b2a)
+
+### BEV（1）
+
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 ### Bird's-Eye View（2）
 
@@ -321,6 +328,10 @@
 ### Deformable Attention（1）
 
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
+
+### Depth Estimation（1）
+
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 ### Depth-Aware Sampling（1）
 
@@ -359,8 +370,9 @@
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 
-### Map Segmentation（1）
+### Map Segmentation（2）
 
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
 ### Memory Queue（1）
@@ -395,6 +407,10 @@
 
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
+### Natural Corruptions（1）
+
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
+
 ### Object Query（2）
 
 - 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md) — CVPR 2022 · 正式录用 · 传感器与多模态融合 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [代码](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
@@ -411,6 +427,10 @@
 ### Open-loop Evaluation（1）
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+
+### Out-of-Distribution Robustness（1）
+
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 ### Permutation Equivariance（1）
 
@@ -440,6 +460,14 @@
 
 - 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md) — CVPR 2024 · 正式录用 · 数据中心学习与基础预训练 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [代码](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
+
+### Semantic Occupancy（1）
+
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
+
+### Sensor Failure（1）
+
+- 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 ### Sensor Misalignment（1）
 
