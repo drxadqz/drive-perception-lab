@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **10** 篇，其中 **10** 篇已由权威来源核验为正式录用。
+共 **11** 篇，其中 **11** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md)
+
+`IEEE TPAMI 2025` · `正式录用` · **鲁棒、开放世界与可信感知** · Surround Camera + LiDAR · BEV · Out-of-Distribution Robustness · Natural Corruptions · Sensor Failure · 3D Object Detection · Map Segmentation · Depth Estimation · Semantic Occupancy
+
+> RoboBEV 用四任务腐蚀/失效协议和 mCE/mRR 分离绝对性能与保持率；两阶段 CLIP head alignment 有受控增益，但真实联合退化、训练配方与校准告警仍缺。
+
+论文、作者版 PDF 与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-06-robobev.md) · [论文原文](https://arxiv.org/pdf/2405.17426) · [固定版本源码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 ## 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md)
 

@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **5** 张设计卡；最近更新：**2026-08-05**。
+共 **6** 张设计卡；最近更新：**2026-08-06**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-06 · [Two-Stage CLIP Detection-Head Alignment](2026/2026-08-06-two-stage-clip-head-alignment.md)
+
+**Staged Foundation-Model Adaptation** · 来自 [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](https://arxiv.org/pdf/2405.17426) · IEEE TPAMI 2025
+
+> 先冻结 CLIP 让随机检测头学会读取预训练表示，再解冻联合微调；迁移关键是分阶段钉死梯度所有权与匹配总训练预算。
+
+**可迁移到：** Robust BEV Detection · Multi-Modal BEV · Open-World Perception · Domain-Shift Adaptation
+
+**主要边界：** 固定源码未公开两阶段 trainer/checkpoint；若训练见过 benchmark corruption、backbone 缺三维几何或匹配预算后增益消失，该策略不成立。
 
 ### 2026-08-05 · [Image-Guided Query Initialization](2026/2026-08-05-image-guided-query-initialization.md)
 

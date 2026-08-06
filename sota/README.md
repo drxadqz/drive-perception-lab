@@ -1,6 +1,6 @@
 # 自动驾驶感知 SOTA 与指标雷达
 
-> **快照日期：2026-08-05。** 当前收录 18 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
+> **快照日期：2026-08-06。** 当前收录 19 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
 
 [返回首页](../README.md) · [查看机器索引](../index/sota.csv) · [查看方法与日更规则](../docs/research-radar-methodology.md)
 
@@ -255,6 +255,24 @@
 **入口：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Du_RCP-Bench_Benchmarking_Robustness_for_Collaborative_Perception_Under_Diverse_Corruptions_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Du_RCP-Bench_Benchmarking_Robustness_for_Collaborative_Perception_Under_Diverse_Corruptions_CVPR_2025_paper.html)
 
 ### P09 · 鲁棒、开放世界与可信感知
+
+#### CLIP head alignment with corruption augmentation · Corruption robustness of camera BEV 3D detection
+
+**证据身份：** 协议锚点 · Accepted · IEEE TPAMI 2025 · 2025
+
+**严格协议：** RoboBEV / nuScenes-C · nuScenes validation-derived eight-corruption protocol · validation · Surround Camera · BEVDet task framework; CLIP image backbone; head alignment; corruption augmentation; eight corruption types and three severities; self-normalized mRR
+
+**主指标：** mRR（越高越好）= **84.32 %**
+
+**同时报告：** clean NDS 0.3667
+
+**第一次看这个指标：** 该数字只回答列明协议中的一个问题，不能脱离数据、输入和评测设置外推为闭环安全。
+
+**核验：** Table 10 paper-reported value verified 2026-08-06; fixed repository does not expose the CLIP training recipe or checkpoint.
+
+**边界：** Benchmark corruption was used for training so 84.32 is a paper-protocol anchor not evidence of unseen-corruption SOTA; mRR is not absolute reliability or closed-loop safety.
+
+**入口：** [论文](https://arxiv.org/pdf/2405.17426) · [正式录用](https://ieeexplore.ieee.org/document/10857618) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 #### MoME as a sensor-failure anchor · Sensor-failure robust LiDAR-camera detection
 

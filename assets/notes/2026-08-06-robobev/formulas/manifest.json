@@ -1,0 +1,37 @@
+{
+  "formulas": {
+    "eq-01-mce": {
+      "dark_png_sha256": "745fc061729350ac1ebc0373979851b33ed035dc552350739ac5475308498112",
+      "display_height": 178,
+      "display_width": 364,
+      "light_png_sha256": "fc944078ec5d827cce7149af71aed7339f0720c72089d72950f1db68dda7c4b6",
+      "pixel_height": 357,
+      "pixel_width": 729,
+      "source_sha256": "2ed7349daf5de182467301cafe2f5147845d9682354ea4a6f2399adde029c883"
+    },
+    "eq-02-mrr": {
+      "dark_png_sha256": "4ba90d6cccd23c4f6207cee27d64f68cdca62f078e3d3e7b7ac4e8d823ac9bd5",
+      "display_height": 169,
+      "display_width": 326,
+      "light_png_sha256": "5a0b6b1c6e45e60480f286d853e6483df62feee2c2d5cecbd972ff00b678b5d0",
+      "pixel_height": 338,
+      "pixel_width": 651,
+      "source_sha256": "c2f3dcf107abb34f67c623402f6e41256255f3acdcc9bdf5616f60b78220fab3"
+    }
+  },
+  "profile": {
+    "dark_background": "#0d1117",
+    "dark_foreground": "#f0f6fc",
+    "horizontal_padding": 28,
+    "layout": "content-sized-2x",
+    "light_background": "#ffffff",
+    "light_foreground": "#1f2328",
+    "maximum_display_height": 180,
+    "maximum_display_width": 720,
+    "minimum_display_height": 36,
+    "minimum_display_width": 96,
+    "output_scale": 2,
+    "vertical_padding": 20
+  },
+  "version": 2
+}
