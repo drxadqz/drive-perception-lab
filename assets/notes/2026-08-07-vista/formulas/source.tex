@@ -1,0 +1,54 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Paper formulas are transcribed from Vista, NeurIPS 2024.
+
+% BEGIN eq-01-latent-replacement
+\widehat{\mathbf n}=\mathbf m\odot\mathbf z+(1-\mathbf m)\odot\mathbf n
+% END eq-01-latent-replacement
+
+% BEGIN eq-02-dynamics-weight
+\mathbf w_i
+=\big\|D_\theta(\widehat{\mathbf n}_i;\sigma)
+-D_\theta(\widehat{\mathbf n}_{i-1};\sigma)
+-(\mathbf z_i-\mathbf z_{i-1})\big\|_2^2
+\qquad\text{(2)}
+% END eq-02-dynamics-weight
+
+% BEGIN eq-03-dynamics-loss
+\begin{aligned}
+\mathcal L_{\mathrm{dyn}}
+&=\mathbb E\!\left[\sum_{i=2}^{K}\operatorname{sg}(\mathbf w_i)
+\odot(1-\mathbf m_i)\right.\\
+&\left.\qquad\odot
+\|D_\theta(\widehat{\mathbf n}_i;\sigma)-\mathbf z_i\|_2^2\right].
+\qquad\text{(3)}
+\end{aligned}
+% END eq-03-dynamics-loss
+
+% BEGIN eq-04-structure-objective
+\begin{aligned}
+\mathbf z'_i&=F(\mathbf z_i)
+=\operatorname{IFFT}[\mathbf H\odot\operatorname{FFT}(\mathbf z_i)],\\
+\mathcal L_{\mathrm{str}}
+&=\mathbb E\!\left[\sum_{i=1}^{K}(1-\mathbf m_i)\odot
+\|F(D_\theta(\widehat{\mathbf n}_i;\sigma))-F(\mathbf z_i)\|_2^2\right],\\
+\mathcal L_{\mathrm{final}}
+&=\mathcal L_{\mathrm{diffusion}}+\lambda_1\mathcal L_{\mathrm{dynamics}}
++\lambda_2\mathcal L_{\mathrm{structure}} .
+\qquad\text{(4--6)}
+\end{aligned}
+% END eq-04-structure-objective
+
+% BEGIN eq-05-reward-mean
+\boldsymbol\mu'=\frac{1}{M}\sum_mD_\theta^{(m)}(\widehat{\mathbf n};\mathbf c,\mathbf a)
+\qquad\text{(7)}
+% END eq-05-reward-mean
+
+% BEGIN eq-06-variance-reward
+\begin{aligned}
+R(\mathbf c,\mathbf a)&=\exp\!\left\{
+\operatorname{avg}\!\left[-\frac{1}{M-1}\sum_m\right.\right.\\
+&\left.\left.\qquad
+\big(D_\theta^{(m)}(\widehat{\mathbf n};\mathbf c,\mathbf a)-\boldsymbol\mu'\big)^2\right]\right\}.
+\qquad\text{(8)}
+\end{aligned}
+% END eq-06-variance-reward

@@ -11,39 +11,39 @@
 [💡 全部设计卡](taste/README.md) · [🎯 为什么选它](docs/daily-selection-and-gap-audit.md)
 
 <!-- AUTO:STATS:START -->
-**11 篇精读** · **11 篇正式录用** · **11 篇关键源码已审** · **6 张算法 Taste 卡** · **覆盖 11/13 个感知主方向** · 最近更新：**2026-08-06**
+**12 篇精读** · **12 篇正式录用** · **12 篇关键源码已审** · **7 张算法 Taste 卡** · **覆盖 12/13 个感知主方向** · 最近更新：**2026-08-07**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](notes/2026/2026-08-06-robobev.md)
+### [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](notes/2026/2026-08-07-vista.md)
 
-**IEEE TPAMI 2025**
+**NeurIPS 2024**
 
-> RoboBEV 用四任务腐蚀/失效协议和 mCE/mRR 分离绝对性能与保持率；两阶段 CLIP head alignment 有受控增益，但真实联合退化、训练配方与校准告警仍缺。
+> Vista 以三帧 latent 替换和统一动作适配生成高保真未来；FID/FVD 强，但训练读真值历史、推理读生成历史，方差奖励也未获闭环安全校准。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://ieeexplore.ieee.org/document/10857618) · **鲁棒、开放世界与可信感知** · Surround Camera + LiDAR · BEV · Out-of-Distribution Robustness · Natural Corruptions · Sensor Failure · 3D Object Detection · Map Segmentation · Depth Estimation · Semantic Occupancy · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://proceedings.neurips.cc/paper_files/paper/2024/hash/a6a066fb44f2fe0d36cf740c873b8890-Abstract-Conference.html) · **世界模型与生成式 3D/4D 建模** · Monocular Camera + Vehicle State · World Model · Video Diffusion · Future Prediction · Action Conditioning · Autoregressive Rollout · Uncertainty · Reward Modeling · Foundation Model · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://arxiv.org/pdf/2405.17426) · [官方代码 @ 3a32edab](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
+[论文原文](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [官方代码 @ cc9821b4](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Two-Stage CLIP Detection-Head Alignment](taste/2026/2026-08-06-two-stage-clip-head-alignment.md)
+### [Dynamic-Prior Latent Replacement](taste/2026/2026-08-07-dynamic-prior-latent-replacement.md)
 
-> 先冻结 CLIP 让随机检测头学会读取预训练表示，再解冻联合微调；迁移关键是分阶段钉死梯度所有权与匹配总训练预算。
+> 把少量历史状态写成不可再预测的干净槽位并只监督未来；迁移关键是明确 read/write/reset 与训练—推理历史身份。
 
-**来自：** [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](https://arxiv.org/pdf/2405.17426) · [正式录用](https://ieeexplore.ieee.org/document/10857618) · **Staged Foundation-Model Adaptation**
+**来自：** [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [正式录用](https://proceedings.neurips.cc/paper_files/paper/2024/hash/a6a066fb44f2fe0d36cf740c873b8890-Abstract-Conference.html) · **History Injection in Latent Diffusion**
 
-**可迁移到：** Robust BEV Detection · Multi-Modal BEV · Open-World Perception · Domain-Shift Adaptation
+**可迁移到：** Streaming BEV · Occupancy Forecasting · Video World Models · Temporal Query Memory
 
-**先记边界：** 固定源码未公开两阶段 trainer/checkpoint；若训练见过 benchmark corruption、backbone 缺三维几何或匹配预算后增益消失，该策略不成立。
+**先记边界：** 历史错位或 scene reset 泄漏会把错误硬写成事实；Table 3 只控制 prior 数量并未证明 replacement 优于 concat/attention。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-06-two-stage-clip-head-alignment.md) · [固定实现 @ 3a32edab](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-07-dynamic-prior-latent-replacement.md) · [固定实现 @ cc9821b4](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
 <!-- AUTO:TASTE:END -->
 
 ## 三种读法
@@ -75,9 +75,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-07 · NeurIPS 2024** — [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](notes/2026/2026-08-07-vista.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-06 · IEEE TPAMI 2025** — [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](notes/2026/2026-08-06-robobev.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-05 · CVPR 2022** — [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](notes/2026/2026-08-05-transfusion.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-08-04 · CVPR 2024** — [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](notes/2026/2026-08-04-unipad.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡

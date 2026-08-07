@@ -1,6 +1,6 @@
 # 跨领域强算法迁移雷达
 
-> **检索快照：2026-08-06。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 4 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
+> **检索快照：2026-08-07。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 5 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
 
 [返回首页](../README.md) · [查看机器索引](../index/transfer.csv) · [查看检索与评分方法](../docs/research-radar-methodology.md)
 
@@ -276,6 +276,46 @@
 **公开边界：** Point-cloud PiToMe adaptation and driving token compression are already public; the radar therefore records only partial remaining scope and does not highlight it.
 
 **源论文与代码：** [论文](https://arxiv.org/abs/2405.16148) · [正式入口](https://proceedings.neurips.cc/paper_files/paper/2024/hash/37094fdc81632915a5738293cf9b7ad4-Abstract-Conference.html) · [官方代码 @ 550b5dee](https://github.com/hchautran/PiToMe/tree/550b5deed94aadfeac28bfbe381d87e672044a40) · 许可证 CC-BY-NC-4.0 repository license。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
+
+### TeaCache → 动作条件驾驶视频世界模型加速
+
+**检索结论：** [部分覆盖] · Level 2 - high overlap · 优先级 5.4/10 · 下次复核 2026-09-06
+
+**30 秒画面：** TeaCache 用时间步嵌入估计相邻去噪输出何时变化较小，再决定是否复用缓存；但通用视频世界模型缓存、驾驶世界模型加速和长时滚动纠错都已有公开工作，因此这里只保留动作切换与历史状态边界上的窄测试。
+
+**源领域与证据：** Video diffusion inference systems；官方 CVPR 论文在 Open-Sora-Plan 源协议上报告最高 4.41 倍加速，VBench 仅下降 0.07%；这不证明驾驶动作一致性或长滚动状态不受损。
+
+**迁移接口：** 在重复执行的 UNet 或 DiT 去噪 block 输出旁加入时间步嵌入感知缓存，同时保持 action condition、history latent 和 sampler schedule 其余部分不变。
+
+**适配假设：** [判断] 只在调制输入变化低于校准阈值时复用特征，并在动作改变、动态小目标或 clip 边界强制重算；检验真实墙钟收益是否能同时保住动作服从与状态稳定性。
+
+**三路检索式：**
+
+- 问题词：driving diffusion world model inference latency and deployment cost
+- 机制词：timestep embedding aware cache autonomous driving video denoising
+- 同义/邻域词：feature reuse fast sampling action conditioned long horizon world model
+
+**检索来源：** CVF proceedings checked 2026-08-07 · arXiv and web indexes checked 2026-08-07 · OpenAlex/Crossref style indexes partially timed out 2026-08-07 · official TeaCache and Vista repositories checked 2026-08-07 · AAAI and CVPR proceedings checked 2026-08-07
+
+**最接近工作：**
+
+- [TeaCache](https://openaccess.thecvf.com/content/CVPR2025/html/Liu_Timestep_Embedding_Tells_Its_Time_to_Cache_for_Video_Diffusion_CVPR_2025_paper.html)
+- [ARCache](https://openaccess.thecvf.com/content/CVPR2026/papers/Nan_Accelerating_Autoregressive_Video_Diffusion_via_History-Guided_Cache_and_Residual_Correction_CVPR_2026_paper.pdf)
+- [Fine-flow Driving World Model](https://ojs.aaai.org/index.php/AAAI/article/view/39860)
+- [Vista](https://proceedings.neurips.cc/paper_files/paper/2024/hash/a6a066fb44f2fe0d36cf740c873b8890-Abstract-Conference.html)
+- [Epona](https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_Epona_Autoregressive_Diffusion_World_Model_for_Autonomous_Driving_ICCV_2025_paper.pdf)
+
+**最小接入实验：** 固定一个 Vista 类 checkpoint 和单张 GPU，比较 full-step、固定间隔 cache、TeaCache 与 reduced-step；在普通片段、动作切换和多轮 rollout 上用三次种子报告时延、显存、FVD、轨迹差、动态目标误差与状态漂移。
+
+**回滚基线：** 未修改的 full-step sampler，加一个简单固定间隔 cache 与匹配的 reduced-step sampler。
+
+**什么会推翻它：** 若匹配质量后没有墙钟收益，或动作服从、动态小目标、跨 clip 漂移超过预设容差，就只把 TeaCache 保留为负对照。
+
+**最大失效条件：** 全局阈值可能因大面积静态背景而错误复用特征，漏掉小而快的交通参与者或动作变化；rollout 还会累积 cache 误差，且 Vista 是 UNet，源证据很多来自 DiT。
+
+**公开边界：** Video diffusion caching and driving-world-model acceleration are both public; this row records partial overlap only. The remaining test is action- and state-aware caching under a fixed driving protocol not an unused broad opportunity.
+
+**源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Liu_Timestep_Embedding_Tells_Its_Time_to_Cache_for_Video_Diffusion_CVPR_2025_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2025/html/Liu_Timestep_Embedding_Tells_Its_Time_to_Cache_for_Video_Diffusion_CVPR_2025_paper.html) · [官方代码 @ 7c10efc4](https://github.com/ali-vilab/TeaCache/tree/7c10efc4702c6b619f47805f7abe4a7a08085aa0) · 许可证 Apache-2.0。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
 
 ## 当前检索边界
 
