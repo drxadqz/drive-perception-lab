@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **11** 篇，其中 **11** 篇已由权威来源核验为正式录用。
+共 **12** 篇，其中 **12** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-07 · [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](../notes/2026/2026-08-07-vista.md)
+
+`NeurIPS 2024` · `正式录用` · **世界模型与生成式 3D/4D 建模** · Monocular Camera + Vehicle State · World Model · Video Diffusion · Future Prediction · Action Conditioning · Autoregressive Rollout · Uncertainty · Reward Modeling · Foundation Model
+
+> Vista 以三帧 latent 替换和统一动作适配生成高保真未来；FID/FVD 强，但训练读真值历史、推理读生成历史，方差奖励也未获闭环安全校准。
+
+论文、附录与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-07-vista.md) · [论文原文](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [固定版本源码](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
 
 ## 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md)
 

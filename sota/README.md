@@ -1,6 +1,6 @@
 # 自动驾驶感知 SOTA 与指标雷达
 
-> **快照日期：2026-08-06。** 当前收录 19 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
+> **快照日期：2026-08-07。** 当前收录 20 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
 
 [返回首页](../README.md) · [查看机器索引](../index/sota.csv) · [查看方法与日更规则](../docs/research-radar-methodology.md)
 
@@ -329,6 +329,24 @@
 **入口：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.html)
 
 ### P12 · 世界模型与生成式 3D/4D 建模
+
+#### Vista · Action-conditioned front-view video prediction
+
+**证据身份：** 协议锚点 · Accepted · NeurIPS 2024 · 2024
+
+**严格协议：** nuScenes driving world model comparison · nuScenes v1.0 · validation · Monocular Camera + Vehicle State · 25 predicted frames at 10 Hz; FVD uses all frames resized to 224x224; FID uses frames cropped/resized to 256x448; paper-reported cross-model values
+
+**主指标：** FVD（越低越好）= **89.4 score**
+
+**同时报告：** FID=6.9
+
+**第一次看这个指标：** 该数字只回答列明协议中的一个问题，不能脱离数据、输入和评测设置外推为闭环安全。
+
+**核验：** Official NeurIPS Table 2 value verified 2026-08-07; prior driving-world-model implementations were not public so values were not rerun in one codebase.
+
+**边界：** Paper-protocol anchor only: training data resolution sampler action condition and preprocessing differ across methods; lower FVD is not 3D physical correctness or closed-loop safety.
+
+**入口：** [论文](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [正式录用](https://proceedings.neurips.cc/paper_files/paper/2024/hash/a6a066fb44f2fe0d36cf740c873b8890-Abstract-Conference.html) · [代码](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
 
 #### UniScene as a unified generation anchor · Occupancy-conditioned video and LiDAR generation
 

@@ -75,5 +75,16 @@
     "rollback_baseline": "同一 BEV detector 的原 backbone、直接 CLIP 端到端、RoboBEV 两阶段 head alignment 与 WiSE-FT。",
     "falsifier": "若 FLYP 不能在匹配条件下改善未见腐蚀的绝对 NDS、校准或长尾类，它只保留为负对照，不构成迁移机会。",
     "main_failure": "类别文本提示未必编码公制三维几何；额外文本分支可能增加训练成本，却不改善 BEV 定位。"
+  },
+  "teacache-driving-world-model-collision": {
+    "summary": "TeaCache 用时间步嵌入估计相邻去噪输出何时变化较小，再决定是否复用缓存；但通用视频世界模型缓存、驾驶世界模型加速和长时滚动纠错都已有公开工作，因此这里只保留动作切换与历史状态边界上的窄测试。",
+    "target": "动作条件驾驶视频世界模型加速",
+    "source_evidence": "官方 CVPR 论文在 Open-Sora-Plan 源协议上报告最高 4.41 倍加速，VBench 仅下降 0.07%；这不证明驾驶动作一致性或长滚动状态不受损。",
+    "transfer_interface": "在重复执行的 UNet 或 DiT 去噪 block 输出旁加入时间步嵌入感知缓存，同时保持 action condition、history latent 和 sampler schedule 其余部分不变。",
+    "adaptation_hypothesis": "只在调制输入变化低于校准阈值时复用特征，并在动作改变、动态小目标或 clip 边界强制重算；检验真实墙钟收益是否能同时保住动作服从与状态稳定性。",
+    "minimum_test": "固定一个 Vista 类 checkpoint 和单张 GPU，比较 full-step、固定间隔 cache、TeaCache 与 reduced-step；在普通片段、动作切换和多轮 rollout 上用三次种子报告时延、显存、FVD、轨迹差、动态目标误差与状态漂移。",
+    "rollback_baseline": "未修改的 full-step sampler，加一个简单固定间隔 cache 与匹配的 reduced-step sampler。",
+    "falsifier": "若匹配质量后没有墙钟收益，或动作服从、动态小目标、跨 clip 漂移超过预设容差，就只把 TeaCache 保留为负对照。",
+    "main_failure": "全局阈值可能因大面积静态背景而错误复用特征，漏掉小而快的交通参与者或动作变化；rollout 还会累积 cache 误差，且 Vista 是 UNet，源证据很多来自 DiT。"
   }
 }

@@ -1,0 +1,73 @@
+{
+  "formulas": {
+    "eq-01-latent-replacement": {
+      "dark_png_sha256": "96cf884d576e8dd613eb44ab5b95b2aaf8ffaac5a9a1dcdd8c087dd41870eb27",
+      "display_height": 46,
+      "display_width": 314,
+      "light_png_sha256": "e6a37af477ed7067139c36ec9323b474f927c982a2f087f5f34542b0583f8e7d",
+      "pixel_height": 93,
+      "pixel_width": 627,
+      "source_sha256": "49636190f294e25d44b3e3e4c19e4eda23413a7f1eb9fa1cec3255acdd7623cd"
+    },
+    "eq-02-dynamics-weight": {
+      "dark_png_sha256": "6cf213281fcd5dfd68963b9303acb7d680113873976ba4cbeb1e2c9097916c0c",
+      "display_height": 57,
+      "display_width": 612,
+      "light_png_sha256": "87032268eeed70e03519d622070fd2d2a826ddabeb4dca552f74aa4dcc1c19b7",
+      "pixel_height": 114,
+      "pixel_width": 1223,
+      "source_sha256": "65e57c059fc63530eb82d4d278e3b80cbcfe09c4b460dbcd5aee6c9c6bc16772"
+    },
+    "eq-03-dynamics-loss": {
+      "dark_png_sha256": "d8dc35db4f1bbb34e8600f05d3f6cf874e1fb8f34ef0614bbcf29e223b3b1422",
+      "display_height": 138,
+      "display_width": 444,
+      "light_png_sha256": "390b74326c3c970248a7514eea2ecef2dbbb00cf547a85b3e031a90762607ded",
+      "pixel_height": 276,
+      "pixel_width": 888,
+      "source_sha256": "990996182762c9dd0357dafacf1c6fc2882b3a56df1df87ed1f5dfbe2921c619"
+    },
+    "eq-04-structure-objective": {
+      "dark_png_sha256": "9464c4d8f954e1c1ba6c04a54fe43074902c382d9588bfc531d70a44d02f9633",
+      "display_height": 176,
+      "display_width": 607,
+      "light_png_sha256": "9035d5ff2f2192399f85d452a6cb633d9b6892673e3f61e792b7a3b387253ca9",
+      "pixel_height": 352,
+      "pixel_width": 1214,
+      "source_sha256": "c79eec9ef228f3665cc9b1995be7c3a628c8a135c590bcb3e44ae8f29470ee85"
+    },
+    "eq-05-reward-mean": {
+      "dark_png_sha256": "ba3744d18154ff8623f16628f1ef0ce95aaeca951a08777bc4ac6c68c09a8bac",
+      "display_height": 86,
+      "display_width": 382,
+      "light_png_sha256": "eb6eb9cc71f592cd77f8fdb462b46ba7c5f33d3e8eea7b4871df058c711bb69f",
+      "pixel_height": 171,
+      "pixel_width": 765,
+      "source_sha256": "fed5a16693f247494266813352a2ca2f31115f167ca391ba438330298246aa82"
+    },
+    "eq-06-variance-reward": {
+      "dark_png_sha256": "9f2be0a1c6ef5f43496df8531b1b6d8d4f516564273f26d52bb1640bd178895f",
+      "display_height": 152,
+      "display_width": 514,
+      "light_png_sha256": "bbf2e3b54f647499c816bf60b7376b85e68a932ae894263b4c6bc25bd79c286a",
+      "pixel_height": 304,
+      "pixel_width": 1027,
+      "source_sha256": "995820e1be2e656f51c95b6bb36edc26b56d4f61679dadeeee91163f61d79f7f"
+    }
+  },
+  "profile": {
+    "dark_background": "#0d1117",
+    "dark_foreground": "#f0f6fc",
+    "horizontal_padding": 28,
+    "layout": "content-sized-2x",
+    "light_background": "#ffffff",
+    "light_foreground": "#1f2328",
+    "maximum_display_height": 180,
+    "maximum_display_width": 720,
+    "minimum_display_height": 36,
+    "minimum_display_width": 96,
+    "output_scale": 2,
+    "vertical_padding": 20
+  },
+  "version": 2
+}

@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **6** 张设计卡；最近更新：**2026-08-06**。
+共 **7** 张设计卡；最近更新：**2026-08-07**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-07 · [Dynamic-Prior Latent Replacement](2026/2026-08-07-dynamic-prior-latent-replacement.md)
+
+**History Injection in Latent Diffusion** · 来自 [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · NeurIPS 2024
+
+> 把少量历史状态写成不可再预测的干净槽位并只监督未来；迁移关键是明确 read/write/reset 与训练—推理历史身份。
+
+**可迁移到：** Streaming BEV · Occupancy Forecasting · Video World Models · Temporal Query Memory
+
+**主要边界：** 历史错位或 scene reset 泄漏会把错误硬写成事实；Table 3 只控制 prior 数量并未证明 replacement 优于 concat/attention。
 
 ### 2026-08-06 · [Two-Stage CLIP Detection-Head Alignment](2026/2026-08-06-two-stage-clip-head-alignment.md)
 
