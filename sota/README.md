@@ -1,6 +1,6 @@
 # 自动驾驶感知 SOTA 与指标雷达
 
-> **快照日期：2026-08-07。** 当前收录 20 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
+> **快照日期：2026-08-08。** 当前收录 21 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
 
 [返回首页](../README.md) · [查看机器索引](../index/sota.csv) · [查看方法与日更规则](../docs/research-radar-methodology.md)
 
@@ -365,6 +365,24 @@
 **入口：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Li_UniScene_Unified_Occupancy-centric_Driving_Scene_Generation_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Li_UniScene_Unified_Occupancy-centric_Driving_Scene_Generation_CVPR_2025_paper.html)
 
 ### P13 · 数据生成、仿真、评测与部署
+
+#### SplatAD · Joint camera and LiDAR novel-view sensor rendering
+
+**证据身份：** 协议锚点 · Accepted · CVPR 2025 · 2025
+
+**严格协议：** PandaSet NVS · PandaSet public release · hold-out validation · Surround Camera + LiDAR + Simulation + Vehicle State · 10 sequences; full resolution; six cameras and one LiDAR; every-other-frame 50 percent training split; shared 30000-step model; single A100; no external test server
+
+**主指标：** Camera PSNR（越高越好）= **26.70 dB**
+
+**同时报告：** SSIM=0.814;LPIPS=0.193;LiDAR CD=1.6;camera=104.1 MP/s;LiDAR=19.5 MR/s
+
+**第一次看这个指标：** 该数字只回答列明协议中的一个问题，不能脱离数据、输入和评测设置外推为闭环安全。
+
+**核验：** Official CVF Tables 1 and 2 values verified 2026-08-08 under the PandaSet hold-out protocol; this repository did not rerun the checkpoint.
+
+**边界：** Benchmark anchor only: PSNR CD and kernel throughput are different axes; ten logged sequences and an A100 do not establish a universal simulator ranking downstream perception utility or closed-loop safety.
+
+**入口：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html) · [代码](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
 
 #### EfficientOCF · Vision-based occupancy forecasting efficiency
 

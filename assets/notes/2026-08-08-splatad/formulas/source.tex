@@ -1,0 +1,43 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Paper formulas are transcribed from SplatAD, CVPR 2025.
+
+% BEGIN eq-01-alpha-composite
+\begin{aligned}
+[\mathbf F^{\mathrm{rgb}}_{\mathbf p},\mathbf F_{\mathbf p}]
+&=\sum_i[\mathbf f_i^{\mathrm{rgb}},\mathbf f_i]\,
+\alpha_i\prod_{j=1}^{i-1}(1-\alpha_j)
+\qquad\text{(4)}
+\end{aligned}
+% END eq-01-alpha-composite
+
+% BEGIN eq-02-spherical-projection
+\boldsymbol\mu^S=
+\begin{bmatrix}\phi\\\omega\\r\end{bmatrix}
+=\begin{bmatrix}
+\operatorname{atan2}(y,x)\\
+\arcsin(z/r)\\
+\sqrt{x^2+y^2+z^2}
+\end{bmatrix}
+\qquad\text{(9)}
+% END eq-02-spherical-projection
+
+% BEGIN eq-03-median-range
+\begin{aligned}
+T_k&=\prod_{j=1}^{k}(1-\alpha_j),\\
+k^*&=\min\!\left\{k:T_k<0.5\right\},\\
+r_{\mathrm{med}}&=r_{k^*,\mathrm{rs}}
+\end{aligned}
+% END eq-03-median-range
+
+% BEGIN eq-04-total-loss
+\begin{aligned}
+\mathcal L={}&\lambda_r\mathcal L_1
++(1-\lambda_r)\mathcal L_{\mathrm{SSIM}}\\
+&+\lambda_{\mathrm{depth}}\mathcal L_{\mathrm{depth}}
++\lambda_{\mathrm{los}}\mathcal L_{\mathrm{los}}\\
+&+\lambda_{\mathrm{intens}}\mathcal L_{\mathrm{inten}}
++\lambda_{\mathrm{raydrop}}\mathcal L_{\mathrm{BCE}}\\
+&+\lambda_{\mathrm{MCMC}}\mathcal L_{\mathrm{MCMC}}
+\qquad\text{(13)}
+\end{aligned}
+% END eq-04-total-loss

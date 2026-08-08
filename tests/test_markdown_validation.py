@@ -1614,9 +1614,17 @@ class PerceptionTaxonomyTests(unittest.TestCase):
             self.assertIn(track["name"], rendered)
             self.assertIn(track["intro"], rendered)
         self.assertIn("13 个方向一分钟速览", rendered)
-        self.assertIn("待覆盖", rendered)
         self.assertIn("与大模型结合的感知论文", rendered)
         self.assertIn("按输入模态浏览", rendered)
+
+        missing_track = self.taxonomy["tracks"][-1]
+        rows_with_gap = [
+            row for row in self.rows
+            if row["primary_track"] != missing_track["id"]
+        ]
+        rendered_with_gap = rebuild.render_topics(rows_with_gap, self.taxonomy)
+        self.assertIn(missing_track["name"], rendered_with_gap)
+        self.assertIn("待覆盖", rendered_with_gap)
 
     def test_coverage_count_is_derived_from_primary_tracks(self) -> None:
         expected = len({row["primary_track"] for row in self.rows})

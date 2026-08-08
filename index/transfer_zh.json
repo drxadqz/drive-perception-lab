@@ -86,5 +86,16 @@
     "rollback_baseline": "未修改的 full-step sampler，加一个简单固定间隔 cache 与匹配的 reduced-step sampler。",
     "falsifier": "若匹配质量后没有墙钟收益，或动作服从、动态小目标、跨 clip 漂移超过预设容差，就只把 TeaCache 保留为负对照。",
     "main_failure": "全局阈值可能因大面积静态背景而错误复用特征，漏掉小而快的交通参与者或动作变化；rollout 还会累积 cache 误差，且 Vista 是 UNet，源证据很多来自 DiT。"
+  },
+  "mip-splatting-driving-simulation-collision": {
+    "summary": "Mip-Splatting 用三维平滑与二维 Mip filter 抑制相机采样率改变时的混叠；SplatAD 已把其 EWA 形式直接写进联合驾驶传感器渲染器并做消融，所以这不是未迁移机会。",
+    "target": "联合相机—LiDAR 驾驶传感器仿真中的尺度感知相机渲染",
+    "source_evidence": "官方 CVPR 论文在单尺度训练、多尺度测试协议中验证三维平滑和二维 Mip filter；这些源任务结果不证明 LiDAR 或闭环安全。",
+    "transfer_interface": "在相机 Gaussian footprint 中以尺度感知 filter 替换固定 screen-space dilation，同时把 LiDAR 的 beam sampling、range readout 和指标保持为单独 contract。",
+    "adaptation_hypothesis": "宽泛迁移已被直接覆盖：SplatAD Eq. (5) 明确继承 Mip-Splatting/EWA，Table 5 还比较 full 与 no-EWA。后续只能提出不同 filtering 或跨传感器耦合机制。",
+    "minimum_test": "先复现固定 SplatAD 配方的 Table 5 full/no-EWA，在同一 checkpoint 体系分层报告相机质量、LiDAR CD、薄结构与吞吐，再判断是否有窄差异。",
+    "rollback_baseline": "固定 SplatAD 的 no-EWA row，以及原始 3DGS screen-space dilation。",
+    "falsifier": "若新主张只是把 Mip-Splatting 加到驾驶 renderer，或匹配条件后不能超越 SplatAD 已公开 EWA 对照，就判定没有剩余贡献。",
+    "main_failure": "anti-aliasing 可改善图像 LPIPS，却不保证 LiDAR CD 同向；源仓许可证仅允许研究/非商业使用，部署前还需单独法律审查。"
   }
 }
