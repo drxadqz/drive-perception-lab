@@ -10,13 +10,13 @@
       "source_sha256": "e86d7f72d7d15d9b3e6940214c4211be88833443c8efdbf5c5c3bcec4f4075d2"
     },
     "eq-02-volume-rendering": {
-      "dark_png_sha256": "963b6672c905a01a220c9a60ed7d0496c2d329a970639fc57bd4ee644311f683",
-      "display_height": 56,
-      "display_width": 586,
-      "light_png_sha256": "703e4e6067708892b1aac93927419b20c48a99157d324deae9a3b9c461c5551e",
-      "pixel_height": 113,
-      "pixel_width": 1171,
-      "source_sha256": "9b8b97d988cb4e738b47c63cdd9b2da0327d154403c0aa882a501f631645c0ae"
+      "dark_png_sha256": "c9e857e0fd1596166a95d01ddce4ae3a079824742e59baaaafd0cff5e57beee9",
+      "display_height": 100,
+      "display_width": 321,
+      "light_png_sha256": "2b53cbf9aa91669c579a962019a8756f10f69f54395579e00febe8b4e64633ed",
+      "pixel_height": 199,
+      "pixel_width": 642,
+      "source_sha256": "eb372d65bd8bfe17a62fe3fb6b8af36fb98da98afa14d0653d0ee5cfe5ff61c1"
     },
     "eq-03-opacity": {
       "dark_png_sha256": "7ffafadcf603ba36cd9ea5631e9ac80c96abf60f13b8e71de838f242e622a743",

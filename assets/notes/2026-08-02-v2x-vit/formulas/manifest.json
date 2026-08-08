@@ -1,13 +1,13 @@
 {
   "formulas": {
     "eq-01-hmsa-aggregation": {
-      "dark_png_sha256": "31dc23dfd7f84ba92c825b546464de40e79959eac6265ef71a3bca688d50db7c",
-      "display_height": 114,
-      "display_width": 598,
-      "light_png_sha256": "05cfa89c6286fc5719ec5401dd2666b54e3362ed25b610a6716379c6c230f14c",
-      "pixel_height": 228,
-      "pixel_width": 1195,
-      "source_sha256": "0f80b1d237a966865606558edc0b9d7f1a92f49b4f23c5b0bf36b06e44286b94"
+      "dark_png_sha256": "f4beaeb85764d25b57d10be0704294f50014413d4162b349da2c99bf596b81c9",
+      "display_height": 140,
+      "display_width": 478,
+      "light_png_sha256": "ac5944afc47a429bb8d053b8b0143140ae7ab30eeadf2ee70f8a3ab8bfb32488",
+      "pixel_height": 281,
+      "pixel_width": 957,
+      "source_sha256": "51aeb00ca50f76b5ee34f9001822d0fdbf072d53a98b683e9054429140062eb5"
     },
     "eq-03-relation-aware-attention": {
       "dark_png_sha256": "fb8e30bb324d3b69a3cf5e5ec17300342d222be9c75db980edea85c375329be6",
