@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **12** 篇，其中 **12** 篇已由权威来源核验为正式录用。
+共 **13** 篇，其中 **13** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-08 · [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](../notes/2026/2026-08-08-splatad.md)
+
+`CVPR 2025` · `正式录用` · **数据生成、仿真、评测与部署** · Surround Camera + LiDAR + Simulation + Vehicle State · Neural Sensor Simulation · 3D Gaussian Splatting · Camera Rendering · LiDAR Rendering · Novel View Synthesis · Rolling Shutter · Dynamic Scene Modeling · Efficient Rendering
+
+> SplatAD 以传感器专用 3DGS 联合渲染相机与 LiDAR；中位距离显著改善点云，但仅验证 30 段日志，源码依赖未完全固定且未证明下游安全。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-08-splatad.md) · [论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [固定版本源码](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
 
 ## 2026-08-07 · [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](../notes/2026/2026-08-07-vista.md)
 

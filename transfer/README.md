@@ -1,6 +1,6 @@
 # 跨领域强算法迁移雷达
 
-> **检索快照：2026-08-07。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 5 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
+> **检索快照：2026-08-08。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 6 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
 
 [返回首页](../README.md) · [查看机器索引](../index/transfer.csv) · [查看检索与评分方法](../docs/research-radar-methodology.md)
 
@@ -238,6 +238,46 @@
 **公开边界：** RoboBEV already transfers robust CLIP adaptation to BEV and generic robust fine-tuning is mature; this record is a collision and rollback baseline not a highlighted opportunity.
 
 **源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2023/html/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.html) · [官方代码 @ 215d5bb6](https://github.com/locuslab/FLYP/tree/215d5bb6feeda6675f60e5818abcb4f6465c83af) · 许可证 MIT。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
+
+### Mip-Splatting → 联合相机—LiDAR 驾驶传感器仿真中的尺度感知相机渲染
+
+**检索结论：** [已覆盖] · Level 1 - direct mechanism coverage · 优先级 3.4/10 · 下次复核 2026-09-07
+
+**30 秒画面：** Mip-Splatting 用三维平滑与二维 Mip filter 抑制相机采样率改变时的混叠；SplatAD 已把其 EWA 形式直接写进联合驾驶传感器渲染器并做消融，所以这不是未迁移机会。
+
+**源领域与证据：** Graphics and neural rendering；官方 CVPR 论文在单尺度训练、多尺度测试协议中验证三维平滑和二维 Mip filter；这些源任务结果不证明 LiDAR 或闭环安全。
+
+**迁移接口：** 在相机 Gaussian footprint 中以尺度感知 filter 替换固定 screen-space dilation，同时把 LiDAR 的 beam sampling、range readout 和指标保持为单独 contract。
+
+**适配假设：** [判断] 宽泛迁移已被直接覆盖：SplatAD Eq. (5) 明确继承 Mip-Splatting/EWA，Table 5 还比较 full 与 no-EWA。后续只能提出不同 filtering 或跨传感器耦合机制。
+
+**三路检索式：**
+
+- 问题词：driving Gaussian sensor simulation aliasing under camera distance and focal changes
+- 机制词：Mip filter EWA Gaussian splatting autonomous driving renderer
+- 同义/邻域词：scale-aware splatting novel-view driving simulation thin structures
+
+**检索来源：** CVF proceedings checked 2026-08-08 · arXiv and Crossref/OpenAlex/Semantic Scholar style indexes checked 2026-08-08 · official Mip-Splatting and SplatAD repositories checked 2026-08-08 · ECVA and CVF urban Gaussian papers checked 2026-08-08
+
+**最接近工作：**
+
+- [Mip-Splatting](https://openaccess.thecvf.com/content/CVPR2024/html/Yu_Mip-Splatting_Alias-free_3D_Gaussian_Splatting_CVPR_2024_paper.html)
+- [SplatAD](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html)
+- [DrivingGaussian](https://openaccess.thecvf.com/content/CVPR2024/html/Zhou_DrivingGaussian_Composite_Gaussian_Splatting_for_Surrounding_Dynamic_Autonomous_Driving_Scenes_CVPR_2024_paper.html)
+- [Street Gaussians](https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/09243.pdf)
+- [VEGS](https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7159_ECCV_2024_paper.php)
+
+**最小接入实验：** 先复现固定 SplatAD 配方的 Table 5 full/no-EWA，在同一 checkpoint 体系分层报告相机质量、LiDAR CD、薄结构与吞吐，再判断是否有窄差异。
+
+**回滚基线：** 固定 SplatAD 的 no-EWA row，以及原始 3DGS screen-space dilation。
+
+**什么会推翻它：** 若新主张只是把 Mip-Splatting 加到驾驶 renderer，或匹配条件后不能超越 SplatAD 已公开 EWA 对照，就判定没有剩余贡献。
+
+**最大失效条件：** anti-aliasing 可改善图像 LPIPS，却不保证 LiDAR CD 同向；源仓许可证仅允许研究/非商业使用，部署前还需单独法律审查。
+
+**公开边界：** SplatAD already transfers the Mip-Splatting EWA mechanism and publishes an ablation so this row is a direct collision and legal-risk reminder not a highlighted opportunity.
+
+**源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yu_Mip-Splatting_Alias-free_3D_Gaussian_Splatting_CVPR_2024_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2024/html/Yu_Mip-Splatting_Alias-free_3D_Gaussian_Splatting_CVPR_2024_paper.html) · [官方代码 @ dda02ab5](https://github.com/autonomousvision/mip-splatting/tree/dda02ab5ecf45d6edb8c540d9bb65c7e451345a9) · 许可证 Inria research-only non-commercial。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
 
 ### PiToMe → 高效点云与多视图三维感知
 

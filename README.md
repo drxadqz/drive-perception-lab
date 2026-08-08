@@ -11,39 +11,39 @@
 [💡 全部设计卡](taste/README.md) · [🎯 为什么选它](docs/daily-selection-and-gap-audit.md)
 
 <!-- AUTO:STATS:START -->
-**12 篇精读** · **12 篇正式录用** · **12 篇关键源码已审** · **7 张算法 Taste 卡** · **覆盖 12/13 个感知主方向** · 最近更新：**2026-08-07**
+**13 篇精读** · **13 篇正式录用** · **13 篇关键源码已审** · **8 张算法 Taste 卡** · **覆盖 13/13 个感知主方向** · 最近更新：**2026-08-08**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](notes/2026/2026-08-07-vista.md)
+### [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](notes/2026/2026-08-08-splatad.md)
 
-**NeurIPS 2024**
+**CVPR 2025**
 
-> Vista 以三帧 latent 替换和统一动作适配生成高保真未来；FID/FVD 强，但训练读真值历史、推理读生成历史，方差奖励也未获闭环安全校准。
+> SplatAD 以传感器专用 3DGS 联合渲染相机与 LiDAR；中位距离显著改善点云，但仅验证 30 段日志，源码依赖未完全固定且未证明下游安全。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://proceedings.neurips.cc/paper_files/paper/2024/hash/a6a066fb44f2fe0d36cf740c873b8890-Abstract-Conference.html) · **世界模型与生成式 3D/4D 建模** · Monocular Camera + Vehicle State · World Model · Video Diffusion · Future Prediction · Action Conditioning · Autoregressive Rollout · Uncertainty · Reward Modeling · Foundation Model · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html) · **数据生成、仿真、评测与部署** · Surround Camera + LiDAR + Simulation + Vehicle State · Neural Sensor Simulation · 3D Gaussian Splatting · Camera Rendering · LiDAR Rendering · Novel View Synthesis · Rolling Shutter · Dynamic Scene Modeling · Efficient Rendering · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [官方代码 @ cc9821b4](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
+[论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [官方代码 @ c24765e3](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Dynamic-Prior Latent Replacement](taste/2026/2026-08-07-dynamic-prior-latent-replacement.md)
+### [Alpha-Weighted Median LiDAR Range Readout](taste/2026/2026-08-08-alpha-weighted-median-range.md)
 
-> 把少量历史状态写成不可再预测的干净槽位并只监督未来；迁移关键是明确 read/write/reset 与训练—推理历史身份。
+> 累计遮挡过半即选择真实排序表面，避免期望距离把前后表面平均到空气中；先以纯读出 A/B 试验核验再改训练。
 
-**来自：** [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [正式录用](https://proceedings.neurips.cc/paper_files/paper/2024/hash/a6a066fb44f2fe0d36cf740c873b8890-Abstract-Conference.html) · **History Injection in Latent Diffusion**
+**来自：** [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html) · **Occlusion-Aware Quantile Readout**
 
-**可迁移到：** Streaming BEV · Occupancy Forecasting · Video World Models · Temporal Query Memory
+**可迁移到：** Neural Sensor Simulation · Occupancy Ray Rendering · Neural Surface Reconstruction · LiDAR World Models
 
-**先记边界：** 历史错位或 scene reset 泄漏会把错误硬写成事实；Table 3 只控制 prior 数量并未证明 replacement 优于 concat/attention。
+**先记边界：** alpha 未校准、薄目标或累计 opacity 不过半时会选错或 fallback；证据仅是 30 段日志平均，未验证下游感知。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-07-dynamic-prior-latent-replacement.md) · [固定实现 @ cc9821b4](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-08-alpha-weighted-median-range.md) · [固定实现 @ c24765e3](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
 <!-- AUTO:TASTE:END -->
 
 ## 三种读法
@@ -75,9 +75,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-08 · CVPR 2025** — [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](notes/2026/2026-08-08-splatad.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-07 · NeurIPS 2024** — [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](notes/2026/2026-08-07-vista.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-06 · IEEE TPAMI 2025** — [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](notes/2026/2026-08-06-robobev.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-08-05 · CVPR 2022** — [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](notes/2026/2026-08-05-transfusion.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡
