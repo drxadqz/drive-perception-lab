@@ -31,12 +31,13 @@ r_{\mathrm{med}}&=r_{k^*,\mathrm{rs}}
 
 % BEGIN eq-04-total-loss
 \begin{aligned}
-\mathcal L={}&\lambda_r\mathcal L_1+(1-\lambda_r)\mathcal L_{\mathrm{SSIM}}
-+\lambda_{\mathrm{depth}}\mathcal L_{\mathrm{depth}}
+\mathcal L={}&\lambda_r\mathcal L_1
++(1-\lambda_r)\mathcal L_{\mathrm{SSIM}}\\
+&+\lambda_{\mathrm{depth}}\mathcal L_{\mathrm{depth}}
 +\lambda_{\mathrm{los}}\mathcal L_{\mathrm{los}}\\
 &+\lambda_{\mathrm{intens}}\mathcal L_{\mathrm{inten}}
-+\lambda_{\mathrm{raydrop}}\mathcal L_{\mathrm{BCE}}
-+\lambda_{\mathrm{MCMC}}\mathcal L_{\mathrm{MCMC}}
++\lambda_{\mathrm{raydrop}}\mathcal L_{\mathrm{BCE}}\\
+&+\lambda_{\mathrm{MCMC}}\mathcal L_{\mathrm{MCMC}}
 \qquad\text{(13)}
 \end{aligned}
 % END eq-04-total-loss

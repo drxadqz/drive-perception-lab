@@ -28,13 +28,13 @@
       "source_sha256": "a76784104d606837e93d7e7803753ec41887ab3edfa46a4831c96f7028ccd777"
     },
     "eq-04-total-loss": {
-      "dark_png_sha256": "d1be5e2ff05d6345252f723935bb44fe9d67fbb5acb67ec246f4477a37423d5a",
-      "display_height": 85,
-      "display_width": 673,
-      "light_png_sha256": "b85a7f0a079c03dd3e11156ef4226b3f531d0b66e7070a9198874766aafdcfcb",
-      "pixel_height": 170,
-      "pixel_width": 1346,
-      "source_sha256": "dd6c3aa69af79d80e51ce3bec2217c097bf9a54970ae6b6c622e7d4eb3896d56"
+      "dark_png_sha256": "407b4daa043eae2dc281a270895209c03c59ebccd5ad092f1c2d3feacb595001",
+      "display_height": 160,
+      "display_width": 394,
+      "light_png_sha256": "37a5aa8db03b1b13de532913ffa2de00511e19ec399f70063214dd3cfec2da4f",
+      "pixel_height": 319,
+      "pixel_width": 789,
+      "source_sha256": "23444e41348bbc3f55c9c7cec886a2111605590669ed0faa973ec9ac117fde3f"
     }
   },
   "profile": {
