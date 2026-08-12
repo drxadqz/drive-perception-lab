@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **8** 张设计卡；最近更新：**2026-08-08**。
+共 **9** 张设计卡；最近更新：**2026-08-13**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-13 · [Probabilistic Union Geometry Readout](2026/2026-08-13-probabilistic-union-geometry-readout.md)
+
+**Bounded Probabilistic Set Aggregation** · 来自 [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · CVPR 2025
+
+> 多个局部原语表达同一存在事件时用有界并集聚合几何并独立归一化语义；先匹配预算测试校准和相关重复。
+
+**可迁移到：** Sparse Occupancy · Gaussian Scene Completion · Multi-Sensor Existence Fusion · Map-Free Free-Space Estimation
+
+**主要边界：** 局部值不似概率或原语高度相关时会过度自信并饱和梯度；完整读出消融不能把全部增益归给单一 noisy-OR。
 
 ### 2026-08-08 · [Alpha-Weighted Median LiDAR Range Readout](2026/2026-08-08-alpha-weighted-median-range.md)
 

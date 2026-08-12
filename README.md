@@ -11,39 +11,39 @@
 [💡 全部设计卡](taste/README.md) · [🎯 为什么选它](docs/daily-selection-and-gap-audit.md)
 
 <!-- AUTO:STATS:START -->
-**13 篇精读** · **13 篇正式录用** · **13 篇关键源码已审** · **8 张算法 Taste 卡** · **覆盖 13/13 个感知主方向** · 最近更新：**2026-08-08**
+**14 篇精读** · **14 篇正式录用** · **14 篇关键源码已审** · **9 张算法 Taste 卡** · **覆盖 13/13 个感知主方向** · 最近更新：**2026-08-13**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](notes/2026/2026-08-08-splatad.md)
+### [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](notes/2026/2026-08-13-gaussianformer-2.md)
 
 **CVPR 2025**
 
-> SplatAD 以传感器专用 3DGS 联合渲染相机与 LiDAR；中位距离显著改善点云，但仅验证 30 段日志，源码依赖未完全固定且未证明下游安全。
+> 概率并集与归一化语义混合让稀疏高斯读出有界且显著提分；但独立性、概率校准、初始化配方与时序稳定仍未验证。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html) · **数据生成、仿真、评测与部署** · Surround Camera + LiDAR + Simulation + Vehicle State · Neural Sensor Simulation · 3D Gaussian Splatting · Camera Rendering · LiDAR Rendering · Novel View Synthesis · Rolling Shutter · Dynamic Scene Modeling · Efficient Rendering · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.html) · **Occupancy 与 4D 场景理解** · Surround Camera + Monocular Camera · 3D Semantic Occupancy · 3D Gaussian Representation · Probabilistic Modeling · Sparse Representation · Gaussian Mixture · Distribution-Based Initialization · Efficient Inference · Camera Calibration · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [官方代码 @ c24765e3](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
+[论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [官方代码 @ b7e22bfc](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Alpha-Weighted Median LiDAR Range Readout](taste/2026/2026-08-08-alpha-weighted-median-range.md)
+### [Probabilistic Union Geometry Readout](taste/2026/2026-08-13-probabilistic-union-geometry-readout.md)
 
-> 累计遮挡过半即选择真实排序表面，避免期望距离把前后表面平均到空气中；先以纯读出 A/B 试验核验再改训练。
+> 多个局部原语表达同一存在事件时用有界并集聚合几何并独立归一化语义；先匹配预算测试校准和相关重复。
 
-**来自：** [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html) · **Occlusion-Aware Quantile Readout**
+**来自：** [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.html) · **Bounded Probabilistic Set Aggregation**
 
-**可迁移到：** Neural Sensor Simulation · Occupancy Ray Rendering · Neural Surface Reconstruction · LiDAR World Models
+**可迁移到：** Sparse Occupancy · Gaussian Scene Completion · Multi-Sensor Existence Fusion · Map-Free Free-Space Estimation
 
-**先记边界：** alpha 未校准、薄目标或累计 opacity 不过半时会选错或 fallback；证据仅是 30 段日志平均，未验证下游感知。
+**先记边界：** 局部值不似概率或原语高度相关时会过度自信并饱和梯度；完整读出消融不能把全部增益归给单一 noisy-OR。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-08-alpha-weighted-median-range.md) · [固定实现 @ c24765e3](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-13-probabilistic-union-geometry-readout.md) · [固定实现 @ b7e22bfc](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
 <!-- AUTO:TASTE:END -->
 
 ## 三种读法
@@ -75,9 +75,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-13 · CVPR 2025** — [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](notes/2026/2026-08-13-gaussianformer-2.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-08 · CVPR 2025** — [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](notes/2026/2026-08-08-splatad.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-07 · NeurIPS 2024** — [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](notes/2026/2026-08-07-vista.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-08-06 · IEEE TPAMI 2025** — [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](notes/2026/2026-08-06-robobev.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡

@@ -1,0 +1,37 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Paper formulas are transcribed from GaussianFormer-2, CVPR 2025.
+
+% BEGIN eq-01-probabilistic-union
+\begin{aligned}
+\alpha(\mathbf x;\mathbf G_i)
+&=\exp\!\left[-\frac12(\mathbf x-\mathbf m_i)^{\mathsf T}
+\mathbf\Sigma_i^{-1}(\mathbf x-\mathbf m_i)\right],\\
+\alpha(\mathbf x)
+&=1-\prod_{i=1}^{P}\left[1-\alpha(\mathbf x;\mathbf G_i)\right]
+\qquad\text{(4--5)}
+\end{aligned}
+% END eq-01-probabilistic-union
+
+% BEGIN eq-02-semantic-mixture
+\begin{aligned}
+\mathbf e(\mathbf x;\mathcal G)
+&=\sum_{i=1}^{P}p(\mathbf G_i\mid\mathbf x)\,\widetilde{\mathbf c}_i\\[-0.35em]
+&=\frac{\sum_{i=1}^{P}p(\mathbf x\mid\mathbf G_i)a_i\widetilde{\mathbf c}_i}
+{\sum_{j=1}^{P}p(\mathbf x\mid\mathbf G_j)a_j}
+\qquad\text{(6)}
+\end{aligned}
+% END eq-02-semantic-mixture
+
+% BEGIN eq-03-final-occupancy
+\widehat{\mathbf o}(\mathbf x;\mathcal G)
+=\left[1-\alpha(\mathbf x)\,;\,
+\alpha(\mathbf x)\,\mathbf e(\mathbf x;\mathcal G)\right]
+\qquad\text{(8)}
+% END eq-03-final-occupancy
+
+% BEGIN eq-04-initialization-loss
+\mathcal L_{\mathrm{init}}
+=\operatorname{BCE}\!\left(\widehat{\mathbf l},\mathbf l\right)
+=\operatorname{BCE}\!\left(\mathcal M(\mathcal B(\mathcal I)),\mathbf l\right)
+\qquad\text{(9)}
+% END eq-04-initialization-loss

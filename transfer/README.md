@@ -1,6 +1,6 @@
 # 跨领域强算法迁移雷达
 
-> **检索快照：2026-08-08。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 6 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
+> **检索快照：2026-08-13。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 7 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
 
 [返回首页](../README.md) · [查看机器索引](../index/transfer.csv) · [查看检索与评分方法](../docs/research-radar-methodology.md)
 
@@ -238,6 +238,45 @@
 **公开边界：** RoboBEV already transfers robust CLIP adaptation to BEV and generic robust fine-tuning is mature; this record is a collision and rollback baseline not a highlighted opportunity.
 
 **源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2023/html/Goyal_Finetune_Like_You_Pretrain_Improved_Finetuning_of_Zero-Shot_Vision_Models_CVPR_2023_paper.html) · [官方代码 @ 215d5bb6](https://github.com/locuslab/FLYP/tree/215d5bb6feeda6675f60e5818abcb4f6465c83af) · 许可证 MIT。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
+
+### MambaVision hybrid Mamba-Transformer backbone → 相机三维语义 Occupancy 的图像主干
+
+**检索结论：** [已覆盖] · Level 1 - direct target coverage · 优先级 3.8/10 · 下次复核 2026-09-12
+
+**30 秒画面：** MambaVision 把 Mamba 与 Transformer 混合成通用视觉主干，源任务上有精度—吞吐优势；但 OccMamba、MambaOcc 与 MARS 已把状态空间或 Mamba 机制带进 Occupancy，所以这里只是已碰撞的 backbone 对照。
+
+**源领域与证据：** 2D and high-resolution visual representation；官方 CVF 论文报告 ImageNet 精度—吞吐 Pareto，以及相对同规模源领域主干更强的检测与分割结果；这些结果不证明三维 Occupancy 提升。
+
+**迁移接口：** 只替换 view lifting 或 Gaussian initialization 之前的图像 backbone，保持三维 encoder、head、数据、预训练口径和训练预算不变。
+
+**适配假设：** [判断] 宽泛迁移已经被 OccMamba、MambaOcc 与 MARS 覆盖；MambaVision 只能作为匹配预训练和算力后的源主干控制，不能再宣传成未被发现的 Mamba-to-Occupancy 机会。
+
+**三路检索式：**
+
+- 问题词：efficient visual backbone 3D occupancy autonomous driving
+- 机制词：MambaVision hybrid Mamba Transformer occupancy prediction
+- 同义/邻域词：visual state space model BEV occupancy autonomous driving
+
+**检索来源：** CVF proceedings checked 2026-08-13 · OpenReview and arXiv checked 2026-08-13 · ScienceDirect checked 2026-08-13 · Semantic Scholar style index checked 2026-08-13 · official MambaVision and occupancy repositories checked 2026-08-13
+
+**最接近工作：**
+
+- [MambaVision](https://openaccess.thecvf.com/content/CVPR2025/html/Hatamizadeh_MambaVision_A_Hybrid_Mamba-Transformer_Vision_Backbone_CVPR_2025_paper.html)
+- [OccMamba](https://openaccess.thecvf.com/content/CVPR2025/html/Li_OccMamba_Semantic_Occupancy_Prediction_with_State_Space_Models_CVPR_2025_paper.html)
+- [MambaOcc](https://www.sciencedirect.com/science/article/pii/S0957417426002186)
+- [MARS](https://openreview.net/forum?id=0aAfZ4tfPj)
+
+**最小接入实验：** 先复现 OccMamba 或 MambaOcc 的匹配 backbone 行，再只替换 MambaVision；匹配预训练、分辨率、训练步数和推理预算，三次种子报告 mIoU、各类 IoU、校准、时延和显存。
+
+**回滚基线：** 未修改的公开 Occupancy baseline，加其论文已发表的 OccMamba 或 MambaOcc 状态空间主干对照。
+
+**什么会推翻它：** 若匹配条件下精度—效率 Pareto 不改善，或薄目标与稀有类 IoU 下降，就只保留为源领域负对照，不成立迁移主张。
+
+**最大失效条件：** 二维 backbone 吞吐优势可能被多视角投影和稠密三维解码吞没；源码与权重均带非商业限制，不能未经许可用于部署。
+
+**公开边界：** OccMamba MambaOcc and MARS already transfer state-space or Mamba mechanisms to occupancy; this record is a direct collision and source-backbone control not a highlighted opportunity.
+
+**源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hatamizadeh_MambaVision_A_Hybrid_Mamba-Transformer_Vision_Backbone_CVPR_2025_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2025/html/Hatamizadeh_MambaVision_A_Hybrid_Mamba-Transformer_Vision_Backbone_CVPR_2025_paper.html) · [官方代码 @ 7860a506](https://github.com/NVlabs/MambaVision/tree/7860a506b2eb844eaaae676f08461ce8c3c26f43) · 许可证 NVIDIA Source Code License-NC; weights CC-BY-NC-SA-4.0。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
 
 ### Mip-Splatting → 联合相机—LiDAR 驾驶传感器仿真中的尺度感知相机渲染
 

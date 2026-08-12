@@ -97,5 +97,16 @@
     "rollback_baseline": "固定 SplatAD 的 no-EWA row，以及原始 3DGS screen-space dilation。",
     "falsifier": "若新主张只是把 Mip-Splatting 加到驾驶 renderer，或匹配条件后不能超越 SplatAD 已公开 EWA 对照，就判定没有剩余贡献。",
     "main_failure": "anti-aliasing 可改善图像 LPIPS，却不保证 LiDAR CD 同向；源仓许可证仅允许研究/非商业使用，部署前还需单独法律审查。"
+  },
+  "mambavision-occupancy-backbone-collision": {
+    "summary": "MambaVision 把 Mamba 与 Transformer 混合成通用视觉主干，源任务上有精度—吞吐优势；但 OccMamba、MambaOcc 与 MARS 已把状态空间或 Mamba 机制带进 Occupancy，所以这里只是已碰撞的 backbone 对照。",
+    "target": "相机三维语义 Occupancy 的图像主干",
+    "source_evidence": "官方 CVF 论文报告 ImageNet 精度—吞吐 Pareto，以及相对同规模源领域主干更强的检测与分割结果；这些结果不证明三维 Occupancy 提升。",
+    "transfer_interface": "只替换 view lifting 或 Gaussian initialization 之前的图像 backbone，保持三维 encoder、head、数据、预训练口径和训练预算不变。",
+    "adaptation_hypothesis": "宽泛迁移已经被 OccMamba、MambaOcc 与 MARS 覆盖；MambaVision 只能作为匹配预训练和算力后的源主干控制，不能再宣传成未被发现的 Mamba-to-Occupancy 机会。",
+    "minimum_test": "先复现 OccMamba 或 MambaOcc 的匹配 backbone 行，再只替换 MambaVision；匹配预训练、分辨率、训练步数和推理预算，三次种子报告 mIoU、各类 IoU、校准、时延和显存。",
+    "rollback_baseline": "未修改的公开 Occupancy baseline，加其论文已发表的 OccMamba 或 MambaOcc 状态空间主干对照。",
+    "falsifier": "若匹配条件下精度—效率 Pareto 不改善，或薄目标与稀有类 IoU 下降，就只保留为源领域负对照，不成立迁移主张。",
+    "main_failure": "二维 backbone 吞吐优势可能被多视角投影和稠密三维解码吞没；源码与权重均带非商业限制，不能未经许可用于部署。"
   }
 }

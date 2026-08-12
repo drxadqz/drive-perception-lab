@@ -1,6 +1,6 @@
 # 自动驾驶感知 SOTA 与指标雷达
 
-> **快照日期：2026-08-08。** 当前收录 21 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
+> **快照日期：2026-08-13。** 当前收录 22 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
 
 [返回首页](../README.md) · [查看机器索引](../index/sota.csv) · [查看方法与日更规则](../docs/research-radar-methodology.md)
 
@@ -123,6 +123,24 @@
 **入口：** [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [正式录用](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/694_ECCV_2022_paper.php) · [代码](https://github.com/fundamentalvision/BEVFormer)
 
 ### P04 · Occupancy 与 4D 场景理解
+
+#### GaussianFormer-2 · Camera-only surround-view 3D semantic occupancy
+
+**证据身份：** 协议锚点 · Accepted · CVPR 2025 · 2025
+
+**严格协议：** SurroundOcc · nuScenes v1.0 with SurroundOcc dense annotations · validation · Surround Camera · six cameras at source resolution 900x1600; ResNet101-DCN initialized from FCOS3D; 12800 Gaussians; channel 192; dense SurroundOcc supervision; single-frame input; paper Table 1
+
+**主指标：** mIoU（越高越好）= **20.82 %**
+
+**同时报告：** IoU=31.74%;Gaussians=12800
+
+**第一次看这个指标：** mIoU 先算每一类预测区域与真值区域的交并比再做类别平均，不等于所有点或体素的总体正确率。
+
+**核验：** Official CVF Table 1 value verified 2026-08-13; fixed code and checkpoints were audited but not executed.
+
+**边界：** Paper-reported validation anchor only and no single comparable SOTA: Table 3 and README use different channel config or checkpoint protocols; mIoU is not overall accuracy calibration temporal stability or closed-loop safety.
+
+**入口：** [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.html) · [代码](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
 
 #### OccMamba · Semantic occupancy prediction
 

@@ -36,6 +36,7 @@ const MAX_CENTER_DELTA = 4;
 const DIMENSION_TOLERANCE = 2;
 const DENSITY_MIN = 1.95;
 const DENSITY_MAX = 2.05;
+const PUBLIC_RENDER_ATTEMPTS = 4;
 
 if (!repository || !renderSha) {
   console.error(
@@ -191,41 +192,65 @@ try {
       }
 
       const context = await browser.newContext(contextOptions);
-      const page = await context.newPage();
+      let page = await context.newPage();
       try {
-        const response = await page.goto(url, {
-          waitUntil: "domcontentloaded",
-          timeout: 45_000,
-        });
-        if (!response || !response.ok()) {
+        let renderReady = false;
+        let lastLoadError = "unknown public-render failure";
+        for (let attempt = 1; attempt <= PUBLIC_RENDER_ATTEMPTS; attempt += 1) {
+          if (attempt > 1) {
+            await page.close().catch(() => {});
+            await new Promise((resolveDelay) =>
+              setTimeout(resolveDelay, attempt * 2_000),
+            );
+            page = await context.newPage();
+          }
+          try {
+            const response = await page.goto(url, {
+              waitUntil: "domcontentloaded",
+              timeout: 45_000,
+            });
+            if (!response || !response.ok()) {
+              throw new Error(
+                `GitHub returned ${response?.status() ?? "no response"}`,
+              );
+            }
+            await page.waitForFunction(
+              ({ expected }) => {
+                const article = document.querySelector(
+                  "article.markdown-body, .markdown-body",
+                );
+                const images = [
+                  ...(article?.querySelectorAll('img[alt^="公式："]') ?? []),
+                ];
+                return (
+                  images.length === expected &&
+                  images.every(
+                    (image) => image.complete && image.naturalWidth > 0,
+                  )
+                );
+              },
+              { expected: candidate.expected },
+              { timeout: 45_000 },
+            );
+            renderReady = true;
+            break;
+          } catch (error) {
+            lastLoadError = error.message;
+            if (attempt === PUBLIC_RENDER_ATTEMPTS) {
+              console.warn(
+                `WARN: ${candidate.path} ${profile.name} did not fully load ` +
+                  `after ${PUBLIC_RENDER_ATTEMPTS} attempts: ${error.message}`,
+              );
+            }
+          }
+        }
+        if (!renderReady) {
           failures.push(
-            `${candidate.path} ${profile.name}: GitHub returned ` +
-              `${response?.status() ?? "no response"}`,
+            `${candidate.path} ${profile.name}: public page did not fully ` +
+              `load after ${PUBLIC_RENDER_ATTEMPTS} isolated attempts ` +
+              `(${lastLoadError})`,
           );
           continue;
-        }
-
-        try {
-          await page.waitForFunction(
-            ({ expected }) => {
-              const article = document.querySelector(
-                "article.markdown-body, .markdown-body",
-              );
-              const images = [
-                ...(article?.querySelectorAll('img[alt^="公式："]') ?? []),
-              ];
-              return (
-                images.length === expected &&
-                images.every(
-                  (image) => image.complete && image.naturalWidth > 0,
-                )
-              );
-            },
-            { expected: candidate.expected },
-            { timeout: 45_000 },
-          );
-        } catch {
-          // Collect the exact DOM state and actionable diagnostics below.
         }
 
         const state = await page.evaluate(

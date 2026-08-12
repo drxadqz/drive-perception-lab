@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **13** 篇，其中 **13** 篇已由权威来源核验为正式录用。
+共 **14** 篇，其中 **14** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-13 · [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](../notes/2026/2026-08-13-gaussianformer-2.md)
+
+`CVPR 2025` · `正式录用` · **Occupancy 与 4D 场景理解** · Surround Camera + Monocular Camera · 3D Semantic Occupancy · 3D Gaussian Representation · Probabilistic Modeling · Sparse Representation · Gaussian Mixture · Distribution-Based Initialization · Efficient Inference · Camera Calibration
+
+> 概率并集与归一化语义混合让稀疏高斯读出有界且显著提分；但独立性、概率校准、初始化配方与时序稳定仍未验证。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-13-gaussianformer-2.md) · [论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [固定版本源码](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
 
 ## 2026-08-08 · [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](../notes/2026/2026-08-08-splatad.md)
 
