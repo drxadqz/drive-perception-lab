@@ -1,13 +1,13 @@
 {
   "formulas": {
     "eq-01-ground-proxy": {
-      "dark_png_sha256": "466853dd120d7cc205d6d57c9005618feace8e394b5a682a19074bc9db3ec2b2",
-      "display_height": 98,
-      "display_width": 716,
-      "light_png_sha256": "cb39e347b9b373c130b23cad5d4d8030af18be49802d646103e84f32034b9383",
-      "pixel_height": 197,
-      "pixel_width": 1433,
-      "source_sha256": "d7a18bfaee71626446afc1d954a4bd7fd0b2d168c87700aabc133804559eea9b"
+      "dark_png_sha256": "815c7bb77d275b2b718e3fd9f44efd1ee6145925e411d5c6c847716b48da4504",
+      "display_height": 158,
+      "display_width": 468,
+      "light_png_sha256": "7fe8ce476862ac0ad02da7b46e1de7fce1892cda71bdeedaac71c644f5a5d8dd",
+      "pixel_height": 315,
+      "pixel_width": 937,
+      "source_sha256": "1be07b25b986ba97ce9ee1020580d2ac6ce72ec86f5c04b6e1153a7734a9695f"
     },
     "eq-03-view-blending": {
       "dark_png_sha256": "ef7e9c3be1ca53456356bd87d19cbdb8508e3ad10bd520056b45891ce751bb78",
