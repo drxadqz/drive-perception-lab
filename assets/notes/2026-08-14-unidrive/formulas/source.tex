@@ -1,0 +1,48 @@
+% Canonical, copyable formula source for the rendered PNGs in this directory.
+% Paper formulas are transcribed from UniDrive, ICLR 2025.
+
+% BEGIN eq-01-ground-proxy
+\begin{aligned}
+\widehat X_c^{V_k}
+&=\frac{f_y^{V_k}(u^{V_k}-c_x^{V_k})}
+{f_x^{V_k}(v^{V_k}-c_y^{V_k})}h_c,\\[-0.35em]
+\widehat Y_c^{V_k}&=h_c,\qquad
+\widehat Z_c^{V_k}=\frac{f_y^{V_k}}{v^{V_k}-c_y^{V_k}}h_c
+\qquad\text{(1)}
+\end{aligned}
+% END eq-01-ground-proxy
+
+% BEGIN eq-03-view-blending
+\begin{aligned}
+I^{V_k}
+&=\frac{1}{W}\sum_{j=1}^{J}w_j I^{V_k\leftarrow C_j}\\[-0.4em]
+&=\frac{1}{W}\sum_{j=1}^{J}w_j\,
+\mathcal T\!\left(I^{C_j},P^{V_k\leftarrow C_j}(\widehat D_c^{V_k})\right)
+\qquad\text{(3)}
+\end{aligned}
+% END eq-03-view-blending
+
+% BEGIN eq-06-projection-error
+\begin{aligned}
+E
+&=\sum_{n=1}^{N}E_{b_n}^{V_k}
+=\sum_{n=1}^{N}\sum_{m=1}^{8}E_{n,m}^{V_k},\\[-0.2em]
+E_{n,m}^{V_k}
+&=D_{n,m}^{V_k}\!\left(
+\left|\Delta\theta_{n,m}^{V_k}\right|
++\left|\Delta\phi_{n,m}^{V_k}\right|
+\right)
+\qquad\text{(6)}
+\end{aligned}
+% END eq-06-projection-error
+
+% BEGIN eq-07-cma-mean
+\begin{aligned}
+\mathbf m^{(t+1)}
+&=\sum_{i=1}^{M_t}w_i\widehat{\mathbf u}_i^{(t)},\\[-0.2em]
+E(\widehat{\mathbf u}_1^{(t)})
+&\ge E(\widehat{\mathbf u}_2^{(t)})
+\ge\cdots\ge E(\widehat{\mathbf u}_{M_t}^{(t)})
+\qquad\text{(7)}
+\end{aligned}
+% END eq-07-cma-mean

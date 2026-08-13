@@ -108,5 +108,16 @@
     "rollback_baseline": "未修改的公开 Occupancy baseline，加其论文已发表的 OccMamba 或 MambaOcc 状态空间主干对照。",
     "falsifier": "若匹配条件下精度—效率 Pareto 不改善，或薄目标与稀有类 IoU 下降，就只保留为源领域负对照，不成立迁移主张。",
     "main_failure": "二维 backbone 吞吐优势可能被多视角投影和稠密三维解码吞没；源码与权重均带非商业限制，不能未经许可用于部署。"
+  },
+  "mvsplat-cross-rig-nvs-collision": {
+    "summary": "MVSplat 从少量已标定图像一次前馈预测三维高斯并合成新视图；但 CoIn3D 已把 ego-centric Gaussian 新视图合成直接用于真实跨相机配置三维检测，因此这里登记为已覆盖碰撞，而不是迁移空白。",
+    "target": "跨 rig 多相机三维检测的标准虚拟视图生成",
+    "source_evidence": "官方 ECCV 论文报告 22 FPS、相对 pixelSplat 参数少十倍且推理快两倍以上；Table 3/Figure 6 显示移除 cost-volume refinement U-Net 在困难单视图区域约损失 0.7 dB PSNR。这些源任务数字不证明检测提升。",
+    "transfer_interface": "在固定 BEV detector 前，用稀疏已标定真实视图合成 canonical virtual rig；保持 detector、数据、训练步数、输出分辨率与推理预算不变。",
+    "adaptation_hypothesis": "宽泛迁移已被 CoIn3D 直接覆盖；MVSplat 只能作为新视图生成器的源领域控制，不能再宣传成无人使用的驾驶迁移机会。",
+    "minimum_test": "先复现 CoIn3D 的 camera-aware data augmentation，再只替换 Gaussian view generator 为 MVSplat；匹配源视图数、输出分辨率、合成视图数、离线资产、训练步数与成本，三次种子报告 cross-rig mAP、校准和资源。",
+    "rollback_baseline": "不做合成的 detector、UniDrive 几何 warp，以及 CoIn3D 原 ego-centric Gaussian novel-view augmentation。",
+    "falsifier": "若 MVSplat 在匹配资产和预算后不能改善真实 cross-rig 精度—校准—资源 Pareto，它只保留为源 renderer，对迁移不成立。",
+    "main_failure": "MVSplat 为 RealEstate10K 的光度新视图训练，可能幻觉动态交通几何；缺 FOV、相机位姿误差、合成成本和离线资产需求都会抹掉检测收益。"
   }
 }

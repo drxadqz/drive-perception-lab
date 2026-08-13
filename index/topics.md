@@ -50,7 +50,7 @@
 |---|---|---:|---|---|
 | P01 | [目标与交通参与者感知](#p01-object-actor-perception) | 1 | 2026-07-26 | 已有锚点 |
 | P02 | [稠密场景语义与几何](#p02-dense-scene-geometry) | 1 | 2026-07-28 | 已有锚点 |
-| P03 | [BEV 与统一场景表示](#p03-bev-unified-representation) | 1 | 2026-07-27 | 已有锚点 |
+| P03 | [BEV 与统一场景表示](#p03-bev-unified-representation) | 2 | 2026-08-14 | 已有锚点 |
 | P04 | [Occupancy 与 4D 场景理解](#p04-occupancy-4d) | 2 | 2026-08-13 | 已有锚点 |
 | P05 | [时序与预测性感知](#p05-temporal-predictive-perception) | 1 | 2026-08-03 | 已有锚点 |
 | P06 | [传感器与多模态融合](#p06-sensors-multimodal-fusion) | 1 | 2026-08-05 | 已有锚点 |
@@ -85,12 +85,13 @@
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 
 <a id="p03-bev-unified-representation"></a>
-### P03 · BEV 与统一场景表示（1）
+### P03 · BEV 与统一场景表示（2）
 
 **范围：** 相机、LiDAR 或雷达到 BEV 的视角变换，稀疏查询、统一多任务 BEV，以及向量或图式场景表示。
 
 **阅读时追问：** 统一表示保留了哪些三维信息，又在哪里因压缩、遮挡或坐标变换而失真？
 
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
 <a id="p04-occupancy-4d"></a>
@@ -200,8 +201,9 @@
 
 - 尚无完成精读。
 
-### Surround Camera（11）
+### Surround Camera（12）
 
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 - 2026-08-13 · [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](../notes/2026/2026-08-13-gaussianformer-2.md) — CVPR 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera + Monocular Camera · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [代码](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
 - 2026-08-08 · [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](../notes/2026/2026-08-08-splatad.md) — CVPR 2025 · 正式录用 · 数据生成、仿真、评测与部署 · Surround Camera + LiDAR + Simulation + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [代码](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
 - 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
@@ -251,8 +253,9 @@
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
 
-### Simulation（1）
+### Simulation（2）
 
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 - 2026-08-08 · [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](../notes/2026/2026-08-08-splatad.md) — CVPR 2025 · 正式录用 · 数据生成、仿真、评测与部署 · Surround Camera + LiDAR + Simulation + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [代码](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
 
 ### Vehicle State（7）
@@ -284,8 +287,9 @@
 
 - 2026-07-26 · [VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking](../notes/2026/2026-07-26-voxelnext.md) — CVPR 2023 · 正式录用 · 目标与交通参与者感知 · LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2023/papers/Chen_VoxelNeXt_Fully_Sparse_VoxelNet_for_3D_Object_Detection_and_Tracking_CVPR_2023_paper.pdf) · [代码](https://github.com/JIA-Lab-research/VoxelNeXt/tree/b5b7d393cd1d0ecbbaeaca365b453b488791035d)
 
-### 3D Object Detection（7）
+### 3D Object Detection（8）
 
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 - 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 - 2026-08-05 · [TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers](../notes/2026/2026-08-05-transfusion.md) — CVPR 2022 · 正式录用 · 传感器与多模态融合 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2022/papers/Bai_TransFusion_Robust_LiDAR-Camera_Fusion_for_3D_Object_Detection_With_Transformers_CVPR_2022_paper.pdf) · [代码](https://github.com/XuyangBai/TransFusion/tree/73c596f7bd3460c17cbcc58dd9bcc5a0896774a8)
 - 2026-08-04 · [UniPAD: A Universal Pre-training Paradigm for Autonomous Driving](../notes/2026/2026-08-04-unipad.md) — CVPR 2024 · 正式录用 · 数据中心学习与基础预训练 · Surround Camera + LiDAR · [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yang_UniPAD_A_Universal_Pre-training_Paradigm_for_Autonomous_Driving_CVPR_2024_paper.pdf) · [代码](https://github.com/Nightmare-n/UniPAD/tree/3d24add15f887a4c5b7b54cb3a6b4a812c24ca52)
@@ -318,8 +322,9 @@
 
 - 2026-08-07 · [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](../notes/2026/2026-08-07-vista.md) — NeurIPS 2024 · 正式录用 · 世界模型与生成式 3D/4D 建模 · Monocular Camera + Vehicle State · [论文](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [代码](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
 
-### BEV（1）
+### BEV（2）
 
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 - 2026-08-06 · [Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving](../notes/2026/2026-08-06-robobev.md) — IEEE TPAMI 2025 · 正式录用 · 鲁棒、开放世界与可信感知 · Surround Camera + LiDAR · [论文](https://arxiv.org/pdf/2405.17426) · [代码](https://github.com/worldbench/RoboBEV/tree/3a32edaba9434dc27791bd25a1168951d091bd89)
 
 ### Bird's-Eye View（2）
@@ -327,16 +332,25 @@
 - 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md) — ICLR 2023 · 正式录用 · 道路结构、HD Map 与定位 · Surround Camera + Vehicle State · [论文](https://openreview.net/pdf?id=k7p_YAO7yE) · [代码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
-### Camera Calibration（4）
+### Camera Calibration（5）
 
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 - 2026-08-13 · [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](../notes/2026/2026-08-13-gaussianformer-2.md) — CVPR 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera + Monocular Camera · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [代码](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
 - 2026-07-29 · [MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction](../notes/2026/2026-07-29-maptr.md) — ICLR 2023 · 正式录用 · 道路结构、HD Map 与定位 · Surround Camera + Vehicle State · [论文](https://openreview.net/pdf?id=k7p_YAO7yE) · [代码](https://github.com/hustvl/MapTR/tree/a6872d8d9670bde17b4b01560f1221f88b443d55)
 - 2026-07-28 · [SurroundDepth: Entangling Surrounding Views for Self-Supervised Multi-Camera Depth Estimation](../notes/2026/2026-07-28-surrounddepth.md) — CoRL 2022 · 正式录用 · 稠密场景语义与几何 · Surround Camera · [论文](https://proceedings.mlr.press/v205/wei23a/wei23a.pdf) · [代码](https://github.com/weiyithu/SurroundDepth/tree/22dfecfe8fca62a38d0f682ff7bf65b41aba3cac)
 - 2026-07-27 · [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](../notes/2026/2026-07-27-bevformer.md) — ECCV 2022 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Vehicle State · [论文](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136690001.pdf) · [代码](https://github.com/fundamentalvision/BEVFormer/tree/66b65f3a1f58caf0507cb2a971b9c0e7f842376c)
 
+### Camera Configuration（1）
+
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
+
 ### Camera Rendering（1）
 
 - 2026-08-08 · [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](../notes/2026/2026-08-08-splatad.md) — CVPR 2025 · 正式录用 · 数据生成、仿真、评测与部署 · Surround Camera + LiDAR + Simulation + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_CVPR_2025_paper.pdf) · [代码](https://github.com/georghess/neurad-studio/tree/c24765e3c37164db187119a224f3b9b83914f4bb)
+
+### CARLA Benchmark（1）
+
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 
 ### Communication Latency（1）
 
@@ -349,6 +363,10 @@
 ### Counterfactual Reasoning（1）
 
 - 2026-07-25 · [OmniDrive: A Holistic Vision-Language Dataset for Autonomous Driving with Counterfactual Reasoning](../notes/2026/2026-07-25-omnidrive.md) — CVPR 2025 · 正式录用 · 大视觉模型、VLM、LLM 与 VLA · Surround Camera + Language + Map + Vehicle State · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_OmniDrive_A_Holistic_Vision-Language_Dataset_for_Autonomous_Driving_with_Counterfactual_CVPR_2025_paper.pdf) · [代码](https://github.com/NVlabs/OmniDrive/tree/ced207333cb18b69a232cbb9f82bf52089227f12)
+
+### Cross-Rig Generalization（1）
+
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 
 ### Cross-View Transformer（1）
 
@@ -411,6 +429,10 @@
 ### Gaussian Mixture（1）
 
 - 2026-08-13 · [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](../notes/2026/2026-08-13-gaussianformer-2.md) — CVPR 2025 · 正式录用 · Occupancy 与 4D 场景理解 · Surround Camera + Monocular Camera · [论文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [代码](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
+
+### Geometric Projection（1）
+
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 
 ### Heterogeneous Attention（1）
 
@@ -615,6 +637,10 @@
 ### Video Diffusion（1）
 
 - 2026-08-07 · [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](../notes/2026/2026-08-07-vista.md) — NeurIPS 2024 · 正式录用 · 世界模型与生成式 3D/4D 建模 · Monocular Camera + Vehicle State · [论文](https://proceedings.neurips.cc/paper_files/paper/2024/file/a6a066fb44f2fe0d36cf740c873b8890-Paper-Conference.pdf) · [代码](https://github.com/OpenDriveLab/Vista/tree/cc9821b4253ca7987c32757613d2fc2448fa9f5d)
+
+### Virtual Camera（1）
+
+- 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md) — ICLR 2025 · 正式录用 · BEV 与统一场景表示 · Surround Camera + Simulation · [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 
 ### VLM（1）
 

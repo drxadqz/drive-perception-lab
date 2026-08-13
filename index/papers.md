@@ -5,8 +5,18 @@
 > 本页由 `index/papers.csv` 自动生成。请不要手工编辑；运行
 > `python scripts/rebuild_index.py` 更新。
 
-共 **14** 篇，其中 **14** 篇已由权威来源核验为正式录用。
+共 **15** 篇，其中 **15** 篇已由权威来源核验为正式录用。
 每篇按“图 → 公式 → 结果 → 源码 → 结论”组织；“代码已审”不等于“结果已复现”。
+
+## 2026-08-14 · [UniDrive: Towards Universal Driving Perception Across Camera Configurations](../notes/2026/2026-08-14-unidrive.md)
+
+`ICLR 2025` · `正式录用` · **BEV 与统一场景表示** · Surround Camera + Simulation · Camera Configuration · Virtual Camera · 3D Object Detection · BEV · Geometric Projection · Camera Calibration · Cross-Rig Generalization · CARLA Benchmark
+
+> 虚拟相机预处理显著收窄模拟跨 rig 检测退化；但真实数据、效率、统计重复及核心投影/CMA-ES 官方实现均缺。
+
+论文、补充材料与官方源码已审；官方源码已核到固定 commit；**Checkpoint 未运行**
+
+[▶ 开始精读](../notes/2026/2026-08-14-unidrive.md) · [论文原文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [固定版本源码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 
 ## 2026-08-13 · [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](../notes/2026/2026-08-13-gaussianformer-2.md)
 
