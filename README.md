@@ -11,39 +11,39 @@
 [💡 全部设计卡](taste/README.md) · [🎯 为什么选它](docs/daily-selection-and-gap-audit.md)
 
 <!-- AUTO:STATS:START -->
-**14 篇精读** · **14 篇正式录用** · **14 篇关键源码已审** · **9 张算法 Taste 卡** · **覆盖 13/13 个感知主方向** · 最近更新：**2026-08-13**
+**15 篇精读** · **15 篇正式录用** · **15 篇关键源码已审** · **10 张算法 Taste 卡** · **覆盖 13/13 个感知主方向** · 最近更新：**2026-08-14**
 <!-- AUTO:STATS:END -->
 
 <!-- AUTO:LATEST:START -->
 ## ▶ 今日论文精读
 
-### [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](notes/2026/2026-08-13-gaussianformer-2.md)
+### [UniDrive: Towards Universal Driving Perception Across Camera Configurations](notes/2026/2026-08-14-unidrive.md)
 
-**CVPR 2025**
+**ICLR 2025**
 
-> 概率并集与归一化语义混合让稀疏高斯读出有界且显著提分；但独立性、概率校准、初始化配方与时序稳定仍未验证。
+> 虚拟相机预处理显著收窄模拟跨 rig 检测退化；但真实数据、效率、统计重复及核心投影/CMA-ES 官方实现均缺。
 
 **进入后按这一条路线读：** 原文图 → 标准公式 → 关键结果 → 固定版本源码 → 证据边界
 
-[正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.html) · **Occupancy 与 4D 场景理解** · Surround Camera + Monocular Camera · 3D Semantic Occupancy · 3D Gaussian Representation · Probabilistic Modeling · Sparse Representation · Gaussian Mixture · Distribution-Based Initialization · Efficient Inference · Camera Calibration · 官方源码已核到固定 commit · **Checkpoint 未运行**
+[正式录用](https://proceedings.iclr.cc/paper_files/paper/2025/hash/41badd36e935f8a80175e95d8bc6192e-Abstract-Conference.html) · **BEV 与统一场景表示** · Surround Camera + Simulation · Camera Configuration · Virtual Camera · 3D Object Detection · BEV · Geometric Projection · Camera Calibration · Cross-Rig Generalization · CARLA Benchmark · 官方源码已核到固定 commit · **Checkpoint 未运行**
 
-[论文原文](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [官方代码 @ b7e22bfc](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
+[论文原文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [官方代码 @ c73f887d](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 <!-- AUTO:LATEST:END -->
 
 <!-- AUTO:TASTE:START -->
 ## 🧩 今日算法 Taste
 
-### [Probabilistic Union Geometry Readout](taste/2026/2026-08-13-probabilistic-union-geometry-readout.md)
+### [Virtual Camera Canonicalization Preprocessor](taste/2026/2026-08-14-virtual-camera-projection.md)
 
-> 多个局部原语表达同一存在事件时用有界并集聚合几何并独立归一化语义；先匹配预算测试校准和相关重复。
+> 已知几何 nuisance 时先统一输入合同再复用下游网络；迁移时必须显式携带覆盖 mask 并与 camera-aware conditioning 匹配比较。
 
-**来自：** [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.pdf) · [正式录用](https://openaccess.thecvf.com/content/CVPR2025/html/Huang_GaussianFormer-2_Probabilistic_Gaussian_Superposition_for_Efficient_3D_Occupancy_Prediction_CVPR_2025_paper.html) · **Bounded Probabilistic Set Aggregation**
+**来自：** [UniDrive: Towards Universal Driving Perception Across Camera Configurations](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [正式录用](https://proceedings.iclr.cc/paper_files/paper/2025/hash/41badd36e935f8a80175e95d8bc6192e-Abstract-Conference.html) · **Geometry-First Input Canonicalization**
 
-**可迁移到：** Sparse Occupancy · Gaussian Scene Completion · Multi-Sensor Existence Fusion · Map-Free Free-Space Estimation
+**可迁移到：** Cross-Rig BEV · Map Perception · Multi-Camera Occupancy · Calibration-Robust Detection
 
-**先记边界：** 局部值不似概率或原语高度相关时会过度自信并饱和梯度；完整读出消融不能把全部增益归给单一 noisy-OR。
+**先记边界：** 代理表面、错误标定、缺 FOV、遮挡冲突和重采样开销会失效；原文没有核心投影实现或单组件消融。
 
-[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-13-probabilistic-union-geometry-readout.md) · [固定实现 @ b7e22bfc](https://github.com/huang-yh/GaussianFormer/tree/b7e22bfc04cd6360cdee74be5af7fdace102f0a3)
+[看原理图、接口合同、适用场景与反证实验 →](taste/2026/2026-08-14-virtual-camera-projection.md) · [固定实现 @ c73f887d](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 <!-- AUTO:TASTE:END -->
 
 ## 三种读法
@@ -75,9 +75,9 @@
 ## 最近完成
 
 <!-- AUTO:RECENT:START -->
+- **2026-08-14 · ICLR 2025** — [UniDrive: Towards Universal Driving Perception Across Camera Configurations](notes/2026/2026-08-14-unidrive.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-13 · CVPR 2025** — [GaussianFormer-2: Probabilistic Gaussian Superposition for Efficient 3D Occupancy Prediction](notes/2026/2026-08-13-gaussianformer-2.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 - **2026-08-08 · CVPR 2025** — [SplatAD: Real-Time Lidar and Camera Rendering with 3D Gaussian Splatting for Autonomous Driving](notes/2026/2026-08-08-splatad.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
-- **2026-08-07 · NeurIPS 2024** — [Vista: A Generalizable Driving World Model with High Fidelity and Versatile Controllability](notes/2026/2026-08-07-vista.md) — 官方源码已核到固定 commit；**Checkpoint 未运行**
 <!-- AUTO:RECENT:END -->
 
 ## 推荐下一篇或下一张设计卡

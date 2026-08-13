@@ -1,6 +1,6 @@
 # 自动驾驶感知 SOTA 与指标雷达
 
-> **快照日期：2026-08-13。** 当前收录 22 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
+> **快照日期：2026-08-14。** 当前收录 23 个协议卡，其中 8 个来自官方动态榜单。这里的 SOTA 只表示列明协议内的可比较前沿，不是把不同传感器、数据划分、外部数据或指标混成总排名。
 
 [返回首页](../README.md) · [查看机器索引](../index/sota.csv) · [查看方法与日更规则](../docs/research-radar-methodology.md)
 
@@ -105,6 +105,24 @@
 **入口：** [论文](https://arxiv.org/abs/2312.10035) · [官方榜单](https://nuscenes.org/lidar-segmentation)
 
 ### P03 · BEV 与统一场景表示
+
+#### UniDrive · Cross-camera-configuration camera-only 3D object detection
+
+**证据身份：** 协议锚点 · Accepted · ICLR 2025 · 2025
+
+**严格协议：** UniDrive CARLA Multi-Camera Configuration Benchmark · CARLA version unspecified in paper; official README says 0.9.10 · validation · Surround Camera + Simulation · train on 6x80-degree-a rig; evaluate on 6x60-degree rig; raw 1600x900 cameras; six object classes; optimized virtual-camera configuration; BEVFusion-C detector; exact calibration; paper Figure 6
+
+**主指标：** mAP（越高越好）= **59.6 %**
+
+**同时报告：** same-rig mAP=69.4%;direct BEVFusion-C cross-rig mAP=1.8%
+
+**第一次看这个指标：** 该数字只回答列明协议中的一个问题，不能脱离数据、输入和评测设置外推为闭环安全。
+
+**核验：** Official ICLR Figure 6 value verified 2026-08-14; the fixed repository was audited but does not publish the virtual projection or CMA-ES implementation and this repository did not rerun the result.
+
+**边界：** Benchmark anchor only and no single comparable SOTA: a CARLA validation result with one detector and exact calibration is not a real-world cross-rig ranking; mAP is not overall accuracy calibration efficiency or closed-loop safety.
+
+**入口：** [论文](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · [正式录用](https://proceedings.iclr.cc/paper_files/paper/2025/hash/41badd36e935f8a80175e95d8bc6192e-Abstract-Conference.html) · [代码](https://github.com/ywyeli/UniDrive/tree/c73f887d792fbab27d8275e85839e959b4c24f3c)
 
 #### BEVFormer as a representation anchor · Unified BEV representation across detection and map tasks
 

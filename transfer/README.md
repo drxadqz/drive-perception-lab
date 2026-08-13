@@ -1,6 +1,6 @@
 # 跨领域强算法迁移雷达
 
-> **检索快照：2026-08-13。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 7 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
+> **检索快照：2026-08-14。** 当前重点保留 3 个可做受控验证的窄迁移假设，并公开 8 个已覆盖或部分覆盖的碰撞项。“可迁移”只表示瓶颈和接口值得测试，不表示零改动必然提升，更不表示已达到自动驾驶 SOTA。
 
 [返回首页](../README.md) · [查看机器索引](../index/transfer.csv) · [查看检索与评分方法](../docs/research-radar-methodology.md)
 
@@ -317,6 +317,45 @@
 **公开边界：** SplatAD already transfers the Mip-Splatting EWA mechanism and publishes an ablation so this row is a direct collision and legal-risk reminder not a highlighted opportunity.
 
 **源论文与代码：** [论文](https://openaccess.thecvf.com/content/CVPR2024/papers/Yu_Mip-Splatting_Alias-free_3D_Gaussian_Splatting_CVPR_2024_paper.pdf) · [正式入口](https://openaccess.thecvf.com/content/CVPR2024/html/Yu_Mip-Splatting_Alias-free_3D_Gaussian_Splatting_CVPR_2024_paper.html) · [官方代码 @ dda02ab5](https://github.com/autonomousvision/mip-splatting/tree/dda02ab5ecf45d6edb8c540d9bb65c7e451345a9) · 许可证 Inria research-only non-commercial。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
+
+### MVSplat feed-forward sparse-view Gaussian prediction → 跨 rig 多相机三维检测的标准虚拟视图生成
+
+**检索结论：** [已覆盖] · Level 1 - direct mechanism coverage · 优先级 3.2/10 · 下次复核 2026-09-13
+
+**30 秒画面：** MVSplat 从少量已标定图像一次前馈预测三维高斯并合成新视图；但 CoIn3D 已把 ego-centric Gaussian 新视图合成直接用于真实跨相机配置三维检测，因此这里登记为已覆盖碰撞，而不是迁移空白。
+
+**源领域与证据：** Generalizable novel-view synthesis and 3D graphics；官方 ECCV 论文报告 22 FPS、相对 pixelSplat 参数少十倍且推理快两倍以上；Table 3/Figure 6 显示移除 cost-volume refinement U-Net 在困难单视图区域约损失 0.7 dB PSNR。这些源任务数字不证明检测提升。
+
+**迁移接口：** 在固定 BEV detector 前，用稀疏已标定真实视图合成 canonical virtual rig；保持 detector、数据、训练步数、输出分辨率与推理预算不变。
+
+**适配假设：** [判断] 宽泛迁移已被 CoIn3D 直接覆盖；MVSplat 只能作为新视图生成器的源领域控制，不能再宣传成无人使用的驾驶迁移机会。
+
+**三路检索式：**
+
+- 问题词：configuration invariant multi-camera 3D detection novel view synthesis autonomous driving
+- 机制词：feed-forward 3D Gaussian sparse-view virtual camera canonicalization
+- 同义/邻域词：cross-rig meta-camera view synthesis BEV camera layout
+
+**检索来源：** ECVA proceedings checked 2026-08-14 · CVF ICLR and arXiv checked 2026-08-14 · OpenAlex three-query search checked 2026-08-14 with one encoding-limited tail · Crossref title and DOI checked 2026-08-14 · official MVSplat and UniDrive GitHub checked 2026-08-14
+
+**最接近工作：**
+
+- [CoIn3D](https://openaccess.thecvf.com/content/CVPR2026/papers/Kuang_CoIn3D_Revisiting_Configuration-Invariant_Multi-Camera_3D_Object_Detection_CVPR_2026_paper.pdf)
+- [UniDrive](https://proceedings.iclr.cc/paper_files/paper/2025/hash/41badd36e935f8a80175e95d8bc6192e-Abstract-Conference.html)
+- [SplatAD](https://openaccess.thecvf.com/content/CVPR2025/html/Hess_SplatAD_Real-Time_Lidar_and_Camera_Rendering_with_3D_Gaussian_Splatting_for_Autonomous_Driving_CVPR_2025_paper.html)
+- [DrivingGaussian](https://openaccess.thecvf.com/content/CVPR2024/html/Zhou_DrivingGaussian_Composite_Gaussian_Splatting_for_Surrounding_Dynamic_Autonomous_Driving_Scenes_CVPR_2024_paper.html)
+
+**最小接入实验：** 先复现 CoIn3D 的 camera-aware data augmentation，再只替换 Gaussian view generator 为 MVSplat；匹配源视图数、输出分辨率、合成视图数、离线资产、训练步数与成本，三次种子报告 cross-rig mAP、校准和资源。
+
+**回滚基线：** 不做合成的 detector、UniDrive 几何 warp，以及 CoIn3D 原 ego-centric Gaussian novel-view augmentation。
+
+**什么会推翻它：** 若 MVSplat 在匹配资产和预算后不能改善真实 cross-rig 精度—校准—资源 Pareto，它只保留为源 renderer，对迁移不成立。
+
+**最大失效条件：** MVSplat 为 RealEstate10K 的光度新视图训练，可能幻觉动态交通几何；缺 FOV、相机位姿误差、合成成本和离线资产需求都会抹掉检测收益。
+
+**公开边界：** CoIn3D already transfers Gaussian novel-view synthesis into real cross-configuration driving detection; this record is a direct collision and source-control reminder not a highlighted opportunity.
+
+**源论文与代码：** [论文](https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/03187.pdf) · [正式入口](https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/3187_ECCV_2024_paper.php) · [官方代码 @ 01f9a28e](https://github.com/donydchen/mvsplat/tree/01f9a28edb5eb68416e7e63b01f8d90c3bdfbf01) · 许可证 MIT。这里只核验仓库身份、固定 SHA 与许可证，没有运行源码或证明迁移收益。
 
 ### PiToMe → 高效点云与多视图三维感知
 

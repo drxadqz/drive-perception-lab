@@ -4,7 +4,7 @@
 
 > 这里每天只收一项真正值得迁移的设计：它可以是网络模块、主干网络、表示方式、训练单元或系统结构，但必须有明确瓶颈、可描述的接口、公开证据和失败边界。它不是又一份论文清单，也不把整篇论文包装成“即插即用”。
 
-共 **9** 张设计卡；最近更新：**2026-08-13**。
+共 **10** 张设计卡；最近更新：**2026-08-14**。
 
 ## 怎么读一张卡
 
@@ -13,6 +13,16 @@
 3. 最后看消融能支持到哪一层，并设计一个能推翻迁移假设的最小实验。
 
 ## 全部设计卡
+
+### 2026-08-14 · [Virtual Camera Canonicalization Preprocessor](2026/2026-08-14-virtual-camera-projection.md)
+
+**Geometry-First Input Canonicalization** · 来自 [UniDrive: Towards Universal Driving Perception Across Camera Configurations](https://proceedings.iclr.cc/paper_files/paper/2025/file/41badd36e935f8a80175e95d8bc6192e-Paper-Conference.pdf) · ICLR 2025
+
+> 已知几何 nuisance 时先统一输入合同再复用下游网络；迁移时必须显式携带覆盖 mask 并与 camera-aware conditioning 匹配比较。
+
+**可迁移到：** Cross-Rig BEV · Map Perception · Multi-Camera Occupancy · Calibration-Robust Detection
+
+**主要边界：** 代理表面、错误标定、缺 FOV、遮挡冲突和重采样开销会失效；原文没有核心投影实现或单组件消融。
 
 ### 2026-08-13 · [Probabilistic Union Geometry Readout](2026/2026-08-13-probabilistic-union-geometry-readout.md)
 
